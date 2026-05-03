@@ -9478,20 +9478,40 @@ async function _doAdminDirectLogin() {
   const u   = (document.getElementById('_adm_user')||{}).value||'';
   const p   = (document.getElementById('_adm_pass')||{}).value||'';
   const err = document.getElementById('_adm_err');
-  const { data, error } = await _supa.auth.signInWithPassword({ email: u.trim(), password: p });
-  if (error || !data.session || _getRole(data.user.email) !== 'admin') {
+
+  // ── Tentative Supabase Auth ──────────────────────────────
+  if (_supaReady) {
+    const { data, error } = await _supa.auth.signInWithPassword({ email: u.trim(), password: p });
+    if (!error && data.session && _getRole(data.user.email) === 'admin') {
+      document.getElementById('_adminQuickLogin').remove();
+      document.body.style.overflow = 'hidden';
+      abInitData();
+      document.getElementById('dashAdminOverlay').classList.add('open');
+      abGoPage('overview');
+      abToast('Bienvenue, Super Admin 👋', 'i');
+      return;
+    }
     if (data?.session) await _supa.auth.signOut();
-    if (err) { err.style.display = 'block'; }
-    const pi = document.getElementById('_adm_pass');
-    if (pi) { pi.value = ''; pi.focus(); pi.style.borderColor = '#f04f5a'; setTimeout(() => { pi.style.borderColor = 'rgba(255,255,255,0.1)'; }, 1500); }
+  }
+
+  // ── Fallback démo (si Supabase non configuré ou compte inexistant) ──
+  const demo = DEMO_USERS[u.trim().toLowerCase()];
+  if (demo && demo.password === p && demo.role === 'admin') {
+    if (err) err.style.display = 'none';
+    document.getElementById('_adminQuickLogin').remove();
+    document.body.style.overflow = 'hidden';
+    _supaRole = 'admin';
+    abInitData();
+    document.getElementById('dashAdminOverlay').classList.add('open');
+    abGoPage('overview');
+    abToast('Bienvenue, Super Admin (démo) 👋', 'i');
     return;
   }
-  document.getElementById('_adminQuickLogin').remove();
-  document.body.style.overflow = 'hidden';
-  abInitData();
-  document.getElementById('dashAdminOverlay').classList.add('open');
-  abGoPage('overview');
-  abToast('Bienvenue, Super Admin 👋', 'i');
+
+  // ── Échec ───────────────────────────────────────────────
+  if (err) { err.style.display = 'block'; }
+  const pi = document.getElementById('_adm_pass');
+  if (pi) { pi.value = ''; pi.focus(); pi.style.borderColor = '#f04f5a'; setTimeout(() => { pi.style.borderColor = 'rgba(255,255,255,0.1)'; }, 1500); }
 }
 
 // PIN désactivé — accès mobile via email/password Supabase Auth
