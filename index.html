@@ -685,7 +685,7 @@ nav {
 
 /* ===== SHARED COMPONENTS ===== */
 .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
-.section { padding: 96px 0; }
+.section { padding: 56px 0; }
 .section-sm { padding: 64px 0; }
 .section-label {
   display: inline-flex; align-items: center; gap: 8px;
@@ -701,12 +701,12 @@ h1, h2, h3, h4 {
   line-height: 1.05;
 }
 .hero-title {
-  font-size: clamp(76px, 11vw, 144px);
+  font-size: clamp(40px, 5.5vw, 72px);
   font-weight: 900; letter-spacing: -1px;
   text-transform: uppercase;
 }
 .section-title {
-  font-size: clamp(54px, 7.5vw, 108px);
+  font-size: clamp(30px, 4vw, 54px);
   font-weight: 800; text-transform: uppercase;
   letter-spacing: -1px;
 }
@@ -763,7 +763,7 @@ h1, h2, h3, h4 {
 .stat-block { text-align: center; }
 .stat-num {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: clamp(68px, 9.5vw, 124px); font-weight: 900;
+  font-size: clamp(36px, 5vw, 64px); font-weight: 900;
   color: var(--orange); line-height: 1;
 }
 .stat-label { font-size: 19px; color: var(--text-dim); margin-top: 6px; }
@@ -808,7 +808,7 @@ h1, h2, h3, h4 {
   background-size: 60px 60px;
   mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
 }
-.hero-content { position: relative; z-index: 1; padding: 80px 0 64px; }
+.hero-content { position: relative; z-index: 1; padding: 48px 0 40px; }
 .hero-tag {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 6px 16px; border-radius: 100px;
@@ -821,9 +821,9 @@ h1, h2, h3, h4 {
 .hero-title em { font-style: normal; color: var(--orange); }
 .hero-subtitle {
   font-size: 24px; line-height: 1.8; color: var(--text-dim);
-  max-width: 720px; margin-bottom: 48px;
+  max-width: 720px; margin-bottom: 28px;
 }
-.hero-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 56px; }
+.hero-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; }
 .hero-stats {
   display: flex; gap: 48px; padding-top: 40px;
   border-top: 1px solid var(--border);
@@ -975,7 +975,7 @@ h1, h2, h3, h4 {
 
 /* ===== PAGE 2: MARKETPLACE ===== */
 .marketplace-hero {
-  padding: 120px 0 64px;
+  padding: 72px 0 40px;
   background: linear-gradient(180deg, rgba(232,96,10,0.05) 0%, transparent 100%);
   border-bottom: 1px solid var(--border);
 }
@@ -1033,7 +1033,7 @@ select:focus, input[type="text"]:focus {
 
 /* ===== PAGE 3 & 4: SOLUTIONS ===== */
 .solutions-hero {
-  padding: 120px 0 64px;
+  padding: 72px 0 40px;
   position: relative;
 }
 .solutions-hero-bg {
@@ -1142,7 +1142,7 @@ select:focus, input[type="text"]:focus {
 .faq-item.open .toggle { transform: rotate(45deg); }
 
 /* ===== PAGE 6: PLATEFORME ===== */
-.platform-hero { padding: 120px 0 64px; }
+.platform-hero { padding: 72px 0 40px; }
 .features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .feature-card {
   display: flex; gap: 16px; align-items: flex-start;
@@ -1188,7 +1188,7 @@ select:focus, input[type="text"]:focus {
 .android-feat::before { content: '✓'; color: var(--orange); font-weight: 700; }
 
 /* ===== PAGE 7: DEVIS ===== */
-.devis-hero { padding: 120px 0 64px; }
+.devis-hero { padding: 72px 0 40px; }
 .form-container {
   max-width: 800px; margin: 0 auto;
   background: var(--steel); border: 1px solid var(--border);
@@ -1257,7 +1257,7 @@ textarea { resize: vertical; min-height: 100px; }
 
 /* ===== SECTION SIÈGE / CONTACT ===== */
 .siege-section {
-  padding: 80px 0;
+  padding: 48px 0;
   background: var(--steel);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
@@ -1325,7 +1325,7 @@ textarea { resize: vertical; min-height: 100px; }
 
 /* ===== CTA SECTION ===== */
 .cta-section {
-  padding: 96px 0;
+  padding: 56px 0;
   background: linear-gradient(135deg, rgba(232,96,10,0.12) 0%, rgba(10,12,15,0) 60%);
   border-top: 1px solid var(--border);
 }
@@ -1334,10 +1334,10 @@ textarea { resize: vertical; min-height: 100px; }
 }
 .cta-title {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: clamp(58px, 8.5vw, 112px); font-weight: 900;
+  font-size: clamp(32px, 4.5vw, 58px); font-weight: 900;
   text-transform: uppercase; margin-bottom: 16px;
 }
-.cta-sub { font-size: 24px; color: var(--text-dim); margin-bottom: 48px; }
+.cta-sub { font-size: 24px; color: var(--text-dim); margin-bottom: 28px; }
 .cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
 /* ===== FOOTER ===== */
@@ -1346,7 +1346,7 @@ footer {
   border-top: 1px solid var(--border);
   padding: 64px 0 32px;
 }
-.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 28px; }
 .footer-brand p { font-size: 14px; color: var(--text-muted); margin: 16px 0 24px; line-height: 1.7; }
 .footer-col h4 {
   font-family: 'Barlow Condensed', sans-serif;
@@ -1407,7 +1407,7 @@ footer {
   .steps-line::before { display: none; }
   .cta-btns { flex-direction: column; align-items: center; }
   .solution-card { padding: 24px; }
-  .section { padding: 64px 0; }
+  .section { padding: 40px 0; }
   .hero-btns { flex-direction: column; }
   .hero-btns .btn { width: 100%; justify-content: center; }
 }
@@ -1418,7 +1418,7 @@ footer {
 
 /* ===== SWIPER CAROUSEL ===== */
 .engins-carousel-section {
-  padding: 96px 0;
+  padding: 56px 0;
   background: var(--steel);
   overflow: hidden;
 }
@@ -1431,12 +1431,12 @@ footer {
 .engins-carousel-section .carousel-label::before { content: ''; width: 24px; height: 2px; background: var(--orange); }
 .engins-carousel-section h2 {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: clamp(54px, 7.5vw, 108px);
+  font-size: clamp(30px, 4vw, 54px);
   font-weight: 800; text-transform: uppercase;
   letter-spacing: -1px; margin-bottom: 12px;
 }
 .engins-carousel-section .carousel-sub {
-  font-size: 22px; color: var(--text-dim); margin-bottom: 56px; max-width: 640px;
+  font-size: 24px; color: var(--text-dim); margin-bottom: 32px; max-width: 640px;
 }
 .swiper-outer { position: relative; padding: 0 48px; }
 .engins-swiper { overflow: hidden !important; padding-bottom: 52px !important; }
@@ -2138,7 +2138,7 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
 .supa-status-dot.error  { background:#f87171; }
 
 /* PAGE TARIFS */
-.tarifs-hero { padding:120px 0 64px; position:relative; }
+.tarifs-hero { padding:72px 0 40px; position:relative; }
 .tarifs-hero-bg {
   position:absolute; inset:0;
   background:radial-gradient(ellipse 60% 50% at 70% 30%, rgba(232,96,10,.08), transparent 60%);
@@ -2202,7 +2202,7 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
 .tarif-faq { max-width:720px; margin:0 auto; }
 
 /* PAGE PARTENAIRES */
-.partenaires-hero { padding:120px 0 64px; position:relative; overflow:hidden; }
+.partenaires-hero { padding:72px 0 40px; position:relative; overflow:hidden; }
 .partenaires-hero-bg {
   position:absolute; inset:0;
   background:
@@ -3089,15 +3089,15 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
 /* ══ GRILLE 3 COLONNES VIDÉOS ══ */
 .videos-grid-3 {
   display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 24px; margin-bottom: 48px;
+  gap: 24px; margin-bottom: 28px;
 }
 @media(max-width:1024px) { .videos-grid-3 { grid-template-columns: repeat(2,1fr); } }
 @media(max-width:640px)  { .videos-grid-3 { grid-template-columns: 1fr; } .video-featured { grid-template-columns:1fr; } }
 
 /* ══ ANIMATIONS SCROLL — IntersectionObserver ══ */
 .anim-fade-up {
-  opacity: 0;
-  transform: translateY(40px);
+  opacity: 1;
+  transform: translateY(0);
   transition: opacity .7s cubic-bezier(.22,1,.36,1),
               transform .7s cubic-bezier(.22,1,.36,1);
   transition-delay: var(--anim-delay, 0ms);
@@ -3105,14 +3105,14 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
 .anim-fade-up.visible { opacity: 1; transform: translateY(0); }
 
 .anim-fade-left {
-  opacity: 0; transform: translateX(-40px);
+  opacity: 1; transform: translateX(0);
   transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1);
   transition-delay: var(--anim-delay, 0ms);
 }
 .anim-fade-left.visible { opacity: 1; transform: translateX(0); }
 
 .anim-scale {
-  opacity: 0; transform: scale(.92);
+  opacity: 1; transform: scale(1);
   transition: opacity .6s ease, transform .6s ease;
   transition-delay: var(--anim-delay, 0ms);
 }
@@ -3147,14 +3147,14 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
 
 .videos-engins-section { background: var(--bg); }
 .videos-lead {
-  font-size: 24px; color: var(--text-dim); margin-bottom: 56px;
+  font-size: 17px; color: var(--text-dim); margin-bottom: 40px;
   max-width: 680px;
 }
 .videos-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 28px;
-  margin-bottom: 48px;
+  margin-bottom: 28px;
 }
 @media(max-width: 768px) { .videos-grid { grid-template-columns: 1fr; gap: 20px; } }
 .video-card {
@@ -3229,7 +3229,7 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
 }
 /* ── SECTION COMMENTAIRES (public) ───────────────────── */
 .comments-section {
-  padding: 96px 0;
+  padding: 56px 0;
   background: linear-gradient(180deg, var(--steel) 0%, #0a0c0f 100%);
 }
 .comments-grid {
@@ -3777,7 +3777,7 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
         <button class="btn btn-outline" onclick="showPage('devis')">📋 Demander une démo</button>
         <button class="btn btn-steel" onclick="openPlatform()">🔐 Se connecter à la Plateforme</button>
       </div>
-      <div class="hero-stats anim-fade-up" style="--anim-delay:200ms">
+      <div class="hero-stats" style="--anim-delay:200ms">
         <div class="stat-block"><div class="stat-num">4+</div><div class="stat-label">Régions couvertes</div></div>
         <div class="stat-block"><div class="stat-num">GPS</div><div class="stat-label">Suivi temps réel</div></div>
         <div class="stat-block"><div class="stat-num">B2B</div><div class="stat-label">Marketplace vérifiée</div></div>
@@ -4268,15 +4268,15 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
   <!-- VIDÉOS EN ACTION -->
   <section class="section videos-engins-section">
     <div class="container">
-      <div class="section-label anim-fade-up">Sur le terrain</div>
-      <h2 class="section-title anim-fade-up" style="margin-bottom:16px;">Nos équipements<br><span class="text-orange">en action</span></h2>
-      <p class="videos-lead anim-fade-up">Camions benne, chargeuses, pelles mécaniques et grues au travail sur les chantiers guinéens et miniers d'Afrique de l'Ouest.</p>
+      <div class="section-label">Sur le terrain</div>
+      <h2 class="section-title" style="margin-bottom:16px;">Nos équipements<br><span class="text-orange">en action</span></h2>
+      <p class="videos-lead">Camions benne, chargeuses, pelles mécaniques et grues au travail sur les chantiers guinéens et miniers d'Afrique de l'Ouest.</p>
 
       <!-- VIDÉO FEATURED — grande largeur -->
-      <div class="video-featured anim-fade-up" style="margin-bottom:32px;">
+      <div class="video-featured" style="margin-bottom:32px;">
         <div class="video-wrap video-wrap-featured">
           <!-- 💡 Remplacez par votre vidéo phare : chantier, présentation fleet, etc. -->
-          <iframe src="https://www.youtube.com/embed/lnGzfeFBCHM?rel=0&modestbranding=1&color=white&autoplay=0"
+          <iframe src="https://www.youtube.com/embed/UvW6LsK8ASE?rel=0&modestbranding=1&color=white&autoplay=0"
             title="NOLDEX LOGISTICS — Flotte d'engins lourds en Guinée" allowfullscreen loading="lazy"></iframe>
         </div>
         <div class="video-featured-body">
@@ -4290,10 +4290,10 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
       <div class="videos-grid-3">
 
         <!-- VIDEO 1 — Camion Benne -->
-        <div class="video-card anim-fade-up" style="--anim-delay:0ms">
+        <div class="video-card" style="--anim-delay:0ms">
           <div class="video-wrap">
             <!-- 💡 Remplacez lnGzfeFBCHM par l'ID YouTube de votre camion benne -->
-            <iframe src="https://www.youtube.com/embed/lnGzfeFBCHM?rel=0&modestbranding=1&color=white"
+            <iframe src="https://www.youtube.com/embed/uPSdrYqYWeU?rel=0&modestbranding=1&color=white"
               title="Camion Benne HOWO 40T — Transport minerai" allowfullscreen loading="lazy"></iframe>
           </div>
           <div class="video-card-body">
@@ -4303,10 +4303,10 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
         </div>
 
         <!-- VIDEO 2 — Chargeuse CAT -->
-        <div class="video-card anim-fade-up" style="--anim-delay:80ms">
+        <div class="video-card" style="--anim-delay:80ms">
           <div class="video-wrap">
             <!-- 💡 Remplacez FBMmxT5r0pA par l'ID YouTube de votre chargeuse -->
-            <iframe src="https://www.youtube.com/embed/FBMmxT5r0pA?rel=0&modestbranding=1&color=white"
+            <iframe src="https://www.youtube.com/embed/y-N83asG-K8?rel=0&modestbranding=1&color=white"
               title="Chargeuse Caterpillar 966H — Terrassement" allowfullscreen loading="lazy"></iframe>
           </div>
           <div class="video-card-body">
@@ -4316,10 +4316,10 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
         </div>
 
         <!-- VIDEO 3 — Pelle Komatsu -->
-        <div class="video-card anim-fade-up" style="--anim-delay:160ms">
+        <div class="video-card" style="--anim-delay:160ms">
           <div class="video-wrap">
             <!-- 💡 Remplacez KCkFRF8VZ5E par l'ID YouTube de votre pelle -->
-            <iframe src="https://www.youtube.com/embed/KCkFRF8VZ5E?rel=0&modestbranding=1&color=white"
+            <iframe src="https://www.youtube.com/embed/iPG267idrrY?rel=0&modestbranding=1&color=white"
               title="Pelle Komatsu PC200 — Excavation BTP" allowfullscreen loading="lazy"></iframe>
           </div>
           <div class="video-card-body">
@@ -4329,10 +4329,10 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
         </div>
 
         <!-- VIDEO 4 — Grue Grove -->
-        <div class="video-card anim-fade-up" style="--anim-delay:240ms">
+        <div class="video-card" style="--anim-delay:240ms">
           <div class="video-wrap">
             <!-- 💡 Remplacez v35x0JcEMoc par l'ID YouTube de votre grue -->
-            <iframe src="https://www.youtube.com/embed/v35x0JcEMoc?rel=0&modestbranding=1&color=white"
+            <iframe src="https://www.youtube.com/embed/g3NUak0Logs?rel=0&modestbranding=1&color=white"
               title="Grue Grove RT600E — Levage structures" allowfullscreen loading="lazy"></iframe>
           </div>
           <div class="video-card-body">
@@ -4342,10 +4342,10 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
         </div>
 
         <!-- VIDEO 5 — Compacteur BOMAG -->
-        <div class="video-card anim-fade-up" style="--anim-delay:320ms">
+        <div class="video-card" style="--anim-delay:320ms">
           <div class="video-wrap">
             <!-- 💡 Remplacez par l'ID YouTube de votre compacteur BOMAG -->
-            <iframe src="https://www.youtube.com/embed/0RMgzaQoVqs?rel=0&modestbranding=1&color=white"
+            <iframe src="https://www.youtube.com/embed/pFI0OibVnJY?rel=0&modestbranding=1&color=white"
               title="Compacteur BOMAG BW 213 — Compactage chaussée" allowfullscreen loading="lazy"></iframe>
           </div>
           <div class="video-card-body">
@@ -4355,10 +4355,10 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
         </div>
 
         <!-- VIDEO 6 — Citerne Shacman -->
-        <div class="video-card anim-fade-up" style="--anim-delay:400ms">
+        <div class="video-card" style="--anim-delay:400ms">
           <div class="video-wrap">
             <!-- 💡 Remplacez par l'ID YouTube de votre citerne Shacman -->
-            <iframe src="https://www.youtube.com/embed/WCNImnj3OqI?rel=0&modestbranding=1&color=white"
+            <iframe src="https://www.youtube.com/embed/7l45vtAs7G0?rel=0&modestbranding=1&color=white"
               title="Citerne Shacman 45 000L — Transport eau industrielle" allowfullscreen loading="lazy"></iframe>
           </div>
           <div class="video-card-body">
@@ -4369,7 +4369,7 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
 
       </div><!-- /videos-grid-3 -->
 
-      <div class="videos-cta anim-fade-up">
+      <div class="videos-cta">
         <button class="btn btn-outline" onclick="showPage('marketplace')">
           Voir tous les engins disponibles →
         </button>
@@ -4380,8 +4380,8 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
   <!-- SOLUTIONS -->
   <section class="section bg-steel">
     <div class="container">
-      <div class="section-label anim-fade-up">Solutions</div>
-      <h2 class="section-title" style="margin-bottom:40px;">Une plateforme,<br>deux profils</h2>
+      <div class="section-label">Solutions</div>
+      <h2 class="section-title" style="margin-bottom:32px;">Une plateforme,<br>deux profils</h2>
       <div class="grid-2">
         <div class="solution-card">
           <div style="font-size:48px;">🏗️</div>
@@ -4681,7 +4681,7 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
     <div class="container">
       <div class="cta-inner">
         <div class="section-label jc-center">Commencez maintenant</div>
-        <h2 class="cta-title anim-scale">Digitalisez votre logistique<br><span class="text-orange">dès aujourd'hui.</span></h2>
+        <h2 class="cta-title">Digitalisez votre logistique<br><span class="text-orange">dès aujourd'hui.</span></h2>
         <p class="cta-sub">Rejoignez la première plateforme B2B guinéenne pour la gestion et la location d'engins lourds.</p>
         <div class="cta-btns">
           <button class="btn btn-main" onclick="showPage('marketplace')">🏗️ Découvrir la Marketplace</button>
@@ -5065,7 +5065,7 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
 <!-- PAGE 5: COMMENT ÇA MARCHE -->
 <!-- ============================================================ -->
 <div class="page" id="page-comment">
-  <section style="padding:120px 0 64px;background:linear-gradient(180deg,rgba(232,96,10,0.05),transparent);">
+  <section style="padding:72px 0 40px;background:linear-gradient(180deg,rgba(232,96,10,0.05),transparent);">
     <div class="container">
       <div class="section-label">Processus complet</div>
       <h1 class="hero-title mb-16">Simple, transparent<br>et <em>100% digital.</em></h1>
@@ -5320,7 +5320,7 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
       <div class="android-card">
         <div class="android-icon">📱</div>
         <div class="fx-1">
-          <div class="section-label anim-fade-up">Application mobile</div>
+          <div class="section-label">Application mobile</div>
           <div class="android-title">App Android<br>NOLDEX LOGISTICS SARL</div>
           <p style="font-size:15px;color:var(--text-dim);margin-bottom:24px;">Optimisée pour les conditions de connectivité guinéennes. Fonctionnement partiel hors ligne pour les zones à faible réseau.</p>
           <div class="android-features">
@@ -5339,7 +5339,7 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
   <section class="cta-section">
     <div class="container">
       <div class="cta-inner">
-        <h2 class="cta-title anim-scale">Prêt à digitaliser<br><span class="text-orange">votre logistique ?</span></h2>
+        <h2 class="cta-title">Prêt à digitaliser<br><span class="text-orange">votre logistique ?</span></h2>
         <p class="cta-sub">Accédez à la plateforme ou demandez une démonstration personnalisée.</p>
         <div class="cta-btns">
           <button class="btn btn-main" onclick="openPlatform()">🔐 Se connecter à la Plateforme</button>
@@ -12791,6 +12791,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 // ── ANIMATIONS AU SCROLL (IntersectionObserver) ──────────
 (function() {
+  // Fallback sécurité : si après 2s des éléments sont encore invisibles → les afficher
+  setTimeout(function() {
+    document.querySelectorAll('.anim-fade-up, .anim-fade-left, .anim-scale').forEach(function(el) {
+      el.classList.add('visible');
+    });
+  }, 2000);
+
+  if (!('IntersectionObserver' in window)) return;
+
   const io = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) {
@@ -12798,11 +12807,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
         io.unobserve(e.target);
       }
     });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  }, { threshold: 0, rootMargin: '0px 0px 60px 0px' }); // déclenche avant même d'entrer dans le viewport
 
   function observeAll() {
     document.querySelectorAll('.anim-fade-up, .anim-fade-left, .anim-scale').forEach(el => {
-      io.observe(el);
+      // Si déjà dans le viewport au chargement → afficher immédiatement
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight) {
+        el.classList.add('visible');
+      } else {
+        io.observe(el);
+      }
     });
   }
 
