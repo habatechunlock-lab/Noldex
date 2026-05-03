@@ -5870,7 +5870,7 @@ textarea.d-fctrl { resize:vertical; min-height:75px; }
         <input class="auth-input" id="loginPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAuthLogin()">
       </div>
       <div class="auth-err" id="loginErr"></div>
-      <div class="auth-demo-hint" id="loginDemoHint" style="display:none;">
+      <div class="auth-demo-hint" id="loginDemoHint" style="display:none;" data-dev="true">
         <strong>Comptes démo :</strong><br>
         🔴 Admin : <code>admin@noldexfleet.com</code><br>
         🟢 Partenaire : <code>partenaire@noldexfleet.com</code><br>
@@ -6567,7 +6567,7 @@ function switchAuthTab(tab) {
 }
 
 const DEMO_USERS = {
-  'info@noldexfleet.com':       { password: 'demo1234', role: 'admin' },
+  'admin@noldexfleet.com':      { password: 'demo1234', role: 'admin' },
   'partenaire@noldexfleet.com': { password: 'demo1234', role: 'partner' },
   'client@noldexfleet.com':     { password: 'demo1234', role: 'client' },
 };
@@ -6585,22 +6585,37 @@ async function doAuthLogin() {
 
   try {
     if (_supaReady) {
-      // Auth Supabase réelle
-      await supaSignIn(email, pass);
-      closeAuthModal();
-      abToast('Connexion réussie ✅', 's');
+      // Auth Supabase réelle — avec fallback démo si compte inexistant
+      try {
+        await supaSignIn(email, pass);
+        closeAuthModal();
+        abToast('Connexion réussie ✅', 's');
+      } catch(supaErr) {
+        // Fallback : vérifier les comptes démo locaux
+        const demo = DEMO_USERS[email];
+        if (demo && demo.password === pass) {
+          _supaRole = demo.role;
+          closeAuthModal();
+          abToast('Connexion démo (' + demo.role + ') ✅', 's');
+          if (demo.role === 'admin')        { setTimeout(openAdmin, 300); }
+          else if (demo.role === 'partner') { setTimeout(openPartnerDash, 300); }
+          else                              { setTimeout(openClientDash, 300); }
+        } else {
+          throw new Error(supaErr.message || 'Identifiants incorrects.');
+        }
+      }
     } else {
-      // Mode démo
+      // Mode démo pur (Supabase non configuré)
       const demo = DEMO_USERS[email];
       if (!demo || demo.password !== pass) {
-        throw new Error('Identifiants incorrects. Utilisez les comptes démo indiqués.');
+        throw new Error('Identifiants incorrects.');
       }
       _supaRole = demo.role;
       closeAuthModal();
       abToast('Connexion démo (' + demo.role + ') ✅', 's');
-      if (demo.role === 'admin')   { setTimeout(openAdmin, 300); }
+      if (demo.role === 'admin')        { setTimeout(openAdmin, 300); }
       else if (demo.role === 'partner') { setTimeout(openPartnerDash, 300); }
-      else { setTimeout(openClientDash, 300); }
+      else                              { setTimeout(openClientDash, 300); }
     }
   } catch(e) {
     errEl.textContent = e.message || 'Erreur de connexion.';
