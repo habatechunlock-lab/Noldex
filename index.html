@@ -5413,6 +5413,88 @@ font-family:'Barlow Condensed',sans-serif;
 table.d-table thead, table.ab-table thead { display:table; width:100%; }
 table.d-table tbody, table.ab-table tbody { display:table; width:100%; }
 }
+
+/* ======================================================
+   RESPONSIVE PATCH — NOLDEX LOGISTICS
+   Généré automatiquement — toutes les corrections
+   ====================================================== */
+
+/* Titres hero : font-size responsive */
+.hero-title {
+  font-size: clamp(28px, 5.5vw, 72px);
+  line-height: 1.08;
+}
+
+/* Éléments inline avec max-width fixe : passer à 100% sur mobile */
+@media (max-width: 768px) {
+  [style*="max-width:520px"], [style*="max-width: 520px"],
+  [style*="max-width:540px"], [style*="max-width: 540px"],
+  [style*="max-width:560px"], [style*="max-width: 560px"],
+  [style*="max-width:580px"], [style*="max-width: 580px"],
+  [style*="max-width:600px"], [style*="max-width: 600px"],
+  [style*="max-width:620px"], [style*="max-width: 620px"],
+  [style*="max-width:640px"], [style*="max-width: 640px"],
+  [style*="max-width:700px"], [style*="max-width: 700px"],
+  [style*="max-width:720px"], [style*="max-width: 720px"],
+  [style*="max-width:800px"], [style*="max-width: 800px"],
+  [style*="max-width:900px"], [style*="max-width: 900px"] {
+    max-width: 100% !important;
+  }
+}
+
+/* Font-sizes larges sans responsive */
+@media (max-width: 768px) {
+  .step-v-num      { font-size: 52px !important; }
+  .android-icon    { font-size: 48px !important; }
+  .android-title   { font-size: 32px !important; }
+  .engin-full-img  { font-size: 40px !important; }
+  .success-icon    { font-size: 40px !important; }
+  .success-title   { font-size: 22px !important; }
+  .step-v-title    { font-size: 20px !important; }
+  .role-icon       { font-size: 24px !important; }
+  .role-title      { font-size: 20px !important; }
+  .space-icon      { font-size: 28px !important; }
+  .d-engin-img     { font-size: 36px !important; }
+  .d-empty-icon    { font-size: 28px !important; }
+  .video-featured-title { font-size: 20px !important; }
+  .solution-title  { font-size: 18px !important; }
+  .mini-widget-val { font-size: 18px !important; }
+  .d-kpi-val       { font-size: 20px !important; }
+  .d-page-title    { font-size: 18px !important; }
+}
+
+/* Grilles : collapse mobile */
+@media (max-width: 768px) {
+  .steps-v-grid,
+  .roles-grid,
+  .android-grid,
+  .video-grid,
+  .mini-widgets,
+  .solution-grid { grid-template-columns: 1fr !important; }
+
+  .nav-links { display: none !important; }
+  .nav-cta   { display: none !important; }
+}
+
+@media (max-width: 480px) {
+  .hero-title { font-size: clamp(24px, 8vw, 36px); }
+  .step-v-num { font-size: 36px !important; }
+  .android-icon  { font-size: 36px !important; }
+  .android-title { font-size: 24px !important; }
+}
+
+/* Padding sections sur mobile */
+@media (max-width: 768px) {
+  .section { padding-left: 16px !important; padding-right: 16px !important; }
+  .hero-content { padding-left: 16px; padding-right: 16px; }
+  .container { padding-left: 16px !important; padding-right: 16px !important; }
+}
+
+/* Images et médias */
+@media (max-width: 768px) {
+  img, video, iframe { max-width: 100%; height: auto; }
+}
+
 </style>
 
 <!-- STRUCTURED DATA — BreadcrumbList -->
