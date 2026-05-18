@@ -241,11 +241,16 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- FIREBASE SDK — Dual Sync Firestore -->
 <!-- LEAFLET — Carte réelle -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin=""/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin=""/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""
+  onerror="this.onerror=null;this.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin=""
+  onerror="this.onerror=null;this.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css'"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin=""
+  onerror="this.onerror=null;this.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css'"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>if(typeof L==='undefined'){document.write('<scr'+'ipt src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"><\/scr'+'ipt>');}</script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin=""></script>
+<script>if(typeof L!=='undefined'&&!L.markerClusterGroup){document.write('<scr'+'ipt src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"><\/scr'+'ipt>');}</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -785,8 +790,12 @@ nav {
   display: none; position: fixed; top: 64px; left: 0; right: 0; z-index: 999;
   background: rgba(10,12,15,0.98); backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
-  padding: 16px 24px 24px;
+  padding: 16px 24px 32px;
   flex-direction: column; gap: 4px;
+  max-height: calc(100dvh - 64px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 .mobile-menu.open { display: flex; }
 .mobile-menu a {
@@ -5184,7 +5193,8 @@ textarea.d-fctrl { resize: vertical; min-height: 80px; }
    CARTE LEAFLET — NOLDEX FLEET
    ═══════════════════════════════════════════════════════════════ */
 .carte-page-wrap {
-  display: flex; flex-direction: column; height: 100vh;
+  display: flex; flex-direction: column;
+  height: calc(100dvh - 64px); margin-top: 64px;
   background: var(--dark); overflow: hidden;
 }
 .carte-topbar {
@@ -5216,10 +5226,10 @@ textarea.d-fctrl { resize: vertical; min-height: 80px; }
 .carte-filter-pill.foret  { --ac: #a78bfa; }
 
 .carte-body {
-  flex: 1; display: flex; overflow: hidden; position: relative;
+  flex: 1; min-height: 0; display: flex; overflow: hidden; position: relative;
 }
 #carteLeaflet {
-  flex: 1; height: 100%; background: #0a0f18;
+  flex: 1; min-height: 0; background: #0a0f18;
 }
 /* Overrides Leaflet pour dark theme */
 .leaflet-container { background: #0a0f18; font-family: 'Barlow', sans-serif; }
@@ -7047,7 +7057,7 @@ function _setMarketplace() {
   const ctaBtns = page.querySelectorAll('.btn');
   ctaBtns.forEach(b => {
     if (b.onclick && b.onclick.toString().includes("'devis'")) b.textContent = t('mkt_cta1');
-    if (b.onclick && b.onclick.toString().includes("'partenaires'")) b.textContent = t('mkt_cta2');
+    if (b.onclick && b.onclick.toString().includes("'partenaires-new'")) b.textContent = t('mkt_cta2');
   });
 }
 
@@ -8245,7 +8255,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="badge badge-green">✓ Revenus traçables</span>
             <span class="badge badge-green">✓ Support local</span>
           </div>
-          <button class="btn btn-main" onclick="showPage('partenaires')" style="align-self:flex-start;">Devenir partenaire →</button>
+          <button class="btn btn-main" onclick="showPage('partenaires-new')" style="align-self:flex-start;">Devenir partenaire →</button>
         </div>
         <div class="solution-card">
           <div style="font-size:48px;">🏢</div>
@@ -8538,7 +8548,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <p class="cta-sub">Rejoignez la première plateforme B2B guinéenne pour la gestion et la location d'engins lourds.</p>
         <div class="cta-btns">
           <button class="btn btn-main" onclick="showPage('marketplace')">🏗️ Découvrir la Marketplace</button>
-          <button class="btn btn-outline" onclick="showPage('partenaires')">🤝 Devenir partenaire</button>
+          <button class="btn btn-outline" onclick="showPage('partenaires-new')">🤝 Devenir partenaire</button>
           <button class="btn btn-steel" onclick="showPage('devis')">📋 Demander une démo</button>
         </div>
       </div>
@@ -8564,7 +8574,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <h4>Navigation</h4>
           <ul class="footer-links">
             <li onclick="showPage('marketplace')">Marketplace</li>
-            <li onclick="showPage('partenaires')">Partenaires</li>
+            <li onclick="showPage('partenaires-new')">Partenaires</li>
             <li onclick="showPage('clients')">Clients B2B</li>
             <li onclick="showPage('comment')">Comment ça marche</li>
             <li onclick="showPage('plateforme')">La Plateforme</li>
@@ -8688,7 +8698,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <!-- CTA -->
       <div style="display:flex;gap:16px;justify-content:center;margin-top:48px;flex-wrap:wrap;">
         <button class="btn btn-main" onclick="showPage('devis')">📋 Demander un devis personnalisé</button>
-        <button class="btn btn-outline" onclick="showPage('partenaires')">🤝 Devenir partenaire</button>
+        <button class="btn btn-outline" onclick="showPage('partenaires-new')">🤝 Devenir partenaire</button>
       </div>
     </div>
   </section>
@@ -8697,7 +8707,8 @@ document.addEventListener('DOMContentLoaded', () => {
 <!-- ============================================================ -->
 <!-- PAGE 3: PARTENAIRES -->
 <!-- ============================================================ -->
-<div class="page" id="page-partenaires">
+<!-- PAGE-PARTENAIRES DÉSACTIVÉE — remplacée par page-partenaires-new. Conserver pour rollback. -->
+<div class="page" id="page-partenaires" style="display:none!important;">
   <section class="solutions-hero">
     <div class="solutions-hero-bg"></div>
     <div class="container" style="position:relative;z-index:1;">
@@ -9997,7 +10008,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </ul>
           </div>
           <div class="tarif-plan-foot">
-            <button class="btn btn-main" style="width:100%;justify-content:center;" onclick="showPage('partenaires')">Devenir partenaire →</button>
+            <button class="btn btn-main" style="width:100%;justify-content:center;" onclick="showPage('partenaires-new')">Devenir partenaire →</button>
           </div>
         </div>
 
@@ -11137,6 +11148,7 @@ function showPage(id) {
   // Map logical IDs to actual page element IDs
   const pageMap = {
     'tarifs':     'page-tarifs',
+    'partenaires':     'page-partenaires-new', // alias rétrocompat → nouvelle page
     'partenaires-new': 'page-partenaires-new',
     'catalogue':      'page-catalogue',
     'equipe':         'page-equipe',
@@ -11876,7 +11888,7 @@ var NX_RT = (function() {
         _fs.enablePersistence({ synchronizeTabs: true });
       } catch(e) {}
       _ready = true;
-      console.log("[NX_RT] ✅ Firebase initialisé — projectId:", c.projectId, "| RTDB:", !!_rtdb);
+      if(NX_DEV) console.log("[NX_RT] ✅ Firebase initialisé — projectId:", c.projectId, "| RTDB:", !!_rtdb);
       _startPresence();
       _listenConnectedCount();
       _notifyReady();
@@ -11913,7 +11925,7 @@ var NX_RT = (function() {
     var uid = _getUid();
     var presRef = _rtdb.ref("presence/" + _presenceSid);
     presRef.set({
-      uid: uid, role: _getRole(), ts: Date.now(),
+      uid: uid, role: _getRoleRT(), ts: Date.now(),
       page: "noldexfleet.com", online: true
     });
     presRef.onDisconnect().remove();
@@ -11940,7 +11952,7 @@ var NX_RT = (function() {
     } catch(e) { return "anon"; }
   }
 
-  function _getRole() {
+  function _getRoleRT() {
     try { return typeof _supaRole !== "undefined" ? _supaRole : "public"; }
     catch(e) { return "public"; }
   }
@@ -12390,7 +12402,7 @@ function nxRtToast(msg, type) {
   // Réutiliser dToast si disponible, sinon alert
   if (typeof dToast === "function") { dToast(msg, type); return; }
   if (typeof abToast === "function") { abToast(msg, type === "s" ? "success" : type === "e" ? "error" : "info"); return; }
-  console.log("[NX_RT]", msg);
+  if(NX_DEV) console.log("[NX_RT]", msg);
 }
 
 // Expose pour rétrocompat avec l'ancien système
@@ -14347,7 +14359,15 @@ var REGION_CLASSES = {
 
 function carteInit() {
   if (_carteInited) { setTimeout(function(){ _carteMap && _carteMap.invalidateSize(); }, 200); return; }
-  if (typeof L === "undefined") { setTimeout(carteInit, 500); return; }
+  if (typeof L === "undefined") {
+    if (!carteInit._retry) carteInit._retry = 0;
+    carteInit._retry++;
+    if (carteInit._retry < 10) { setTimeout(carteInit, 600); return; }
+    // Leaflet non chargé après 6s — afficher message hors-ligne
+    var el = document.getElementById('carteLeaflet');
+    if (el) el.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#888;gap:12px;"><div style="font-size:40px;">🗺️</div><div style="font-size:15px;font-weight:700;">Carte indisponible hors-ligne</div><div style="font-size:12px;text-align:center;max-width:280px;line-height:1.6;">Leaflet nécessite une connexion internet.<br>Ouvrez le fichier via un serveur local ou connectez-vous à internet.</div></div>';
+    return;
+  }
 
   // Créer la carte Leaflet
   _carteMap = L.map("carteLeaflet", {
@@ -14359,12 +14379,23 @@ function carteInit() {
     attributionControl: true,
   });
 
-  // Tiles OpenStreetMap (dark via CartoDB)
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+  // Tiles — CartoDB online ; fallback fond sombre si hors-ligne
+  var _tileLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>',
     subdomains: "abcd",
     maxZoom: 20,
-  }).addTo(_carteMap);
+    errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+  });
+  var _tileErrors = 0;
+  _tileLayer.on('tileerror', function() {
+    _tileErrors++;
+    if (_tileErrors === 1) {
+      // Premier échec : appliquer fond dégradé sombre natif
+      var el = document.getElementById('carteLeaflet');
+      if (el) el.style.background = 'radial-gradient(ellipse at 50% 30%,#0d1a2b 0%,#070d14 100%)';
+    }
+  });
+  _tileLayer.addTo(_carteMap);
 
   // Cluster de marqueurs
   if (typeof L.markerClusterGroup !== "undefined") {
@@ -14400,6 +14431,9 @@ function carteInit() {
   if (el) el.textContent = totalEngins;
 
   _carteInited = true;
+
+  // Forcer Leaflet à recalculer la taille du conteneur après rendu
+  setTimeout(function() { _carteMap && _carteMap.invalidateSize(); }, 300);
 }
 
 function carteAddMarkers() {
@@ -15254,15 +15288,15 @@ window.cv2Tab = function(name) {
     var t12  = acqRoiTarifJ(gnf,12,20,12,10);
     var t18  = acqRoiTarifJ(gnf,18,20,12,10);
     var t24  = acqRoiTarifJ(gnf,24,20,12,10);
-    function fJ(v){ return v>=1e6?(v/1e6).toFixed(2)+" M GNF":Math.round(v/1e3)+" K GNF"; }
+    function fJgnf(v){ return v>=1e6?(v/1e6).toFixed(2)+" M GNF":Math.round(v/1e3)+" K GNF"; }
     content.innerHTML =
       "<div class=\"cm2-achat-row\"><div><div class=\"cm2-achat-label\">Prix d'acquisition estimé</div><div class=\"cm2-achat-val\">"+acqFmtUSD(p.usd)+" · "+acqFmt(gnf)+"</div></div><div style=\"font-size:12px;color:var(--text-muted);max-width:200px;text-align:right;\">"+p.note+"</div></div>"+
       "<div class=\"roi-results\" style=\"grid-template-columns:repeat(3,1fr);margin-bottom:16px;\">"+
-      "<div class=\"roi-result-card\"><div class=\"roi-result-lbl\">ROI 12 mois</div><div class=\"roi-result-val\">"+fJ(t12)+"</div><div class=\"roi-result-sub\">/jour min.</div></div>"+
-      "<div class=\"roi-result-card highlight\"><div class=\"roi-result-lbl\">ROI 18 mois ⭐</div><div class=\"roi-result-val\">"+fJ(t18)+"</div><div class=\"roi-result-sub\">/jour min.</div></div>"+
-      "<div class=\"roi-result-card\"><div class=\"roi-result-lbl\">ROI 24 mois</div><div class=\"roi-result-val\">"+fJ(t24)+"</div><div class=\"roi-result-sub\">/jour min.</div></div></div>"+
+      "<div class=\"roi-result-card\"><div class=\"roi-result-lbl\">ROI 12 mois</div><div class=\"roi-result-val\">"+fJgnf(t12)+"</div><div class=\"roi-result-sub\">/jour min.</div></div>"+
+      "<div class=\"roi-result-card highlight\"><div class=\"roi-result-lbl\">ROI 18 mois ⭐</div><div class=\"roi-result-val\">"+fJgnf(t18)+"</div><div class=\"roi-result-sub\">/jour min.</div></div>"+
+      "<div class=\"roi-result-card\"><div class=\"roi-result-lbl\">ROI 24 mois</div><div class=\"roi-result-val\">"+fJgnf(t24)+"</div><div class=\"roi-result-sub\">/jour min.</div></div></div>"+
       (e&&e.tarifJ?"<div style=\"padding:12px 14px;background:rgba(45,212,160,.08);border:1px solid rgba(45,212,160,.25);border-radius:8px;margin-bottom:14px;font-size:13px;\">"+
-      "💰 Tarif actuel catalogue : <strong style=\"color:var(--orange);\">"+fJ(e.tarifJ)+"/jour</strong>"+(e.tarifJ>=t18?"<span style=\"color:#2dd4a0;margin-left:8px;\">✅ Rentable dès 18 mois</span>":"<span style=\"color:#f87171;margin-left:8px;\">⚠️ Sous le seuil ROI 18m</span>")+"</div>":"")+
+      "💰 Tarif actuel catalogue : <strong style=\"color:var(--orange);\">"+fJgnf(e.tarifJ)+"/jour</strong>"+(e.tarifJ>=t18?"<span style=\"color:#2dd4a0;margin-left:8px;\">✅ Rentable dès 18 mois</span>":"<span style=\"color:#f87171;margin-left:8px;\">⚠️ Sous le seuil ROI 18m</span>")+"</div>":"")+
       "<button class=\"btn btn-main\" style=\"width:100%;justify-content:center;background:var(--gold,#C9A84C);border-color:var(--gold,#C9A84C);color:#1a1000;\" onclick=\"cv2CloseModal&&cv2CloseModal();openRoiModal(null,"+p.usd+")\">🧮 Ouvrir le calculateur complet</button>";
   }
 };
@@ -20878,7 +20912,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     window.addEventListener('load', () => {
       const _sp = window.showPage;
       window.showPage = function(id) {
-        _sp(id);
+        if(typeof _sp === 'function') _sp(id);
         setTimeout(observeAll, 100);
       };
     });
