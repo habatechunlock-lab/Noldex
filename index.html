@@ -5193,8 +5193,7 @@ textarea.d-fctrl { resize: vertical; min-height: 80px; }
    CARTE LEAFLET — NOLDEX FLEET
    ═══════════════════════════════════════════════════════════════ */
 .carte-page-wrap {
-  display: flex; flex-direction: column;
-  height: calc(100dvh - 64px); margin-top: 64px;
+  display: flex; flex-direction: column; height: 100vh;
   background: var(--dark); overflow: hidden;
 }
 .carte-topbar {
@@ -5226,14 +5225,14 @@ textarea.d-fctrl { resize: vertical; min-height: 80px; }
 .carte-filter-pill.foret  { --ac: #a78bfa; }
 
 .carte-body {
-  flex: 1; min-height: 0; display: flex; overflow: hidden; position: relative;
+  flex: 1; display: flex; overflow: hidden; position: relative;
 }
 #carteLeaflet {
-  flex: 1; min-height: 0; background: #0a0f18;
+  flex: 1; height: 100%; background: #1a2535;
 }
 /* Overrides Leaflet pour dark theme */
 .leaflet-container { background: #0a0f18; font-family: 'Barlow', sans-serif; }
-.leaflet-tile-pane { filter: brightness(.85) saturate(.7) hue-rotate(180deg) invert(.05); }
+.leaflet-tile-pane { filter: brightness(.82) saturate(.72); }
 .leaflet-control-zoom { border: 1px solid var(--border) !important; background: rgba(10,12,15,.95) !important; }
 .leaflet-control-zoom a { background: rgba(10,12,15,.95) !important; color: var(--text) !important; border-bottom-color: var(--border) !important; }
 .leaflet-control-zoom a:hover { background: var(--steel) !important; color: var(--orange) !important; }
@@ -11171,7 +11170,7 @@ function showPage(id) {
   }
   if (id === 'marketplace') { setTimeout(renderEngins, 50); }
   if (id === 'accueil') { setTimeout(pubInitMap, 80); }
-  if (id === 'carte')   { setTimeout(mpInitMap, 80); }
+  if (id === 'carte')   { setTimeout(function(){ if(typeof carteInit==='function') carteInit(); }, 120); }
 }
 
 // Restaurer la page depuis le hash au chargement
@@ -14380,7 +14379,7 @@ function carteInit() {
   });
 
   // Tiles — CartoDB online ; fallback fond sombre si hors-ligne
-  var _tileLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+  var _tileLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>',
     subdomains: "abcd",
     maxZoom: 20,
