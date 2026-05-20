@@ -1134,9 +1134,20 @@ select:focus, input[type="text"]:focus {
   height: 180px; display: flex; align-items: center; justify-content: center;
   font-size: 64px;
   background: linear-gradient(135deg, var(--steel-mid), var(--steel-light));
-  position: relative;
+  position: relative; overflow: hidden;
 }
-.engin-full-img .badge { position: absolute; top: 12px; right: 12px; }
+.engin-full-img img {
+  width: 100%; height: 100%; object-fit: cover;
+  position: absolute; inset: 0;
+  transition: transform 0.5s ease;
+}
+.engin-full-card:hover .engin-full-img img { transform: scale(1.06); }
+.engin-full-img::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(0deg, rgba(10,12,15,.65) 0%, transparent 60%);
+  z-index: 1; pointer-events: none;
+}
+.engin-full-img .badge { position: absolute; top: 12px; right: 12px; z-index: 2; }
 .engin-full-body { padding: 20px; }
 .engin-full-name {
   font-family: 'Barlow Condensed', sans-serif;
@@ -11325,12 +11336,12 @@ service cloud.firestore {
 <script>
 // ===== DATA ENGINS =====
 const engins = [
-  { id:1, emoji:'🚛', name:'Camion Benne HOWO 40T', type:'camion', capacite:'40 tonnes', loc:'Siguiri', region:'Siguiri', status:'Disponible', prix:'850 000 GNF/jour', specs:['40 T charge utile','HOWO 2022','4×2 diesel'] },
-  { id:2, emoji:'🚜', name:'Chargeuse Caterpillar 966H', type:'chargeuse', capacite:'6 m³', loc:'Boké', region:'Boké', status:'Disponible', prix:'1 200 000 GNF/jour', specs:['6 m³ godet','CAT 966H','Cabine climatisée'] },
-  { id:3, emoji:'🚰', name:'Citerne Shacman 45 000 L', type:'citerne', capacite:'45 000 L', loc:'Conakry', region:'Conakry', status:'Disponible', prix:'700 000 GNF/jour', specs:['45 000 L','Shacman 2021','Pompe intégrée'] },
-  { id:4, emoji:'⛏️', name:'Pelle Komatsu PC200', type:'pelle', capacite:'0,8 m³', loc:'Kindia', region:'Kindia', status:'En entretien', prix:'1 500 000 GNF/jour', specs:['0,8 m³ godet','Komatsu PC200','20 T op. weight'] },
-  { id:5, emoji:'🏗️', name:'Grue mobile Grove RT600E', type:'grue', capacite:'60 T', loc:'Conakry', region:'Conakry', status:'Disponible', prix:'3 000 000 GNF/jour', specs:['60 T capacité','Grove RT600E','Flèche 43 m'] },
-  { id:6, emoji:'🚛', name:'Camion Benne Sino 30T', type:'camion', capacite:'30 tonnes', loc:'Boké', region:'Boké', status:'Disponible', prix:'650 000 GNF/jour', specs:['30 T charge utile','Sinotruk 2020','6×4'] },
+  { id:1, emoji:'🚛', photo:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80', name:'Camion Benne HOWO 40T', type:'camion', capacite:'40 tonnes', loc:'Siguiri', region:'Siguiri', status:'Disponible', prix:'850 000 GNF/jour', specs:['40 T charge utile','HOWO 2022','4×2 diesel'] },
+  { id:2, emoji:'🚜', photo:'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80', name:'Chargeuse Caterpillar 966H', type:'chargeuse', capacite:'6 m³', loc:'Boké', region:'Boké', status:'Disponible', prix:'1 200 000 GNF/jour', specs:['6 m³ godet','CAT 966H','Cabine climatisée'] },
+  { id:3, emoji:'🚰', photo:'https://images.unsplash.com/photo-1563089145-599997674d42?w=600&q=80', name:'Citerne Shacman 45 000 L', type:'citerne', capacite:'45 000 L', loc:'Conakry', region:'Conakry', status:'Disponible', prix:'700 000 GNF/jour', specs:['45 000 L','Shacman 2021','Pompe intégrée'] },
+  { id:4, emoji:'⛏️', photo:'https://images.unsplash.com/photo-1579613832125-5d34a13ffe2a?w=600&q=80', name:'Pelle Komatsu PC200', type:'pelle', capacite:'0,8 m³', loc:'Kindia', region:'Kindia', status:'En entretien', prix:'1 500 000 GNF/jour', specs:['0,8 m³ godet','Komatsu PC200','20 T op. weight'] },
+  { id:5, emoji:'🏗️', photo:'https://images.unsplash.com/photo-1565008576549-57569a49371d?w=600&q=80', name:'Grue mobile Grove RT600E', type:'grue', capacite:'60 T', loc:'Conakry', region:'Conakry', status:'Disponible', prix:'3 000 000 GNF/jour', specs:['60 T capacité','Grove RT600E','Flèche 43 m'] },
+  { id:6, emoji:'🚛', photo:'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&q=80', name:'Camion Benne Sino 30T', type:'camion', capacite:'30 tonnes', loc:'Boké', region:'Boké', status:'Disponible', prix:'650 000 GNF/jour', specs:['30 T charge utile','Sinotruk 2020','6×4'] },
 ];
 
 let filteredEngins = [...engins];
@@ -11347,8 +11358,12 @@ function renderEngins() {
     return `
       <div class="engin-full-card" onclick="showPage('devis')">
         <div class="engin-full-img">
-          <span style="font-size:64px;">${e.emoji}</span>
-          <div class="badge ${badgeClass} badge-dot" style="position:absolute;top:12px;right:12px;">${e.status}</div>
+          ${e.photo
+            ? `<img src="${e.photo}" alt="${e.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+               <span style="font-size:64px;display:none;position:relative;z-index:1;">${e.emoji}</span>`
+            : `<span style="font-size:64px;position:relative;z-index:1;">${e.emoji}</span>`
+          }
+          <div class="badge ${badgeClass} badge-dot">${e.status}</div>
         </div>
         <div class="engin-full-body">
           <div class="engin-full-name">${e.name}</div>
