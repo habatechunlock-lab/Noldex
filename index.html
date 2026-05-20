@@ -701,6 +701,7 @@ body {
   --steel: #1a1f27;
   --steel-mid: #242b36;
   --steel-light: #2e3748;
+  --steel-dark: #131820;
   --text: #e8e4dc;
   --text-dim: #8a9ab0;
   --text-muted: #5a6a7e;
@@ -1809,6 +1810,20 @@ footer {
   transition: width .28s cubic-bezier(.4,0,.2,1), transform .3s;
   overflow: hidden;
 }
+/* Panneau gauche : nav défilable avec scrollbar toujours visible */
+.d-nav {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(232,96,10,.6) transparent;
+}
+.d-nav::-webkit-scrollbar { width: 5px; }
+.d-nav::-webkit-scrollbar-track { background: transparent; }
+.d-nav::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(249,115,22,.7), rgba(232,96,10,.7));
+  border-radius: 3px;
+}
+.d-nav::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #f97316, #e8600a);
+}
 .d-sidebar.mini { width: var(--sidebar-w-mini); }
 .d-sidebar.mini .d-sidebar-logo-txt,
 .d-sidebar.mini .d-uname,
@@ -1909,7 +1924,7 @@ footer {
 }
 
 /* Nav */
-.d-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+.d-nav { flex: 1; min-height: 0; overflow-y: scroll; padding: 8px 0; }
 .d-nav-sec {
   padding: 10px 16px 3px;
   font-size: 9px;
@@ -3443,282 +3458,415 @@ textarea.d-fctrl { resize: vertical; min-height: 80px; }
 }
 #dashAdminOverlay.open { display:flex; }
 
-/* ADMIN SIDEBAR */
+/* ═══════════════════════════════════════════════════════
+   ADMIN BACK-OFFICE — DESIGN SYSTEM v2
+   ═══════════════════════════════════════════════════════ */
+
+/* ── SIDEBAR ─────────────────────────────────────────── */
 .ab-sidebar {
-  width:260px; flex-shrink:0;
-  background:#060709; border-right:1px solid var(--border);
+  width:248px; flex-shrink:0;
+  background:linear-gradient(180deg,#08090d 0%,#060709 100%);
+  border-right:1px solid rgba(255,255,255,.06);
   display:flex; flex-direction:column;
-  transition:transform 0.3s;
+  transition:transform 0.28s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+  box-shadow:2px 0 20px rgba(0,0,0,.4);
 }
 .ab-sidebar-logo {
-  padding:20px 20px 16px;
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:10px;
+  padding:16px 18px 14px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex;align-items:center;gap:12px;
+  flex-shrink:0; min-height:64px;
 }
 .ab-logo-mark {
-  width:36px;height:36px;
+  width:34px;height:34px;
   background:var(--orange);
   clip-path:polygon(0 0,85% 0,100% 15%,100% 100%,15% 100%,0 85%);
   display:flex;align-items:center;justify-content:center;
-  font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:12px;color:#fff;
+  font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:11px;color:#fff;
   letter-spacing:1px; flex-shrink:0;
 }
 .ab-logo-txt {
   font-family:'Barlow Condensed',sans-serif;
-  font-weight:800;font-size:16px;letter-spacing:2px;color:#fff;
+  font-weight:900;font-size:15px;letter-spacing:2.5px;color:#fff;line-height:1.1;
 }
 .ab-logo-txt span { color:var(--orange); }
 .ab-badge-admin {
-  font-family:'Rajdhani',sans-serif;
-  font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
-  color:var(--orange);background:rgba(232,96,10,0.12);
-  border:1px solid var(--border-orange);border-radius:3px;
-  padding:2px 6px;margin-top:2px;display:inline-block;
+  font-size:8.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--orange);background:rgba(232,96,10,0.1);
+  border:1px solid rgba(232,96,10,0.25);border-radius:3px;
+  padding:2px 6px;margin-top:3px;display:inline-block;
+  font-family:'Barlow',sans-serif;
 }
 .ab-admin-user {
-  padding:14px 20px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:10px;
+  padding:10px 18px 12px;border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex;align-items:center;gap:10px; flex-shrink:0;
+  background:rgba(255,255,255,.015);
 }
 .ab-avatar {
-  width:34px;height:34px;border-radius:50%;
-  background:linear-gradient(135deg,var(--orange),#c04a00);
+  width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,#E8600A,#b04500);
   display:flex;align-items:center;justify-content:center;
-  font-size:14px;font-weight:900;color:#fff;
+  font-size:12px;font-weight:900;color:#fff;
   font-family:'Barlow Condensed',sans-serif;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(232,96,10,.35);
 }
-.ab-uname { font-size:13px;font-weight:600; }
-.ab-urole { font-size:10px;color:var(--orange);font-weight:700;letter-spacing:1px;text-transform:uppercase; }
-.ab-nav { flex:1;overflow-y:auto;padding:12px 12px; }
+.ab-uname { font-size:12.5px;font-weight:600;color:var(--text);line-height:1.2; }
+.ab-urole {
+  font-size:9.5px;color:var(--orange);font-weight:700;
+  letter-spacing:.8px;text-transform:uppercase;margin-top:1px;
+}
+
+/* NAV */
+.ab-nav {
+  flex:1;overflow-y:auto;
+  padding:10px 10px 8px;
+}
+.ab-nav::-webkit-scrollbar { width:3px; }
+.ab-nav::-webkit-scrollbar-thumb { background:rgba(255,255,255,.08);border-radius:99px; }
 .ab-nav-sec {
-  font-family:'Rajdhani',sans-serif;
-  font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
-  color:var(--text-muted);padding:12px 8px 6px;
+  font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:rgba(255,255,255,.25);padding:14px 10px 5px;
+  font-family:'Barlow',sans-serif;
 }
 .ab-nav-item {
-  display:flex;align-items:center;gap:10px;
-  padding:9px 12px;border-radius:6px;
-  font-size:13px;font-weight:500;color:var(--text-dim);
-  cursor:pointer;transition:all 0.2s;margin-bottom:2px;
-  position:relative;
+  display:flex;align-items:center;gap:9px;
+  padding:8px 10px;border-radius:7px;
+  font-size:12.5px;font-weight:500;color:rgba(255,255,255,.5);
+  cursor:pointer;transition:all .15s;margin-bottom:1px;
+  position:relative; border-left:2px solid transparent;
 }
-.ab-nav-item:hover { background:var(--steel-mid);color:var(--text); }
-.ab-nav-item.active { background:var(--orange-dim);color:var(--text);border:1px solid var(--border-orange); }
+.ab-nav-item:hover {
+  background:rgba(255,255,255,.05);color:rgba(255,255,255,.85);
+  border-left-color:rgba(232,96,10,.4);
+}
+.ab-nav-item.active {
+  background:linear-gradient(90deg,rgba(232,96,10,.14),rgba(232,96,10,.04));
+  color:#fff;
+  border-left:2px solid var(--orange);
+  font-weight:600;
+}
 .ab-nav-item.active .ab-ni { color:var(--orange); }
-.ab-ni { font-size:16px;width:20px;text-align:center; }
+.ab-ni { font-size:15px;width:18px;text-align:center;opacity:.8; }
+.ab-nav-item.active .ab-ni { opacity:1; }
 .ab-nav-badge {
-  margin-left:auto;background:var(--orange);color:#fff;
-  font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;
+  margin-left:auto;background:rgba(232,96,10,.8);color:#fff;
+  font-size:9.5px;font-weight:800;padding:2px 6px;
+  border-radius:99px;font-family:'Barlow',sans-serif;
+  min-width:18px;text-align:center;
 }
-.ab-nav-badge.green { background:rgba(34,197,94,0.2);color:#4ade80; }
+.ab-nav-badge.green { background:rgba(74,222,128,.2);color:#4ade80; border:1px solid rgba(74,222,128,.3); }
+
+/* SIDEBAR FOOTER */
 .ab-foot {
-  padding:12px;border-top:1px solid var(--border);
-  display:flex;flex-direction:column;gap:6px;
+  padding:12px 10px;border-top:1px solid rgba(255,255,255,.06);
+  display:flex;flex-direction:column;gap:6px; flex-shrink:0;
 }
 .ab-foot-btn {
-  width:100%;padding:8px;border-radius:6px;
-  background:var(--steel-mid);border:1px solid var(--border);
-  color:var(--text-dim);font-size:12px;cursor:pointer;
-  transition:all 0.2s;text-align:left;
+  width:100%;padding:8px 12px;border-radius:6px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  color:rgba(255,255,255,.4);font-size:11.5px;font-weight:600;cursor:pointer;
+  transition:all .15s;text-align:left;font-family:'Barlow',sans-serif;
+  display:flex;align-items:center;gap:8px;
 }
-.ab-foot-btn:hover { border-color:var(--border-orange);color:var(--orange); }
-.ab-foot-btn.danger:hover { border-color:rgba(239,68,68,0.4);color:#f87171; }
+.ab-foot-btn:hover {
+  background:rgba(255,255,255,.08);
+  border-color:rgba(232,96,10,.3); color:var(--orange);
+}
+.ab-foot-btn.danger:hover {
+  border-color:rgba(239,68,68,.35); color:#f87171;
+  background:rgba(239,68,68,.06);
+}
 
-/* ADMIN MAIN */
+/* ── TOPBAR ──────────────────────────────────────────── */
+.ab-btn {
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;
+  cursor:pointer;transition:all .16s;border:none;
+  font-family:'Barlow',sans-serif; letter-spacing:.3px;
+}
+.ab-btn:hover { top:-2px; box-shadow:0 7px 0 rgba(0,0,0,.4), 0 8px 16px rgba(0,0,0,.35); }
+.ab-btn:active { top:4px; box-shadow:0 1px 0 rgba(0,0,0,.4); }
+
+.ab-btn-primary {
+  background:linear-gradient(180deg,#f07030,#E8600A);
+  color:#fff;
+  box-shadow:0 5px 0 #8b3200, 0 6px 12px rgba(232,96,10,.35);
+}
+.ab-btn-primary:hover {
+  background:linear-gradient(180deg,#f58040,#f06520);
+  box-shadow:0 7px 0 #8b3200, 0 8px 18px rgba(232,96,10,.4);
+}
+.ab-btn-primary:active { box-shadow:0 1px 0 #8b3200; }
+
+.ab-btn-ghost {
+  background:linear-gradient(180deg,var(--steel-light),var(--steel-mid));
+  color:var(--text-dim);
+  border:1px solid var(--border);
+  box-shadow:0 5px 0 rgba(0,0,0,.5), 0 6px 10px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.ab-btn-ghost:hover {
+  color:var(--text);border-color:var(--border-orange);
+  box-shadow:0 7px 0 rgba(0,0,0,.5), 0 8px 14px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.ab-btn-ghost:active { box-shadow:0 1px 0 rgba(0,0,0,.5); }
+
+.ab-btn-danger {
+  background:linear-gradient(180deg,#f87171,#ef4444);
+  color:#fff;
+  box-shadow:0 5px 0 #7f1d1d, 0 6px 12px rgba(239,68,68,.35);
+}
+.ab-btn-danger:hover { box-shadow:0 7px 0 #7f1d1d, 0 8px 18px rgba(239,68,68,.4); }
+.ab-btn-danger:active { box-shadow:0 1px 0 #7f1d1d; }
+
+.ab-btn-sm { padding:6px 12px;font-size:12px;border-radius:6px; }
+.ab-btn-sm.ab-btn { box-shadow:0 3px 0 rgba(0,0,0,.4), 0 4px 8px rgba(0,0,0,.25); }
+.ab-btn-sm.ab-btn:hover { top:-1px; box-shadow:0 4px 0 rgba(0,0,0,.4), 0 5px 10px rgba(0,0,0,.3); }
+.ab-btn-sm.ab-btn-primary { box-shadow:0 3px 0 #8b3200, 0 4px 8px rgba(232,96,10,.3); }
+.ab-btn-sm.ab-btn-primary:hover { box-shadow:0 4px 0 #8b3200, 0 5px 10px rgba(232,96,10,.35); }
+.ab-btn-sm.ab-btn-ghost { box-shadow:0 3px 0 rgba(0,0,0,.45), 0 4px 6px rgba(0,0,0,.2); }
+.ab-btn-sm.ab-btn-ghost:hover { box-shadow:0 4px 0 rgba(0,0,0,.45), 0 5px 8px rgba(0,0,0,.25); }
+
+/* ── TOPBAR ──────────────────────────────────────────── */
 .ab-main { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; height:100vh; }
 .ab-topbar {
-  height:60px;background:#060709;border-bottom:1px solid var(--border);
+  height:60px;
+  background:rgba(6,7,9,.95);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  backdrop-filter:blur(12px);
   display:flex;align-items:center;justify-content:space-between;
-  padding:0 28px;flex-shrink:0;
+  padding:0 24px;flex-shrink:0;
+  position:sticky;top:0;z-index:50;
 }
-.ab-topbar-l { display:flex;align-items:center;gap:16px; }
+.ab-topbar-l { display:flex;align-items:center;gap:14px; }
 .ab-topbar-title {
   font-family:'Barlow Condensed',sans-serif;
-  font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:1px;
+  font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:1px;
+  color:var(--text);
 }
-.ab-topbar-r { display:flex;align-items:center;gap:12px; }
+.ab-topbar-r { display:flex;align-items:center;gap:10px; }
 .ab-search {
-  background:var(--steel-mid);border:1px solid var(--border);
-  color:var(--text);border-radius:6px;padding:8px 14px;
-  font-size:13px;width:280px;font-family:'Barlow',sans-serif;
-  transition:border-color 0.2s;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+  color:var(--text);border-radius:6px;padding:7px 14px;
+  font-size:12.5px;width:260px;font-family:'Barlow',sans-serif;
+  transition:all .2s;
 }
-.ab-search:focus { outline:none;border-color:var(--orange); }
+.ab-search:focus { outline:none;border-color:rgba(232,96,10,.5);background:rgba(255,255,255,.07); }
 .ab-notif-btn {
-  position:relative;background:none;border:none;cursor:pointer;
-  color:var(--text-dim);font-size:16px;padding:6px;
+  position:relative;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;
+  color:var(--text-dim);font-size:15px;padding:7px 9px;
+  transition:all .15s;
 }
+.ab-notif-btn:hover { border-color:rgba(232,96,10,.3);color:var(--orange); }
 .ab-notif-dot {
-  position:absolute;top:4px;right:4px;
-  width:8px;height:8px;border-radius:50%;background:#ef4444;
-  border:1px solid #060709;
+  position:absolute;top:5px;right:5px;
+  width:7px;height:7px;border-radius:50%;background:#ef4444;
+  border:1.5px solid #060709;
 }
 .ab-status-badge {
-  display:inline-flex;align-items:center;gap:6px;
-  padding:4px 10px;border-radius:100px;
-  font-size:11px;font-weight:700;letter-spacing:1px;
-  background:rgba(34,197,94,0.12);color:#4ade80;
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:99px;
+  font-size:10.5px;font-weight:700;letter-spacing:.8px;
+  background:rgba(74,222,128,.1);color:#4ade80;
+  border:1px solid rgba(74,222,128,.2);font-family:'Barlow',sans-serif;
 }
 .ab-status-badge::before {
   content:'';width:6px;height:6px;border-radius:50%;background:#4ade80;
-  animation:pulse 2s infinite;
+  animation:pulse 2s infinite;flex-shrink:0;
 }
-.ab-content { flex:1; overflow-y:auto; overflow-x:hidden; padding:28px; }
-.ab-page { display:none; }
-.ab-page.active { display:block; }
 
-/* ADMIN KPI GRID */
-/* ── KPI GRID OVERVIEW ── */
-.ab-kpi-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px; }
+/* ── CONTENT AREA ────────────────────────────────────── */
+.ab-content { flex:1; overflow-y:auto; overflow-x:hidden; padding:24px; background:#08090e; }
+.ab-page { display:none; }
+.ab-page.active { display:block; animation:abFadeIn .2s ease; }
+@keyframes abFadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+/* ── PAGE HEADER (standardisé) ───────────────────────── */
+.ab-ph {
+  display:flex;align-items:flex-end;justify-content:space-between;
+  margin-bottom:22px;padding-bottom:18px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.ab-ph-left {}
+.ab-ph-title {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:24px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;line-height:1;
+}
+.ab-ph-sub { font-size:11.5px;color:var(--text-muted);margin-top:5px; }
+.ab-ph-actions { display:flex;gap:8px;align-items:center; }
+
+/* ── KPI GRID ────────────────────────────────────────── */
+.ab-kpi-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px; }
 .ab-kpi-section-label {
   grid-column:1/-1;
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;
-  color:var(--text-muted);padding:4px 0 2px;
+  font-size:9.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:rgba(255,255,255,.2);padding:2px 0;font-family:'Barlow',sans-serif;
   display:flex;align-items:center;gap:10px;
 }
-.ab-kpi-section-label::after { content:'';flex:1;height:1px;background:var(--border); }
+.ab-kpi-section-label::after { content:'';flex:1;height:1px;background:rgba(255,255,255,.06); }
 .ab-kpi {
-  background:var(--steel);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:18px 20px 16px;
-  transition:all 0.2s;
-  cursor:pointer;
-  position:relative;
-  overflow:hidden;
-  display:flex;flex-direction:column;gap:0;
+  background:rgba(13,14,18,1);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;
+  padding:18px 18px 14px;
+  transition:all .2s;cursor:pointer;
+  position:relative;overflow:hidden;
 }
+.ab-kpi::after {
+  content:'';position:absolute;top:0;right:0;
+  width:80px;height:80px;border-radius:50%;
+  transform:translate(30px,-30px);
+  pointer-events:none;
+}
+.ab-kpi.o::after { background:radial-gradient(circle,rgba(232,96,10,.12),transparent 70%); }
+.ab-kpi.g::after { background:radial-gradient(circle,rgba(74,222,128,.1),transparent 70%); }
+.ab-kpi.b::after { background:radial-gradient(circle,rgba(79,142,240,.1),transparent 70%); }
+.ab-kpi.y::after { background:radial-gradient(circle,rgba(251,191,36,.1),transparent 70%); }
+.ab-kpi.r::after { background:radial-gradient(circle,rgba(248,113,113,.1),transparent 70%); }
 .ab-kpi::before {
-  content:'';position:absolute;top:0;left:0;bottom:0;width:3px;border-radius:10px 0 0 10px;
+  content:'';position:absolute;top:0;left:0;bottom:0;width:3px;border-radius:12px 0 0 12px;
 }
-.ab-kpi.o::before { background:var(--orange); }
-.ab-kpi.g::before { background:#4ade80; }
-.ab-kpi.b::before { background:#4f8ef0; }
-.ab-kpi.y::before { background:#fbbf24; }
-.ab-kpi.r::before { background:#f87171; }
-.ab-kpi:hover { border-color:rgba(255,255,255,0.12);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.3); }
-.ab-kpi-top { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px; }
+.ab-kpi.o::before { background:linear-gradient(180deg,var(--orange),rgba(232,96,10,.3)); }
+.ab-kpi.g::before { background:linear-gradient(180deg,#4ade80,rgba(74,222,128,.2)); }
+.ab-kpi.b::before { background:linear-gradient(180deg,#4f8ef0,rgba(79,142,240,.2)); }
+.ab-kpi.y::before { background:linear-gradient(180deg,#fbbf24,rgba(251,191,36,.2)); }
+.ab-kpi.r::before { background:linear-gradient(180deg,#f87171,rgba(248,113,113,.2)); }
+.ab-kpi:hover { transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.35);border-color:rgba(255,255,255,.12); }
+.ab-kpi-top { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px; }
 .ab-kpi-icon {
-  width:38px;height:38px;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;flex-shrink:0;
+  width:36px;height:36px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;
 }
-.ab-kpi.o .ab-kpi-icon { background:rgba(232,96,10,0.15); }
-.ab-kpi.g .ab-kpi-icon { background:rgba(74,222,128,0.12); }
-.ab-kpi.b .ab-kpi-icon { background:rgba(79,142,240,0.12); }
-.ab-kpi.y .ab-kpi-icon { background:rgba(251,191,36,0.12); }
-.ab-kpi.r .ab-kpi-icon { background:rgba(248,113,113,0.12); }
-.ab-kpi-nav { font-size:14px;color:var(--text-muted);transition:color 0.2s; }
+.ab-kpi.o .ab-kpi-icon { background:rgba(232,96,10,.13); }
+.ab-kpi.g .ab-kpi-icon { background:rgba(74,222,128,.1); }
+.ab-kpi.b .ab-kpi-icon { background:rgba(79,142,240,.1); }
+.ab-kpi.y .ab-kpi-icon { background:rgba(251,191,36,.1); }
+.ab-kpi.r .ab-kpi-icon { background:rgba(248,113,113,.1); }
+.ab-kpi-nav { font-size:13px;color:rgba(255,255,255,.2);transition:color .2s; }
 .ab-kpi:hover .ab-kpi-nav { color:var(--orange); }
 .ab-kpi-val {
   font-family:'Barlow Condensed',sans-serif;
-  font-size:34px;font-weight:900;line-height:1;margin-bottom:4px;
+  font-size:32px;font-weight:900;line-height:1;margin-bottom:3px;
 }
 .ab-kpi.o .ab-kpi-val { color:var(--orange); }
 .ab-kpi.g .ab-kpi-val { color:#4ade80; }
 .ab-kpi.b .ab-kpi-val { color:#4f8ef0; }
 .ab-kpi.y .ab-kpi-val { color:#fbbf24; }
 .ab-kpi.r .ab-kpi-val { color:#f87171; }
-.ab-kpi-label { font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px; }
-.ab-kpi-trend { font-size:11px;color:var(--text-muted); }
+.ab-kpi-label { font-size:11.5px;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:1px; }
+.ab-kpi-trend { font-size:10.5px;color:rgba(255,255,255,.3); }
 .ab-kpi-trend.up { color:#4ade80; }
 .ab-kpi-trend.down { color:#f87171; }
-/* progress bar optionnelle */
-.ab-kpi-bar { margin-top:12px;height:3px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden; }
-.ab-kpi-bar-fill { height:100%;border-radius:99px;transition:width 0.6s ease; }
-.ab-kpi.o .ab-kpi-bar-fill { background:var(--orange); }
-.ab-kpi.g .ab-kpi-bar-fill { background:#4ade80; }
-.ab-kpi.b .ab-kpi-bar-fill { background:#4f8ef0; }
-.ab-kpi.y .ab-kpi-bar-fill { background:#fbbf24; }
-.ab-kpi.r .ab-kpi-bar-fill { background:#f87171; }
+.ab-kpi-bar { margin-top:10px;height:2px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden; }
+.ab-kpi-bar-fill { height:100%;border-radius:99px;transition:width .7s cubic-bezier(.4,0,.2,1); }
+.ab-kpi.o .ab-kpi-bar-fill { background:linear-gradient(90deg,#E8600A,#ff9a5c); }
+.ab-kpi.g .ab-kpi-bar-fill { background:linear-gradient(90deg,#4ade80,#86efac); }
+.ab-kpi.b .ab-kpi-bar-fill { background:linear-gradient(90deg,#4f8ef0,#93c5fd); }
+.ab-kpi.y .ab-kpi-bar-fill { background:linear-gradient(90deg,#fbbf24,#fde68a); }
+.ab-kpi.r .ab-kpi-bar-fill { background:linear-gradient(90deg,#f87171,#fca5a5); }
 
-/* ADMIN GRID LAYOUT */
-.ab-g2 { display:grid;grid-template-columns:1fr 1fr;gap:20px; }
-.ab-g3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px; }
-.ab-g31 { display:grid;grid-template-columns:2fr 1fr;gap:20px; }
-.ab-g13 { display:grid;grid-template-columns:1fr 2fr;gap:20px; }
+/* ── GRID LAYOUTS ────────────────────────────────────── */
+.ab-g2 { display:grid;grid-template-columns:1fr 1fr;gap:18px; }
+.ab-g3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px; }
+.ab-g31 { display:grid;grid-template-columns:3fr 2fr;gap:18px; }
+.ab-g13 { display:grid;grid-template-columns:2fr 3fr;gap:18px; }
+.mb-20 { margin-bottom:18px; }
 
-/* ADMIN CARD */
+/* ── CARD ────────────────────────────────────────────── */
 .ab-card {
-  background:var(--steel);border:1px solid var(--border);
-  border-radius:8px;overflow:hidden;
+  background:rgba(13,14,18,1);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;overflow:hidden;
 }
 .ab-card-head {
-  padding:14px 18px;border-bottom:1px solid var(--border);
+  padding:13px 18px;border-bottom:1px solid rgba(255,255,255,.06);
   display:flex;align-items:center;justify-content:space-between;
+  background:rgba(255,255,255,.015);
 }
 .ab-card-title {
   font-family:'Barlow Condensed',sans-serif;
-  font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:1px;
+  font-size:13.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text);
 }
-.ab-card-body { padding:18px; }
+.ab-card-body { padding:16px 18px; }
 
-/* ADMIN TABLE */
-.ab-table { width:100%;border-collapse:collapse;font-size:13px; }
+/* ── TABLE ───────────────────────────────────────────── */
+.ab-table { width:100%;border-collapse:collapse;font-size:12.5px; }
 .ab-table th {
-  text-align:left;padding:10px 14px;
-  font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
-  color:var(--text-muted);border-bottom:1px solid var(--border);
+  text-align:left;padding:9px 14px;
+  font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:rgba(255,255,255,.25);border-bottom:1px solid rgba(255,255,255,.07);
+  white-space:nowrap;
 }
-.ab-table td { padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.04); }
+.ab-table td {
+  padding:11px 14px;
+  border-bottom:1px solid rgba(255,255,255,.04);
+  color:rgba(255,255,255,.75);
+  vertical-align:middle;
+}
 .ab-table tr:last-child td { border-bottom:none; }
-.ab-table tr:hover td { background:rgba(255,255,255,0.02); }
+.ab-table tbody tr { transition:background .12s; }
+.ab-table tbody tr:hover td { background:rgba(255,255,255,.03);color:#fff; }
+.ab-table-empty {
+  text-align:center;padding:32px;color:rgba(255,255,255,.2);
+  font-size:12px;font-style:italic;
+}
 
-/* ADMIN BADGE */
+/* ── BADGE ───────────────────────────────────────────── */
 .ab-badge {
   display:inline-flex;align-items:center;gap:4px;
-  padding:3px 8px;border-radius:3px;
-  font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
-}
-.ab-badge-green { background:rgba(34,197,94,0.15);color:#4ade80; }
-.ab-badge-orange { background:rgba(232,96,10,0.15);color:var(--orange); }
-.ab-badge-red { background:rgba(239,68,68,0.15);color:#f87171; }
-.ab-badge-blue { background:rgba(79,142,240,0.15);color:#4f8ef0; }
-.ab-badge-yellow { background:rgba(251,191,36,0.15);color:#fbbf24; }
-.ab-badge-gray { background:rgba(255,255,255,0.07);color:var(--text-dim); }
-
-/* ADMIN BUTTONS */
-.ab-btn {
-  display:inline-flex;align-items:center;gap:6px;
-  padding:7px 14px;border-radius:5px;font-size:12px;font-weight:600;
-  cursor:pointer;transition:all 0.2s;border:none;letter-spacing:0.5px;
+  padding:3px 8px;border-radius:4px;
+  font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
   font-family:'Barlow',sans-serif;
 }
-.ab-btn-primary { background:var(--orange);color:#fff; }
-.ab-btn-primary:hover { background:var(--orange-light);transform:translateY(-1px); }
-.ab-btn-ghost { background:transparent;color:var(--text-dim);border:1px solid var(--border); }
-.ab-btn-ghost:hover { border-color:var(--orange);color:var(--orange); }
-.ab-btn-green { background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3); }
-.ab-btn-green:hover { background:rgba(34,197,94,0.25); }
-.ab-btn-red { background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.3); }
-.ab-btn-red:hover { background:rgba(239,68,68,0.25); }
-.ab-btn-sm { padding:4px 10px;font-size:11px; }
+.ab-badge-green  { background:rgba(74,222,128,.1); color:#4ade80; border:1px solid rgba(74,222,128,.2); }
+.ab-badge-orange { background:rgba(232,96,10,.12); color:var(--orange); border:1px solid rgba(232,96,10,.25); }
+.ab-badge-red    { background:rgba(239,68,68,.1);  color:#f87171; border:1px solid rgba(239,68,68,.2); }
+.ab-badge-blue   { background:rgba(79,142,240,.1); color:#4f8ef0; border:1px solid rgba(79,142,240,.2); }
+.ab-badge-yellow { background:rgba(251,191,36,.1); color:#fbbf24; border:1px solid rgba(251,191,36,.2); }
+.ab-badge-gray   { background:rgba(255,255,255,.06);color:rgba(255,255,255,.4); }
 
-/* ALERT ITEM */
-.ab-alert-item {
-  display:flex;gap:12px;padding:12px 14px;border-radius:6px;
-  background:var(--steel-mid);border:1px solid var(--border);
-  margin-bottom:8px;
+/* ── BUTTONS ─────────────────────────────────────────── */
+.ab-btn-primary {
+  background:linear-gradient(135deg,#E8600A,#c44d00);color:#fff;
+  box-shadow:0 2px 8px rgba(232,96,10,.3);
 }
-.ab-alert-icon { font-size:18px;flex-shrink:0; }
-.ab-alert-title { font-size:13px;font-weight:500;margin-bottom:2px; }
-.ab-alert-sub { font-size:11px;color:var(--text-muted); }
+.ab-btn-primary:hover { background:linear-gradient(135deg,#ff7420,#E8600A);transform:translateY(-1px);box-shadow:0 4px 14px rgba(232,96,10,.4); }
+.ab-btn-ghost { background:rgba(255,255,255,.05);color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.1); }
+.ab-btn-ghost:hover { border-color:rgba(232,96,10,.4);color:var(--orange);background:rgba(232,96,10,.05); }
+.ab-btn-green { background:rgba(74,222,128,.1);color:#4ade80;border:1px solid rgba(74,222,128,.25); }
+.ab-btn-green:hover { background:rgba(74,222,128,.18); }
+.ab-btn-red { background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.25); }
+.ab-btn-red:hover { background:rgba(239,68,68,.18); }
+.ab-btn-sm { padding:5px 10px;font-size:11px; }
 
-/* STAT BAR */
+/* ── ALERT ITEM ──────────────────────────────────────── */
+.ab-alert-item {
+  display:flex;gap:12px;padding:11px 14px;border-radius:8px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  margin-bottom:7px;transition:background .15s;
+}
+.ab-alert-item:hover { background:rgba(255,255,255,.05); }
+.ab-alert-icon { font-size:17px;flex-shrink:0;margin-top:1px; }
+.ab-alert-title { font-size:12.5px;font-weight:600;margin-bottom:2px;color:var(--text); }
+.ab-alert-sub { font-size:10.5px;color:rgba(255,255,255,.3); }
+
+/* ── STAT BAR ────────────────────────────────────────── */
 .ab-stat-bar {
-  height:6px;background:var(--steel-light);border-radius:3px;
+  height:4px;background:rgba(255,255,255,.06);border-radius:99px;
   overflow:hidden;margin-top:6px;
 }
-.ab-stat-bar-fill { height:100%;border-radius:3px;background:var(--orange); transition:width 0.6s ease; }
+.ab-stat-bar-fill { height:100%;border-radius:99px;background:var(--orange); transition:width .6s ease; }
 
-/* FORM */
+/* ── FORM CONTROLS ───────────────────────────────────── */
 .ab-form-grid { display:grid;grid-template-columns:1fr 1fr;gap:14px; }
 .ab-fg { display:flex;flex-direction:column;gap:5px; }
 .ab-fg.full { grid-column:span 2; }
-.ab-flbl { font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim); }
+.ab-flbl { font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35); }
 .ab-fctrl {
-  background:var(--steel-mid);border:1px solid var(--border);
-  color:var(--text);border-radius:5px;padding:9px 12px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);
+  color:var(--text);border-radius:7px;padding:9px 12px;
   font-size:13px;font-family:'Barlow',sans-serif;transition:border-color 0.2s;
 }
 .ab-fctrl:focus { outline:none;border-color:var(--orange); }
@@ -3913,7 +4061,18 @@ textarea.d-fctrl { resize: vertical; min-height: 80px; }
   font-family:'Barlow Condensed',sans-serif;
   font-size:18px;font-weight:800;text-transform:uppercase;
 }
-.ab-modal-close { background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer; }
+.ab-modal-close {
+  background:linear-gradient(180deg,var(--steel-light),var(--steel-mid));
+  border:1px solid var(--border);
+  border-bottom:3px solid rgba(0,0,0,.4);
+  color:var(--text-dim);font-size:16px;cursor:pointer;
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.12s;position:relative;top:0;
+  box-shadow:0 3px 0 rgba(0,0,0,.4);
+}
+.ab-modal-close:hover { color:var(--text);top:-1px;box-shadow:0 4px 0 rgba(0,0,0,.4); }
+.ab-modal-close:active { top:2px;box-shadow:0 1px 0 rgba(0,0,0,.4);border-bottom-width:1px; }
 .ab-modal-body { padding:24px; }
 .ab-modal-foot { padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end; }
 
@@ -4435,16 +4594,95 @@ textarea.d-fctrl { resize: vertical; min-height: 80px; }
 .ab-res-open:hover { background:var(--orange-light); }
 .ab-res-cat-filter { padding:4px 12px; border-radius:20px; border:1px solid var(--border); font-size:11px; font-weight:600; cursor:pointer; color:var(--text-dim); background:transparent; font-family:'Barlow',sans-serif; transition:all .15s; white-space:nowrap; }
 .ab-res-cat-filter.active { background:var(--orange); border-color:var(--orange); color:#fff; }
-/* ── PHOTO PREVIEW ENGIN ── */
-.ab-photo-zone { position:relative; border:2px dashed var(--border); border-radius:8px; overflow:hidden; background:var(--steel-mid); }
-.ab-photo-zone.has-photo { border-style:solid; border-color:var(--border-orange); }
+/* ── PHOTO DROP ZONE (universel) ── */
+.nx-drop-zone {
+  position:relative;
+  border:2px dashed rgba(255,255,255,.12);
+  border-radius:10px;
+  background:rgba(255,255,255,.03);
+  transition:all .2s;
+  cursor:pointer;
+  overflow:hidden;
+  min-height:120px;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+.nx-drop-zone:hover,
+.nx-drop-zone.drag-over {
+  border-color:rgba(232,96,10,.6);
+  background:rgba(232,96,10,.05);
+}
+.nx-drop-zone.uploading {
+  border-color:rgba(232,96,10,.4);
+  pointer-events:none;
+}
+.nx-drop-zone.has-photo {
+  border-style:solid;
+  border-color:rgba(232,96,10,.4);
+  background:transparent;
+  min-height:auto;
+}
+/* Placeholder (état vide) */
+.nx-dz-placeholder {
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;padding:24px 16px;text-align:center;pointer-events:none;
+}
+.nx-dz-icon { font-size:28px;opacity:.4; }
+.nx-dz-text { font-size:12px;color:rgba(255,255,255,.35);line-height:1.4; }
+.nx-dz-text strong { color:rgba(255,255,255,.55);display:block;margin-bottom:2px; }
+/* Upload spinner */
+.nx-dz-uploading {
+  position:absolute;inset:0;
+  background:rgba(6,7,9,.88);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;font-size:12px;color:var(--orange);
+}
+.nx-dz-bar { width:140px;height:3px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden; }
+.nx-dz-bar-fill { height:100%;background:var(--orange);border-radius:99px;transition:width .3s; }
+/* Preview grille (multi-photos) */
+.nx-dz-grid {
+  display:flex;flex-wrap:wrap;gap:6px;padding:10px;width:100%;box-sizing:border-box;
+}
+.nx-dz-thumb {
+  position:relative;width:80px;height:80px;flex-shrink:0;border-radius:7px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.1);
+}
+.nx-dz-thumb img { width:100%;height:100%;object-fit:cover;display:block; }
+.nx-dz-thumb-del {
+  position:absolute;top:3px;right:3px;
+  background:rgba(239,68,68,.85);color:#fff;
+  border:none;border-radius:4px;
+  width:18px;height:18px;font-size:10px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .15s;
+}
+.nx-dz-thumb:hover .nx-dz-thumb-del { opacity:1; }
+/* Bouton "Ajouter" en bas de la grille */
+.nx-dz-add {
+  width:80px;height:80px;border-radius:7px;
+  border:2px dashed rgba(255,255,255,.15);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;color:rgba(255,255,255,.25);
+  cursor:pointer;transition:all .15s;flex-shrink:0;
+}
+.nx-dz-add:hover { border-color:rgba(232,96,10,.5);color:var(--orange); }
+/* Preview single (preuve paiement) */
+.nx-dz-single { width:100%;position:relative; }
+.nx-dz-single img { width:100%;height:140px;object-fit:cover;display:block; }
+.nx-dz-single-bar {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 10px;background:rgba(6,7,9,.7);
+  font-size:11px;color:rgba(255,255,255,.6);
+}
+
+/* ── ANCIEN SYSTEM (compat) ── */
+.ab-photo-zone { position:relative; border:2px dashed rgba(255,255,255,.1); border-radius:10px; overflow:hidden; background:rgba(255,255,255,.03); }
+.ab-photo-zone.has-photo { border-style:solid; border-color:rgba(232,96,10,.4); }
 .ab-photo-preview { width:100%; height:120px; object-fit:cover; display:block; }
-.ab-photo-placeholder { height:120px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; cursor:pointer; color:var(--text-muted); font-size:13px; }
-.ab-photo-placeholder:hover { color:var(--text); border-color:var(--orange); }
+.ab-photo-placeholder { height:120px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; cursor:pointer; color:rgba(255,255,255,.3); font-size:13px; transition:all .15s; }
+.ab-photo-placeholder:hover { color:rgba(255,255,255,.6); }
 .ab-photo-actions { display:flex; gap:6px; padding:8px; }
 .ab-photo-uploading { position:absolute; inset:0; background:rgba(8,11,15,.85); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; font-size:12px; color:var(--orange); }
-.ab-progress { width:120px; height:4px; background:var(--steel-light); border-radius:2px; overflow:hidden; }
-.ab-progress-bar { height:100%; background:var(--orange); border-radius:2px; transition:width .3s; }
 /* Integration status pills */
 .ab-int-pill { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:10px; font-weight:700; letter-spacing:.5px; }
 .ab-int-off  { background:rgba(255,255,255,.06); color:var(--text-muted); border:1px solid var(--border); }
@@ -6365,7 +6603,15 @@ en: {
 
 
 // ── Helpers ────────────────────────────────────────────────
+// ── Overrides vitrine (édités via panneau admin) ──────────
+let _NX_OVERRIDES = (function(){
+  try { return JSON.parse(localStorage.getItem('nx_i18n_overrides') || '{"fr":{},"en":{}}'); }
+  catch { return { fr:{}, en:{} }; }
+})();
+
 function t(key) {
+  const ov = _NX_OVERRIDES[_lang]?.[key];
+  if (ov !== undefined && ov !== '') return ov;
   return NX_TR[_lang]?.[key] ?? NX_TR.fr[key] ?? key;
 }
 
@@ -7235,7 +7481,6 @@ document.addEventListener('DOMContentLoaded', () => {
     'comment':         'services',
     'plateforme':      'plateforme',
     'carte':           'plateforme',
-    'equipe':          'plateforme',
     'devis':           'plateforme',
   };
 
@@ -7644,6 +7889,10 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="stat-block"><div class="stat-num">GPS</div><div class="stat-label">Suivi temps réel</div></div>
         <div class="stat-block"><div class="stat-num">B2B</div><div class="stat-label">Marketplace vérifiée</div></div>
         <div class="stat-block"><div class="stat-num">24h</div><div class="stat-label">Réponse garantie</div></div>
+        <div class="stat-block" id="nx-visit-block" title="Visiteurs uniques depuis le lancement">
+          <div class="stat-num" id="nx-visit-num">—</div>
+          <div class="stat-label">👥 Visiteurs</div>
+        </div>
       </div>
     </div>
   </section>
@@ -10926,15 +11175,20 @@ service cloud.firestore {
         <div class="d-fg full"><label class="d-flbl">Description / Équipements</label><textarea class="d-fctrl" id="dEDesc" placeholder="Cabine climatisée, GPS actif..."></textarea></div>
         <div class="d-fg"><label class="d-flbl">Icône</label><select class="d-fctrl" id="dEEmoji"><option value="🚛">🚛 Camion benne</option><option value="🚜">🚜 Chargeuse</option><option value="⛏️">⛏️ Pelle</option><option value="🏗️">🏗️ Grue</option><option value="🚰">🚰 Citerne</option><option value="🚧">🚧 Compacteur</option><option value="⚙️">⚙️ Autre</option></select></div>
         <div class="d-fg"><label class="d-flbl">GPS actif</label><select class="d-fctrl" id="dEGps"><option value="1">Oui — GPS actif</option><option value="0">Non</option></select></div>
-        <!-- PHOTOS CLOUDINARY -->
         <div class="d-fg full">
-          <label class="d-flbl">📷 Photos Cloudinary</label>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-            <button class="d-btn d-btn-ghost d-btn-sm" id="dEPhotoBtn" type="button" onclick="document.getElementById('dEPhotoInput').click()">📷 Ajouter photo</button>
-            <input type="file" id="dEPhotoInput" accept="image/*" style="display:none" onchange="dUploadEnginPhoto(this)">
-            <span style="font-size:11px;color:var(--text-muted);">Max 5 Mo par photo — JPG/PNG/WEBP</span>
+          <label class="d-flbl">📷 Photos de l'engin</label>
+          <div class="nx-drop-zone" id="dEDropZone" onclick="document.getElementById('dEPhotoInput').click()" ondragover="nxDzDragOver(event,'dEDropZone')" ondragleave="nxDzDragLeave('dEDropZone')" ondrop="nxDzDrop(event,'dEPhotoInput')">
+            <div class="nx-dz-placeholder" id="dEDzPlaceholder">
+              <div class="nx-dz-icon">🖼️</div>
+              <div class="nx-dz-text"><strong>Glisser une photo ici</strong>ou cliquer pour parcourir<br><span style="font-size:10px;opacity:.6;">JPG · PNG · WEBP · max 5 Mo</span></div>
+            </div>
+            <div class="nx-dz-grid d-none" id="dEPhotoPrev"></div>
+            <div class="nx-dz-uploading d-none" id="dEDzUploading">
+              <span>⏳ Upload en cours…</span>
+              <div class="nx-dz-bar"><div class="nx-dz-bar-fill" id="dEDzBar" style="width:0%"></div></div>
+            </div>
           </div>
-          <div id="dEPhotoPrev" style="display:flex;flex-wrap:wrap;gap:4px;min-height:24px;"></div>
+          <input type="file" id="dEPhotoInput" accept="image/*" multiple style="display:none" onchange="dUploadEnginPhoto(this)">
         </div>
       </div>
     </div>
@@ -10980,12 +11234,19 @@ service cloud.firestore {
         <div class="d-fg"><label class="d-flbl">Statut</label><select class="d-fctrl" id="dPaiStatut"><option>Reçu</option><option>En attente</option><option>Partiel</option></select></div>
         <div class="d-fg full"><label class="d-flbl">Notes</label><input class="d-fctrl" id="dPaiNotes" placeholder="Référence transaction, remarques..."></div>
         <div class="d-fg full">
-          <label class="d-flbl">📎 Preuve de paiement (Cloudinary)</label>
-          <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
-            <button class="d-btn d-btn-ghost d-btn-sm" id="dPaiPreuveBtn" type="button" onclick="document.getElementById('dPaiPreuveInput').click()">📎 Charger preuve</button>
-            <input type="file" id="dPaiPreuveInput" accept="image/*,application/pdf" style="display:none" onchange="dUploadPreuvePaiement(this)">
-            <span id="dPaiPreviewUrl" style="font-size:11px;color:var(--text-muted);"></span>
+          <label class="d-flbl">📎 Preuve de paiement</label>
+          <div class="nx-drop-zone" id="dPaiDropZone" style="min-height:80px;" onclick="document.getElementById('dPaiPreuveInput').click()" ondragover="nxDzDragOver(event,'dPaiDropZone')" ondragleave="nxDzDragLeave('dPaiDropZone')" ondrop="nxDzDrop(event,'dPaiPreuveInput')">
+            <div class="nx-dz-placeholder" id="dPaiDzPlaceholder">
+              <div class="nx-dz-icon" style="font-size:20px;">📎</div>
+              <div class="nx-dz-text"><strong>Glisser la preuve ici</strong>Photo ou PDF · max 10 Mo</div>
+            </div>
+            <div class="nx-dz-uploading d-none" id="dPaiDzUploading">
+              <span>⏳ Upload en cours…</span>
+              <div class="nx-dz-bar"><div class="nx-dz-bar-fill" style="width:60%"></div></div>
+            </div>
+            <div class="d-none" id="dPaiPreviewUrl" style="padding:10px 14px;font-size:12px;color:#4ade80;font-weight:600;"></div>
           </div>
+          <input type="file" id="dPaiPreuveInput" accept="image/*,application/pdf" style="display:none" onchange="dUploadPreuvePaiement(this)">
         </div>
       </div>
     </div>
@@ -11119,8 +11380,9 @@ function filterEngins() {
     (!loc || e.region === loc) &&
     (!status || e.status === status)
   );
-  if (sort === 'prix_asc')  filteredEngins.sort((a,b) => (a.tarifJ||a.prix||0) - (b.tarifJ||b.prix||0));
-  if (sort === 'prix_desc') filteredEngins.sort((a,b) => (b.tarifJ||b.prix||0) - (a.tarifJ||a.prix||0));
+  const _parsePrice = s => { if (typeof s === 'number') return s; return parseInt((s||'0').replace(/\D/g,'')) || 0; };
+  if (sort === 'prix_asc')  filteredEngins.sort((a,b) => (_parsePrice(a.tarifJ||a.prix)) - (_parsePrice(b.tarifJ||b.prix)));
+  if (sort === 'prix_desc') filteredEngins.sort((a,b) => (_parsePrice(b.tarifJ||b.prix)) - (_parsePrice(a.tarifJ||a.prix)));
   if (sort === 'dispo')     filteredEngins.sort((a,b) => (a.status==='Disponible'?-1:1));
   renderEngins();
 }
@@ -11136,7 +11398,6 @@ const _PAGE_TITLES = {
   plateforme:       'NOLDEX LOGISTICS — La Plateforme',
   devis:            'NOLDEX LOGISTICS — Demande de démo',
   carte:            'NOLDEX LOGISTICS — Carte Guinée',
-  catalogue:        'NOLDEX LOGISTICS — Catalogue des engins 2026',
   acquisition:      'NOLDEX LOGISTICS — Acquisition engins lourds Guinée',
   equipe:           'NOLDEX LOGISTICS — Notre Équipe',
 };
@@ -11150,7 +11411,6 @@ function showPage(id) {
     'partenaires':     'page-partenaires-new', // alias rétrocompat → nouvelle page
     'partenaires-new': 'page-partenaires-new',
     'catalogue':      'page-catalogue',
-    'equipe':         'page-equipe',
     'acquisition':    'page-acquisition',
     'carte':      'page-carte',
   };
@@ -11579,7 +11839,7 @@ async function doPartnerLogin() {
   setTimeout(() => dToast('💡 Raccourcis : Ctrl+K (recherche) • 1-9 (pages) • Esc (fermer)', 's'), 1200);
 }
 function doPartnerLogout() {
-  _supa.auth.signOut();
+  if (_supa) _supa.auth.signOut();
   document.getElementById('dashOverlay').classList.remove('open');
   document.getElementById('loginOverlay').classList.remove('open');
   document.body.style.overflow = '';
@@ -12161,7 +12421,7 @@ var NX_RT = (function() {
     if (role === "admin") {
       // Pousser params admin
       try {
-        var params = JSON.parse(localStorage.getItem("ab_params") || "{}");
+        var params = JSON.parse(localStorage.getItem("ab_ab_params") || "{}");
         if (params.projectName) promises.push(setAdminParams(params));
         count++;
       } catch(er) {}
@@ -12595,51 +12855,68 @@ function dGenerateContrat(demandeId) {
 let _dCurrentPhotos = []; // photos de l'engin en cours d'édition
 
 async function dUploadEnginPhoto(input) {
-  const file = input.files[0];
-  if (!file) return;
+  const files = Array.from(input.files || []);
+  if (!files.length) return;
   if (!cloudIsReady()) {
     dToast('Cloudinary non configuré. Renseignez Cloud Name & Preset dans Paramètres.','e');
     return;
   }
-  const btn = document.getElementById('dEPhotoBtn');
+  // Show uploading state
+  const zone = document.getElementById('dEDropZone');
+  const placeholder = document.getElementById('dEDzPlaceholder');
+  const uploading = document.getElementById('dEDzUploading');
   const prev = document.getElementById('dEPhotoPrev');
-  if (btn) { btn.textContent = '⏳ Upload…'; btn.disabled = true; }
+  const bar = document.getElementById('dEDzBar');
+  if (zone) zone.classList.add('uploading');
+  if (placeholder) placeholder.classList.add('d-none');
+  if (uploading) uploading.classList.remove('d-none');
+
   try {
     const cfg = _cloudCfg();
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', cfg.uploadPreset);
-    fd.append('folder', cfg.folder || 'noldex/engins');
-    fd.append('quality', cfg.quality || 'auto');
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${cfg.cloudName}/image/upload`, {method:'POST',body:fd});
-    if (!res.ok) throw new Error((await res.json()).error?.message || 'Erreur upload');
-    const data = await res.json();
-    _dCurrentPhotos.push(data.secure_url);
-    // Afficher les previews
-    if (prev) {
-      prev.innerHTML = _dCurrentPhotos.map((u,i)=>`
-        <div style="position:relative;display:inline-block;margin:4px;">
-          <img src="${u}" style="width:72px;height:72px;object-fit:cover;border-radius:6px;border:1px solid var(--border);">
-          <button onclick="_dCurrentPhotos.splice(${i},1);dRefreshPhotoPrev()" style="position:absolute;top:-6px;right:-6px;background:var(--red,#ef4444);color:#fff;border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:10px;line-height:18px;text-align:center;padding:0;">✕</button>
-        </div>`).join('');
+    for (let i = 0; i < files.length; i++) {
+      if (bar) bar.style.width = Math.round((i / files.length) * 80) + '%';
+      const fd = new FormData();
+      fd.append('file', files[i]);
+      fd.append('upload_preset', cfg.uploadPreset);
+      fd.append('folder', cfg.folder || 'noldex/engins');
+      fd.append('quality', cfg.quality || 'auto');
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cfg.cloudName}/image/upload`, {method:'POST',body:fd});
+      if (!res.ok) throw new Error((await res.json()).error?.message || 'Erreur upload');
+      const data = await res.json();
+      _dCurrentPhotos.push(data.secure_url);
     }
-    dToast('📸 Photo ajoutée.','s');
+    if (bar) bar.style.width = '100%';
+    dRefreshPhotoPrev();
+    dToast(`📸 ${files.length > 1 ? files.length + ' photos ajoutées' : 'Photo ajoutée'}.`, 's');
   } catch(e) {
-    dToast('Erreur upload : '+e.message,'e');
+    dToast('Erreur upload : ' + e.message, 'e');
+    if (placeholder) placeholder.classList.remove('d-none');
   } finally {
-    if (btn) { btn.textContent = '📷 Ajouter photo'; btn.disabled = false; }
+    if (zone) zone.classList.remove('uploading');
+    if (uploading) uploading.classList.add('d-none');
+    if (bar) bar.style.width = '0%';
     input.value = '';
   }
 }
 
 function dRefreshPhotoPrev() {
   const prev = document.getElementById('dEPhotoPrev');
+  const placeholder = document.getElementById('dEDzPlaceholder');
   if (!prev) return;
-  prev.innerHTML = _dCurrentPhotos.map((u,i)=>`
-    <div style="position:relative;display:inline-block;margin:4px;">
-      <img src="${u}" style="width:72px;height:72px;object-fit:cover;border-radius:6px;border:1px solid var(--border);">
-      <button onclick="_dCurrentPhotos.splice(${i},1);dRefreshPhotoPrev()" style="position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:10px;line-height:18px;text-align:center;padding:0;">✕</button>
-    </div>`).join('');
+  if (_dCurrentPhotos.length === 0) {
+    prev.classList.add('d-none');
+    prev.innerHTML = '';
+    if (placeholder) placeholder.classList.remove('d-none');
+    return;
+  }
+  if (placeholder) placeholder.classList.add('d-none');
+  prev.classList.remove('d-none');
+  prev.innerHTML = _dCurrentPhotos.map((u, i) => `
+    <div class="nx-dz-thumb">
+      <img src="${u}" alt="photo ${i+1}">
+      <button class="nx-dz-thumb-del" onclick="event.stopPropagation();_dCurrentPhotos.splice(${i},1);dRefreshPhotoPrev()">✕</button>
+    </div>`).join('') +
+    `<div class="nx-dz-add" onclick="event.stopPropagation();document.getElementById('dEPhotoInput').click()" title="Ajouter une photo">＋</div>`;
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -12666,8 +12943,13 @@ let _dPaiPreuveUrl = '';
 async function dUploadPreuvePaiement(input) {
   const file = input.files[0]; if (!file) return;
   if (!cloudIsReady()) { dToast('Cloudinary non configuré.','e'); return; }
-  const btn = document.getElementById('dPaiPreuveBtn');
-  if (btn) { btn.textContent = '⏳ Upload…'; btn.disabled = true; }
+  const zone = document.getElementById('dPaiDropZone');
+  const placeholder = document.getElementById('dPaiDzPlaceholder');
+  const uploading = document.getElementById('dPaiDzUploading');
+  const previewEl = document.getElementById('dPaiPreviewUrl');
+  if (zone) zone.classList.add('uploading');
+  if (placeholder) placeholder.classList.add('d-none');
+  if (uploading) uploading.classList.remove('d-none');
   try {
     const cfg = _cloudCfg();
     const fd = new FormData();
@@ -12678,10 +12960,19 @@ async function dUploadPreuvePaiement(input) {
     if (!res.ok) throw new Error((await res.json()).error?.message||'Erreur');
     const data = await res.json();
     _dPaiPreuveUrl = data.secure_url;
-    document.getElementById('dPaiPreviewUrl').textContent = '✅ Preuve uploadée';
-    dToast('Preuve de paiement uploadée.','s');
-  } catch(e) { dToast('Erreur : '+e.message,'e'); }
-  finally { if (btn) { btn.textContent = '📎 Charger preuve'; btn.disabled = false; } input.value=''; }
+    if (previewEl) {
+      previewEl.classList.remove('d-none');
+      previewEl.innerHTML = `✅ ${file.name} <a href="${_dPaiPreuveUrl}" target="_blank" style="color:#4f8ef0;text-decoration:none;font-size:10px;margin-left:6px;">Voir →</a>`;
+    }
+    dToast('📎 Preuve uploadée.','s');
+  } catch(e) {
+    dToast('Erreur : '+e.message,'e');
+    if (placeholder) placeholder.classList.remove('d-none');
+  } finally {
+    if (zone) zone.classList.remove('uploading');
+    if (uploading) uploading.classList.add('d-none');
+    input.value='';
+  }
 }
 
 async function dSavePaiement() {
@@ -12912,7 +13203,20 @@ function dBuildAlerts() {
 }
 
 function dUpdateChart(nb) {
-  const data = D_REV.slice(-parseInt(nb));
+  // Agréger les paiements réels par mois (nb derniers mois)
+  const paiements = dDB.get('paiements');
+  const MOIS_FR = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  const now = new Date();
+  const months = [];
+  for (let i = parseInt(nb) - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const val = paiements.filter(p => (p.date||'').startsWith(key)).reduce((a,p)=>a+(p.montant||0),0);
+    months.push({ l: MOIS_FR[d.getMonth()], v: val });
+  }
+  // Fallback si aucune donnée réelle : garder D_REV
+  const hasData = months.some(m => m.v > 0);
+  const data = hasData ? months : D_REV.slice(-parseInt(nb));
   const max  = Math.max(...data.map(d => d.v));
   const tot  = data.reduce((a, d) => a + d.v, 0);
   const best = Math.max(...data.map(d => d.v));
@@ -15912,27 +16216,50 @@ function generateCataloguePDF() {
       </div>
     </div>
     <nav class="ab-nav">
+
+      <!-- ① TABLEAU DE BORD -->
       <div class="ab-nav-sec">Tableau de bord</div>
       <div class="ab-nav-item active" onclick="abGoPage('overview')"><span class="ab-ni">📊</span> Vue d'ensemble</div>
-      <div class="ab-nav-sec">Gestion flotte</div>
+
+      <!-- ② FLOTTE & ENGINS -->
+      <div class="ab-nav-sec">Flotte & Engins</div>
       <div class="ab-nav-item" onclick="abGoPage('engins')"><span class="ab-ni">🚛</span> Gestion des engins <span class="ab-nav-badge" id="abNbEngins">0</span></div>
       <div class="ab-nav-item" onclick="abGoPage('validation')"><span class="ab-ni">✅</span> Validation <span class="ab-nav-badge" id="abNbValidation" style="background:rgba(251,191,36,0.2);color:#fbbf24;">0</span></div>
-      <div class="ab-nav-sec">Clients & contrats</div>
+
+      <!-- ③ CLIENTS & PARTENAIRES -->
+      <div class="ab-nav-sec">Clients & Partenaires</div>
       <div class="ab-nav-item" onclick="abGoPage('clients')"><span class="ab-ni">🏢</span> Clients B2B <span class="ab-nav-badge green" id="abNbClients">0</span></div>
+      <div class="ab-nav-item" onclick="abGoPage('partenaires')"><span class="ab-ni">🤝</span> Partenaires</div>
+      <div class="ab-nav-item" onclick="abGoPage('demandes')"><span class="ab-ni">📥</span> Demandes devis <span class="ab-nav-badge" id="abNbDemandes">0</span></div>
+
+      <!-- ④ FINANCES -->
+      <div class="ab-nav-sec">Finances</div>
       <div class="ab-nav-item" onclick="abGoPage('contrats')"><span class="ab-ni">📄</span> Contrats & locations</div>
-      <div class="ab-nav-item" onclick="abGoPage('demandes')"><span class="ab-ni">📋</span> Demandes devis <span class="ab-nav-badge" id="abNbDemandes">0</span></div>
-      <div class="ab-nav-sec">Opérations</div>
       <div class="ab-nav-item" onclick="abGoPage('paiements')"><span class="ab-ni">💰</span> Paiements</div>
+
+      <!-- ⑤ OPÉRATIONS -->
+      <div class="ab-nav-sec">Opérations</div>
       <div class="ab-nav-item" onclick="abGoPage('gps')"><span class="ab-ni">📡</span> Suivi GPS</div>
       <div class="ab-nav-item" onclick="abGoPage('maintenance')"><span class="ab-ni">🔧</span> Maintenance</div>
+
+      <!-- ⑥ ANALYSE -->
       <div class="ab-nav-sec">Analyse</div>
       <div class="ab-nav-item" onclick="abGoPage('reporting')"><span class="ab-ni">📈</span> Reporting</div>
-      <div class="ab-nav-item" onclick="abGoPage('rapports')"><span class="ab-ni">📄</span> Rapports PDF/CSV</div>
-      <div class="ab-nav-item" onclick="abGoPage('partenaires')"><span class="ab-ni">🤝</span> Partenaires</div>
+      <div class="ab-nav-item" onclick="abGoPage('rapports')"><span class="ab-ni">📑</span> Rapports PDF/CSV</div>
+
+      <!-- ⑦ COMMUNICATION -->
+      <div class="ab-nav-sec">Communication</div>
       <div class="ab-nav-item" onclick="abGoPage('commentaires')"><span class="ab-ni">💬</span> Commentaires <span class="ab-nav-badge" id="abNbCommentaires" style="background:rgba(74,222,128,.2);color:#4ade80;">0</span></div>
+
+      <!-- ⑧ SYSTÈME -->
+      <div class="ab-nav-sec">Système</div>
       <div class="ab-nav-item" onclick="abGoPage('parametres')"><span class="ab-ni">⚙️</span> Paramètres</div>
+      <div class="ab-nav-item" onclick="abGoPage('vitrine')"><span class="ab-ni">✏️</span> Vitrine — Textes</div>
+
+      <!-- ⑨ RÉFÉRENCES -->
       <div class="ab-nav-sec">Références</div>
       <div class="ab-nav-item" onclick="abGoPage('ressources')"><span class="ab-ni">📚</span> Ressources & Liens</div>
+
     </nav>
     <div class="ab-foot">
       <button class="ab-foot-btn" onclick="closeAdmin()">← Retour au site</button>
@@ -15947,15 +16274,15 @@ function generateCataloguePDF() {
       <div class="ab-topbar-l">
         <button class="ab-hamburger" onclick="abToggleSidebar()">☰</button>
         <div class="ab-topbar-title" id="abTopTitle">Vue d'ensemble</div>
-        <span class="ab-status-badge">En ligne</span>
+        <span class="ab-status-badge" id="abStatusBadge">En ligne</span>
       </div>
       <div class="ab-topbar-r">
         <input class="ab-search" id="abSearchInput" placeholder="🔍 Rechercher engin, client, contrat..." oninput="abSearch()">
-        <button class="ab-notif-btn" id="abNotifBtn" onclick="abGoPage('overview')">
-          🔔<span class="ab-notif-dot"></span>
+        <button class="ab-notif-btn" id="abNotifBtn" onclick="abGoPage('overview')" title="Notifications">
+          🔔<span class="ab-notif-dot" id="abNotifDotEl"></span>
         </button>
-        <button onclick="abOpenQR()" style="background:rgba(232,96,10,.12);border:1px solid rgba(232,96,10,.3);color:var(--orange);border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.5px;font-family:'Barlow',sans-serif;" title="Générer accès mobile">📱 Accès mobile</button>
-        <span style="font-size:12px;color:var(--text-muted);">Sam. 25 Avr. 2026</span>
+        <button onclick="abOpenQR()" style="background:rgba(232,96,10,.1);border:1px solid rgba(232,96,10,.25);color:var(--orange);border-radius:6px;padding:6px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;transition:all .15s;" onmouseover="this.style.background='rgba(232,96,10,.18)'" onmouseout="this.style.background='rgba(232,96,10,.1)'" title="Accès mobile">📱</button>
+        <div style="font-size:11px;color:rgba(255,255,255,.2);white-space:nowrap;padding:0 4px;" id="abTopDate"></div>
       </div>
     </header>
 
@@ -15965,12 +16292,12 @@ function generateCataloguePDF() {
       <div class="ab-page active" id="abp-overview">
 
         <!-- En-tête Vue d'ensemble -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-          <div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;line-height:1;">Vue d'ensemble</div>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;" id="abOvDate"></div>
+        <div class="ab-ph">
+          <div class="ab-ph-left">
+            <div class="ab-ph-title">Vue d'ensemble</div>
+            <div class="ab-ph-sub" id="abOvDate"></div>
           </div>
-          <div style="display:flex;gap:8px;">
+          <div class="ab-ph-actions">
             <button class="ab-btn ab-btn-ghost ab-btn-sm" onclick="abRenderOverview()">↻ Actualiser</button>
             <button class="ab-btn ab-btn-primary ab-btn-sm" onclick="abGoPage('engins')">＋ Ajouter un engin</button>
           </div>
@@ -16025,9 +16352,14 @@ function generateCataloguePDF() {
 
       <!-- ══ PAGE: GESTION ENGINS ══ -->
       <div class="ab-page" id="abp-engins">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;text-transform:uppercase;">Gestion des engins</div>
-          <button class="ab-btn ab-btn-primary" onclick="abOpenEnginModal()">＋ Ajouter un engin</button>
+        <div class="ab-ph">
+          <div class="ab-ph-left">
+            <div class="ab-ph-title">Gestion des engins</div>
+            <div class="ab-ph-sub">Flotte complète — ajout, modification, statut</div>
+          </div>
+          <div class="ab-ph-actions">
+            <button class="ab-btn ab-btn-primary" onclick="abOpenEnginModal()">＋ Ajouter un engin</button>
+          </div>
         </div>
         <div style="display:flex;gap:10px;margin-bottom:18px;">
           <input class="ab-fctrl fx-1" id="abEnginSearch" placeholder="Rechercher..." oninput="abRenderEngins()">
@@ -16766,8 +17098,288 @@ create policy "public_all" on platform_params for all using (true) with check (t
       </div>
 
 
+
+
+
+      <!-- ══════════════════════════════════════════════════
+           PAGE VITRINE — CMS WORDPRESS-LIKE
+           ══════════════════════════════════════════════════ -->
+      <div class="ab-page" id="abp-vitrine">
+
+        <!-- ── CMS HEADER ── -->
+        <div class="ab-ph">
+          <div class="ab-ph-left">
+            <div class="ab-ph-title">🖥️ Éditeur de la Vitrine</div>
+            <div class="ab-ph-sub" id="cmsSyncStatus">Chargement de la configuration…</div>
+          </div>
+          <div class="ab-ph-actions">
+            <button class="ab-btn ab-btn-ghost ab-btn-sm" onclick="window.open('/',   '_blank')">🔗 Voir le site</button>
+            <button class="ab-btn ab-btn-ghost ab-btn-sm" onclick="cmsReload()">↻ Recharger</button>
+          </div>
+        </div>
+
+        <!-- ── CMS LAYOUT: sidebar + panel ── -->
+        <div class="cms-layout">
+
+          <!-- Sidebar nav -->
+          <nav class="cms-sidebar">
+            <div class="cms-nav-label">Contenu du site</div>
+            <div class="cms-nav-item active" data-sec="identite"   onclick="cmsShowSec('identite')">   🏢 Identité & Contact</div>
+            <div class="cms-nav-item"        data-sec="hero"       onclick="cmsShowSec('hero')">       🎯 Hero principal</div>
+            <div class="cms-nav-item"        data-sec="about"      onclick="cmsShowSec('about')">      ℹ️ À propos</div>
+            <div class="cms-nav-item"        data-sec="services"   onclick="cmsShowSec('services')">   ⚙️ Services / Avantages</div>
+            <div class="cms-nav-item"        data-sec="tarifs"     onclick="cmsShowSec('tarifs')">     💰 Tarifs</div>
+            <div class="cms-nav-item"        data-sec="social"     onclick="cmsShowSec('social')">     🌐 Réseaux sociaux</div>
+            <div class="cms-nav-item"        data-sec="seo"        onclick="cmsShowSec('seo')">        🔍 SEO & Métadonnées</div>
+            <div class="cms-nav-label" style="margin-top:14px;">Avancé</div>
+            <div class="cms-nav-item"        data-sec="i18n"       onclick="cmsShowSec('i18n')">       ✏️ Traductions i18n</div>
+          </nav>
+
+          <!-- Main panels -->
+          <div class="cms-panel">
+
+            <!-- ══ IDENTITÉ ══ -->
+            <div class="cms-sec active" id="cms-identite">
+              <div class="cms-sec-title">🏢 Identité & Contact</div>
+              <div class="cms-grid">
+                <div class="cms-fg full">
+                  <label class="cms-lbl">Logo (URL Cloudinary)</label>
+                  <div class="cms-img-zone" id="cmsLogoZone" onclick="document.getElementById('cmsLogoFile').click()"
+                       ondragover="nxDzDragOver(event,'cmsLogoZone')" ondragleave="nxDzDragLeave('cmsLogoZone')" ondrop="nxDzDrop(event,'cmsLogoFile')">
+                    <div class="cms-img-placeholder" id="cmsLogoPlaceholder">🖼️ Glisser le logo ou cliquer<br><span style="font-size:10px;opacity:.5;">SVG · PNG · WEBP recommandé</span></div>
+                    <img id="cmsLogoPreview" src="" alt="" style="display:none;max-height:60px;object-fit:contain;padding:10px;">
+                    <div class="nx-dz-uploading d-none" id="cmsLogoUploading"><span>⏳ Upload…</span><div class="nx-dz-bar"><div class="nx-dz-bar-fill" style="width:60%"></div></div></div>
+                  </div>
+                  <input type="file" id="cmsLogoFile" accept="image/*" style="display:none" onchange="cmsUploadImg(this,'logo_url','cmsLogoZone','cmsLogoPlaceholder','cmsLogoPreview','cmsLogoUploading')">
+                  <input class="cms-ctrl" id="cms_logo_url" placeholder="https://res.cloudinary.com/…" style="margin-top:6px;" oninput="cmsMark()">
+                </div>
+                <div class="cms-fg">
+                  <label class="cms-lbl">Nom de la société</label>
+                  <input class="cms-ctrl" id="cms_company_name" placeholder="NOLDEX LOGISTICS SARL" oninput="cmsMark()">
+                </div>
+                <div class="cms-fg">
+                  <label class="cms-lbl">Tagline / Slogan</label>
+                  <input class="cms-ctrl" id="cms_tagline" placeholder="La marketplace B2B d'engins lourds en Guinée" oninput="cmsMark()">
+                </div>
+                <div class="cms-fg">
+                  <label class="cms-lbl">Téléphone principal</label>
+                  <input class="cms-ctrl" id="cms_phone" placeholder="+224 6XX XXX XXX" oninput="cmsMark()">
+                </div>
+                <div class="cms-fg">
+                  <label class="cms-lbl">WhatsApp</label>
+                  <input class="cms-ctrl" id="cms_whatsapp" placeholder="+224 6XX XXX XXX" oninput="cmsMark()">
+                </div>
+                <div class="cms-fg">
+                  <label class="cms-lbl">Email contact</label>
+                  <input class="cms-ctrl" id="cms_email" placeholder="contact@noldexfleet.com" oninput="cmsMark()">
+                </div>
+                <div class="cms-fg">
+                  <label class="cms-lbl">Adresse (Conakry)</label>
+                  <input class="cms-ctrl" id="cms_address" placeholder="Kaloum, Conakry, Guinée" oninput="cmsMark()">
+                </div>
+                <div class="cms-fg">
+                  <label class="cms-lbl">Couleur accent (HEX)</label>
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="color" id="cms_accent_color_picker" value="#E8600A" oninput="document.getElementById('cms_accent_color').value=this.value;cmsMark()" style="width:40px;height:36px;border:none;border-radius:6px;cursor:pointer;background:none;">
+                    <input class="cms-ctrl" id="cms_accent_color" placeholder="#E8600A" oninput="document.getElementById('cms_accent_color_picker').value=this.value||'#E8600A';cmsMark()" style="flex:1;">
+                  </div>
+                </div>
+              </div>
+              <div class="cms-foot">
+                <span class="cms-unsaved d-none" id="cmsIdentiteUnsaved">● Modifications non sauvegardées</span>
+                <button class="ab-btn ab-btn-primary" onclick="cmsSaveSec('identite')">💾 Sauvegarder</button>
+              </div>
+            </div>
+
+            <!-- ══ HERO ══ -->
+            <div class="cms-sec" id="cms-hero">
+              <div class="cms-sec-title">🎯 Hero principal</div>
+              <div class="cms-grid">
+                <div class="cms-fg full">
+                  <label class="cms-lbl">Titre hero (FR) — le &lt;em&gt; est mis en orange</label>
+                  <textarea class="cms-ctrl" id="cms_hero_title_fr" rows="2" placeholder="La marketplace B2B pour louer des engins lourds en <em>Guinée</em>" oninput="cmsMark()"></textarea>
+                </div>
+                <div class="cms-fg full">
+                  <label class="cms-lbl">Titre hero (EN)</label>
+                  <textarea class="cms-ctrl" id="cms_hero_title_en" rows="2" placeholder="The B2B marketplace for heavy equipment rental in <em>Guinea</em>" oninput="cmsMark()"></textarea>
+                </div>
+                <div class="cms-fg full">
+                  <label class="cms-lbl">Sous-titre hero (FR)</label>
+                  <textarea class="cms-ctrl" id="cms_hero_sub_fr" rows="2" placeholder="Suivi GPS temps réel, contrats digitaux…" oninput="cmsMark()"></textarea>
+                </div>
+                <div class="cms-fg full">
+                  <label class="cms-lbl">Sous-titre hero (EN)</label>
+                  <textarea class="cms-ctrl" id="cms_hero_sub_en" rows="2" oninput="cmsMark()"></textarea>
+                </div>
+                <div class="cms-fg">
+                  <label class="cms-lbl">Bouton CTA principal (FR)</label>
+                  <input class="cms-ctrl" id="cms_hero_cta_fr" placeholder="Voir les engins disponibles" oninput="cmsMark()">
+                </div>
+                <div class="cms-fg">
+                  <label class="cms-lbl">Bouton CTA principal (EN)</label>
+                  <input class="cms-ctrl" id="cms_hero_cta_en" placeholder="Browse available equipment" oninput="cmsMark()">
+                </div>
+                <div class="cms-fg full">
+                  <label class="cms-lbl">Image de fond hero (URL Cloudinary)</label>
+                  <div class="cms-img-zone cms-img-wide" id="cmsHeroBgZone" onclick="document.getElementById('cmsHeroBgFile').click()"
+                       ondragover="nxDzDragOver(event,'cmsHeroBgZone')" ondragleave="nxDzDragLeave('cmsHeroBgZone')" ondrop="nxDzDrop(event,'cmsHeroBgFile')">
+                    <div class="cms-img-placeholder" id="cmsHeroBgPlaceholder">🖼️ Glisser l'image hero ou cliquer<br><span style="font-size:10px;opacity:.5;">JPG 1920×1080 recommandé</span></div>
+                    <img id="cmsHeroBgPreview" src="" alt="" style="display:none;width:100%;height:120px;object-fit:cover;">
+                    <div class="nx-dz-uploading d-none" id="cmsHeroBgUploading"><span>⏳ Upload…</span><div class="nx-dz-bar"><div class="nx-dz-bar-fill" style="width:60%"></div></div></div>
+                  </div>
+                  <input type="file" id="cmsHeroBgFile" accept="image/*" style="display:none" onchange="cmsUploadImg(this,'hero_bg_url','cmsHeroBgZone','cmsHeroBgPlaceholder','cmsHeroBgPreview','cmsHeroBgUploading')">
+                  <input class="cms-ctrl" id="cms_hero_bg_url" placeholder="https://res.cloudinary.com/…/hero-bg.jpg" style="margin-top:6px;" oninput="cmsMark()">
+                </div>
+              </div>
+              <div class="cms-foot">
+                <span class="cms-unsaved d-none" id="cmsHeroUnsaved">● Modifications non sauvegardées</span>
+                <button class="ab-btn ab-btn-primary" onclick="cmsSaveSec('hero')">💾 Sauvegarder</button>
+              </div>
+            </div>
+
+            <!-- ══ À PROPOS ══ -->
+            <div class="cms-sec" id="cms-about">
+              <div class="cms-sec-title">ℹ️ Section À propos</div>
+              <div class="cms-grid">
+                <div class="cms-fg">
+                  <label class="cms-lbl">Titre section (FR)</label>
+                  <input class="cms-ctrl" id="cms_about_title_fr" placeholder="Qui sommes-nous ?" oninput="cmsMark()">
+                </div>
+                <div class="cms-fg">
+                  <label class="cms-lbl">Titre section (EN)</label>
+                  <input class="cms-ctrl" id="cms_about_title_en" placeholder="About us" oninput="cmsMark()">
+                </div>
+                <div class="cms-fg full">
+                  <label class="cms-lbl">Corps de texte (FR)</label>
+                  <textarea class="cms-ctrl" id="cms_about_text_fr" rows="4" placeholder="NOLDEX LOGISTICS SARL est…" oninput="cmsMark()"></textarea>
+                </div>
+                <div class="cms-fg full">
+                  <label class="cms-lbl">Corps de texte (EN)</label>
+                  <textarea class="cms-ctrl" id="cms_about_text_en" rows="4" oninput="cmsMark()"></textarea>
+                </div>
+                <div class="cms-fg full">
+                  <label class="cms-lbl">Photo illustrative</label>
+                  <div class="cms-img-zone cms-img-wide" id="cmsAboutImgZone" onclick="document.getElementById('cmsAboutImgFile').click()"
+                       ondragover="nxDzDragOver(event,'cmsAboutImgZone')" ondragleave="nxDzDragLeave('cmsAboutImgZone')" ondrop="nxDzDrop(event,'cmsAboutImgFile')">
+                    <div class="cms-img-placeholder" id="cmsAboutImgPlaceholder">🖼️ Glisser l'image ou cliquer</div>
+                    <img id="cmsAboutImgPreview" src="" alt="" style="display:none;width:100%;height:120px;object-fit:cover;">
+                    <div class="nx-dz-uploading d-none" id="cmsAboutImgUploading"><span>⏳ Upload…</span><div class="nx-dz-bar"><div class="nx-dz-bar-fill" style="width:60%"></div></div></div>
+                  </div>
+                  <input type="file" id="cmsAboutImgFile" accept="image/*" style="display:none" onchange="cmsUploadImg(this,'about_img_url','cmsAboutImgZone','cmsAboutImgPlaceholder','cmsAboutImgPreview','cmsAboutImgUploading')">
+                  <input class="cms-ctrl" id="cms_about_img_url" placeholder="https://res.cloudinary.com/…" style="margin-top:6px;" oninput="cmsMark()">
+                </div>
+                <div class="cms-fg"><label class="cms-lbl">Stat 1 — Nombre</label><input class="cms-ctrl" id="cms_stat1_val" placeholder="50+" oninput="cmsMark()"></div>
+                <div class="cms-fg"><label class="cms-lbl">Stat 1 — Label (FR)</label><input class="cms-ctrl" id="cms_stat1_label_fr" placeholder="Engins disponibles" oninput="cmsMark()"></div>
+                <div class="cms-fg"><label class="cms-lbl">Stat 2 — Nombre</label><input class="cms-ctrl" id="cms_stat2_val" placeholder="12" oninput="cmsMark()"></div>
+                <div class="cms-fg"><label class="cms-lbl">Stat 2 — Label (FR)</label><input class="cms-ctrl" id="cms_stat2_label_fr" placeholder="Villes couvertes" oninput="cmsMark()"></div>
+              </div>
+              <div class="cms-foot">
+                <span class="cms-unsaved d-none" id="cmsAboutUnsaved">● Modifications non sauvegardées</span>
+                <button class="ab-btn ab-btn-primary" onclick="cmsSaveSec('about')">💾 Sauvegarder</button>
+              </div>
+            </div>
+
+            <!-- ══ SERVICES ══ -->
+            <div class="cms-sec" id="cms-services">
+              <div class="cms-sec-title">⚙️ Services / Avantages</div>
+              <div id="cmsServicesCards" style="display:flex;flex-direction:column;gap:14px;"></div>
+              <button class="ab-btn ab-btn-ghost ab-btn-sm" style="margin-top:10px;" onclick="cmsAddService()">＋ Ajouter un avantage</button>
+              <div class="cms-foot">
+                <span class="cms-unsaved d-none" id="cmsServicesUnsaved">● Modifications non sauvegardées</span>
+                <button class="ab-btn ab-btn-primary" onclick="cmsSaveSec('services')">💾 Sauvegarder</button>
+              </div>
+            </div>
+
+            <!-- ══ TARIFS ══ -->
+            <div class="cms-sec" id="cms-tarifs">
+              <div class="cms-sec-title">💰 Tarifs</div>
+              <div class="cms-grid">
+                <div class="cms-fg full"><label class="cms-lbl">Titre section (FR)</label><input class="cms-ctrl" id="cms_tarifs_title_fr" placeholder="Tarifs transparents" oninput="cmsMark()"></div>
+                <div class="cms-fg full"><label class="cms-lbl">Sous-titre (FR)</label><textarea class="cms-ctrl" id="cms_tarifs_sub_fr" rows="2" oninput="cmsMark()"></textarea></div>
+                <div class="cms-fg"><label class="cms-lbl">Tarif minimum affiché</label><input class="cms-ctrl" id="cms_tarif_min" placeholder="800 000 GNF / jour" oninput="cmsMark()"></div>
+                <div class="cms-fg"><label class="cms-lbl">Mention sous les prix</label><input class="cms-ctrl" id="cms_tarif_note" placeholder="Transport et carburant non inclus" oninput="cmsMark()"></div>
+              </div>
+              <div class="cms-foot">
+                <span class="cms-unsaved d-none" id="cmsTarifsUnsaved">● Modifications non sauvegardées</span>
+                <button class="ab-btn ab-btn-primary" onclick="cmsSaveSec('tarifs')">💾 Sauvegarder</button>
+              </div>
+            </div>
+
+            <!-- ══ RÉSEAUX SOCIAUX ══ -->
+            <div class="cms-sec" id="cms-social">
+              <div class="cms-sec-title">🌐 Réseaux sociaux</div>
+              <div class="cms-grid">
+                <div class="cms-fg"><label class="cms-lbl">Facebook</label><input class="cms-ctrl" id="cms_facebook" placeholder="https://facebook.com/noldexfleet" oninput="cmsMark()"></div>
+                <div class="cms-fg"><label class="cms-lbl">LinkedIn</label><input class="cms-ctrl" id="cms_linkedin" placeholder="https://linkedin.com/company/noldex" oninput="cmsMark()"></div>
+                <div class="cms-fg"><label class="cms-lbl">Instagram</label><input class="cms-ctrl" id="cms_instagram" placeholder="https://instagram.com/noldexfleet" oninput="cmsMark()"></div>
+                <div class="cms-fg"><label class="cms-lbl">YouTube</label><input class="cms-ctrl" id="cms_youtube" placeholder="https://youtube.com/@noldex" oninput="cmsMark()"></div>
+                <div class="cms-fg"><label class="cms-lbl">TikTok</label><input class="cms-ctrl" id="cms_tiktok" placeholder="https://tiktok.com/@noldex" oninput="cmsMark()"></div>
+                <div class="cms-fg"><label class="cms-lbl">Lien WhatsApp Business</label><input class="cms-ctrl" id="cms_whatsapp_link" placeholder="https://wa.me/224XXXXXXXXX" oninput="cmsMark()"></div>
+              </div>
+              <div class="cms-foot">
+                <span class="cms-unsaved d-none" id="cmsSocialUnsaved">● Modifications non sauvegardées</span>
+                <button class="ab-btn ab-btn-primary" onclick="cmsSaveSec('social')">💾 Sauvegarder</button>
+              </div>
+            </div>
+
+            <!-- ══ SEO ══ -->
+            <div class="cms-sec" id="cms-seo">
+              <div class="cms-sec-title">🔍 SEO & Métadonnées</div>
+              <div class="cms-grid">
+                <div class="cms-fg full"><label class="cms-lbl">Meta Title (60 car. max)</label><input class="cms-ctrl" id="cms_seo_title" placeholder="NOLDEX Fleet — Location d'engins lourds en Guinée" oninput="cmsMark();cmsSeoCount(this,'seo_title_count',60)"><span class="cms-char-count" id="seo_title_count">0/60</span></div>
+                <div class="cms-fg full"><label class="cms-lbl">Meta Description (160 car. max)</label><textarea class="cms-ctrl" id="cms_seo_desc" rows="3" placeholder="Louez des camions bennes, pelles, grues…" oninput="cmsMark();cmsSeoCount(this,'seo_desc_count',160)"></textarea><span class="cms-char-count" id="seo_desc_count">0/160</span></div>
+                <div class="cms-fg full">
+                  <label class="cms-lbl">OG Image (1200×630px recommandé)</label>
+                  <div class="cms-img-zone cms-img-wide" id="cmsOgZone" onclick="document.getElementById('cmsOgFile').click()"
+                       ondragover="nxDzDragOver(event,'cmsOgZone')" ondragleave="nxDzDragLeave('cmsOgZone')" ondrop="nxDzDrop(event,'cmsOgFile')">
+                    <div class="cms-img-placeholder" id="cmsOgPlaceholder">🖼️ Image Open Graph (réseaux sociaux) — 1200×630</div>
+                    <img id="cmsOgPreview" src="" alt="" style="display:none;width:100%;height:80px;object-fit:cover;">
+                    <div class="nx-dz-uploading d-none" id="cmsOgUploading"><span>⏳ Upload…</span><div class="nx-dz-bar"><div class="nx-dz-bar-fill" style="width:60%"></div></div></div>
+                  </div>
+                  <input type="file" id="cmsOgFile" accept="image/*" style="display:none" onchange="cmsUploadImg(this,'seo_og_image','cmsOgZone','cmsOgPlaceholder','cmsOgPreview','cmsOgUploading')">
+                  <input class="cms-ctrl" id="cms_seo_og_image" placeholder="https://res.cloudinary.com/…/og-image.jpg" style="margin-top:6px;" oninput="cmsMark()">
+                </div>
+                <div class="cms-fg"><label class="cms-lbl">Keywords (virgule)</label><input class="cms-ctrl" id="cms_seo_keywords" placeholder="location engin lourd Guinée, camion benne Conakry" oninput="cmsMark()"></div>
+                <div class="cms-fg"><label class="cms-lbl">Google Analytics ID</label><input class="cms-ctrl" id="cms_ga_id" placeholder="G-XXXXXXXXXX" oninput="cmsMark()"></div>
+              </div>
+              <div class="cms-foot">
+                <span class="cms-unsaved d-none" id="cmsSeoUnsaved">● Modifications non sauvegardées</span>
+                <button class="ab-btn ab-btn-primary" onclick="cmsSaveSec('seo')">💾 Sauvegarder</button>
+              </div>
+            </div>
+
+            <!-- ══ I18N (ancien éditeur) ══ -->
+            <div class="cms-sec" id="cms-i18n">
+              <div class="cms-sec-title">✏️ Traductions i18n avancées</div>
+              <div style="padding:12px 0 16px;font-size:12.5px;color:rgba(255,255,255,.4);border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:16px;">
+                Modifiez directement les clés de traduction affichées sur le site public (FR &amp; EN).
+              </div>
+              <!-- Tabs FR / EN -->
+              <div style="display:flex;gap:2px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:0;">
+                <button id="vtrTabFR" onclick="vtrSetLang('fr')" class="cms-lang-tab active-tab">🇫🇷 Français</button>
+                <button id="vtrTabEN" onclick="vtrSetLang('en')" class="cms-lang-tab">🇬🇧 English</button>
+              </div>
+              <div style="display:flex;gap:10px;margin-bottom:14px;align-items:center;">
+                <input id="vtrSearch" class="cms-ctrl" placeholder="🔍 Rechercher une clé ou un texte…" oninput="vtrFilter()" style="flex:1;">
+                <div style="font-size:11px;color:rgba(255,255,255,.3);" id="vtrCount"></div>
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="vtrSectionBtns"></div>
+              <div id="vtrSections" style="display:flex;flex-direction:column;gap:8px;"></div>
+              <div class="cms-foot" style="margin-top:16px;">
+                <button class="ab-btn ab-btn-ghost ab-btn-sm" onclick="vtrReset()" style="color:#f87171;">↺ Réinitialiser tout</button>
+                <button class="ab-btn ab-btn-primary" onclick="vtrSave()">💾 Sauvegarder traductions</button>
+              </div>
+            </div>
+
+          </div><!-- /cms-panel -->
+        </div><!-- /cms-layout -->
+
+        <div id="vtrStatus" style="display:none;"></div>
+      </div>
+
   </div><!-- /ab-main -->
 </div><!-- /dashAdminOverlay -->
+
 
 <!-- ADMIN MODAL ENGIN -->
 <div class="ab-modal-overlay" id="abEnginModal">
@@ -17260,6 +17872,7 @@ async function doAdminLogin() {
   const p   = document.getElementById('abLoginPass').value;
   const err = document.getElementById('abLoginErr');
   err.classList.remove('show');
+  if (!_supaReady || !_supa) { err.classList.add('show'); return; }
   const { data, error } = await _supa.auth.signInWithPassword({ email: u, password: p });
   if (error || !data.session || _getRole(data.user.email, data.user.user_metadata) !== 'admin') {
     if (data?.session) await _supa.auth.signOut();
@@ -17268,19 +17881,23 @@ async function doAdminLogin() {
     return;
   }
   closeAdminLogin();
+  openAdmin();
+}
+function doAdminLogout() {
+  if(confirm('Déconnexion de l\'espace admin ?')) {
+    if (_supa) _supa.auth.signOut();
+    document.getElementById('dashAdminOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+    abToast('Déconnecté.','i');
+  }
+}
+// ── openAdmin() — point d'entrée unifié (Supabase Auth + démo) ─────
+function openAdmin() {
   abInitData();
   document.getElementById('dashAdminOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
   abGoPage('overview');
   abToast('Bienvenue, Super Admin 👋', 'i');
-}
-function doAdminLogout() {
-  if(confirm('Déconnexion de l\'espace admin ?')) {
-    _supa.auth.signOut();
-    document.getElementById('dashAdminOverlay').classList.remove('open');
-    document.body.style.overflow = '';
-    abToast('Déconnecté.','i');
-  }
 }
 function closeAdmin() {
   document.getElementById('dashAdminOverlay').classList.remove('open');
@@ -17477,13 +18094,17 @@ const abPageTitles = {
   rapports:'Rapports & Import / Export',
   commentaires:'Commentaires & Témoignages',
   parametres:'Paramètres plateforme',
-  ressources:'Ressources & Liens externes'
+  ressources:'Ressources & Liens externes',
+  vitrine:   'Éditeur Vitrine — Textes'
 };
 function abGoPage(id) {
-  document.querySelectorAll('.ab-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ab-page').forEach(function(p){
+    p.classList.remove('active');
+    p.style.display = 'none';
+  });
   document.querySelectorAll('.ab-nav-item').forEach(n=>n.classList.remove('active'));
   const page = document.getElementById('abp-'+id);
-  if(page) page.classList.add('active');
+  if(page){ page.classList.add('active'); page.style.display = 'block'; }
   const navItems = document.querySelectorAll('.ab-nav-item');
   navItems.forEach(n=>{ if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active'); });
   document.getElementById('abTopTitle').textContent = abPageTitles[id]||id;
@@ -17499,7 +18120,8 @@ function abRenderPage(id) {
     rapports:abRenderRapports,
     commentaires:()=>abRenderCommentaires(_abComFilter),
     parametres:abRenderParametres,
-    ressources:abRenderRessources
+    ressources:abRenderRessources,
+    vitrine:abRenderVitrine
   };
   if(map[id]) map[id]();
 }
@@ -17595,7 +18217,7 @@ function abRenderOverview() {
 
   // Alertes
   const alerts = [];
-  maint.filter(m=>m.statut!=='Terminé'&&m.statut!=='Planifié').forEach(m=>alerts.push({icon:'🔧',t:'Maintenance en cours',s:`${m.engin} — ${m.ville}`,color:'orange'}));
+  maint.filter(m=>m.statut!=='Terminé').forEach(m=>alerts.push({icon:'🔧',t:'Maintenance en cours',s:`${m.engin} — ${m.ville}`,color:'orange'}));
   pai.filter(p=>p.statut==='En retard').forEach(p=>alerts.push({icon:'⛔',t:`Paiement en retard : ${p.client}`,s:abFmt(p.montant),color:'red'}));
   dem.filter(d=>d.statut==='En attente').forEach(d=>alerts.push({icon:'📋',t:`Devis en attente — ${d.client}`,s:`${d.engin} • ${d.chantier}`,color:'yellow'}));
   engins.filter(e=>!e.validated).forEach(e=>alerts.push({icon:'⚠️',t:`Validation requise : ${e.nom}`,s:`${e.proprio} — ${e.ville}`,color:'orange'}));
@@ -17607,8 +18229,18 @@ function abRenderOverview() {
       <div><div class="ab-alert-title">${a.t}</div><div class="ab-alert-sub">${a.s}</div></div>
     </div>`).join('') : '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px;">✅ Aucune alerte active</div>';
 
-  // Graphe CA — n'afficher que les mois avec des données
-  const months = AB_REV_MONTHS.filter(m => m.val > 0);
+  // Graphe CA — agréger les paiements réels par mois (12 derniers)
+  const _MOIS_AB = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  const _now = new Date();
+  const _dynMonths = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(_now.getFullYear(), _now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const val = pai.filter(p => p.statut === 'Payé' && (p.date||'').startsWith(key)).reduce((a,p)=>a+(p.montant||0),0);
+    _dynMonths.push({ mois: _MOIS_AB[d.getMonth()], val });
+  }
+  const _hasRealData = _dynMonths.some(m => m.val > 0);
+  const months = _hasRealData ? _dynMonths.filter(m => m.val > 0) : AB_REV_MONTHS.filter(m => m.val > 0);
   const maxVal = Math.max(...months.map(m=>m.val),1);
   document.getElementById('abRevChart').innerHTML = months.map((m,i)=>`
     <div class="ab-rev-bar" style="height:${m.val?(m.val/maxVal*100)+'%':'4px'};">
@@ -19954,6 +20586,73 @@ body{background:#060910;color:#e8e8e8;font-family:'Barlow',sans-serif;height:100
 .zbtn{width:34px;height:34px;border-radius:6px;cursor:pointer;background:rgba(13,18,26,.9);border:1px solid #1e2d42;color:#8a9ab0;font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .2s;}
 .zbtn:hover{border-color:#E8600A;color:#E8600A;}
 .btn-devis{width:100%;margin-top:8px;padding:10px;border-radius:6px;cursor:pointer;background:#E8600A;border:none;color:#fff;font-weight:700;font-size:12px;font-family:'Barlow',sans-serif;}
+
+/* ── PWA BANNER ─────────────────────────────────────────── */
+#pwa-banner{
+  display:none;
+  position:fixed;
+  bottom:20px;left:50%;
+  transform:translateX(-50%);
+  z-index:9990;
+  width:min(480px,calc(100vw - 32px));
+  background:rgba(13,18,26,.97);
+  border:1px solid rgba(232,96,10,.45);
+  border-radius:14px;
+  padding:14px 16px;
+  box-shadow:0 4px 32px rgba(0,0,0,.6),0 0 0 1px rgba(232,96,10,.1);
+  backdrop-filter:blur(12px);
+  animation:pwaSlideUp .4s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes pwaSlideUp{
+  from{opacity:0;transform:translateX(-50%) translateY(24px);}
+  to  {opacity:1;transform:translateX(-50%) translateY(0);}
+}
+.pwa-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.pwa-icon{width:44px;height:44px;border-radius:10px;flex-shrink:0;}
+.pwa-text{display:flex;flex-direction:column;gap:2px;}
+.pwa-text strong{font-size:14px;font-weight:700;color:#e8e8e8;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.5px;}
+.pwa-text span{font-size:11px;color:#6b7a8d;}
+.pwa-actions{display:flex;gap:8px;}
+.pwa-btn-install{flex:1;padding:10px 16px;border-radius:8px;cursor:pointer;background:#E8600A;border:none;color:#fff;font-weight:700;font-size:13px;font-family:'Barlow',sans-serif;transition:opacity .2s;}
+.pwa-btn-install:hover{opacity:.88;}
+.pwa-btn-later{padding:10px 14px;border-radius:8px;cursor:pointer;background:transparent;border:1px solid #1e2d42;color:#6b7a8d;font-size:12px;font-family:'Barlow',sans-serif;transition:all .2s;}
+.pwa-btn-later:hover{border-color:#E8600A;color:#E8600A;}
+#pwa-offline-toast{
+  display:none;
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  background:#1a2035;border:1px solid rgba(232,96,10,.3);color:#e8e8e8;
+  padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999;
+  white-space:nowrap;box-shadow:0 2px 12px rgba(0,0,0,.5);
+}
+
+/* ── CMS VITRINE — WordPress-like ───────────────────── */
+.cms-layout{display:grid;grid-template-columns:210px 1fr;gap:0;min-height:600px;border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden;}
+.cms-sidebar{background:rgba(8,9,13,1);border-right:1px solid rgba(255,255,255,.07);padding:16px 10px;display:flex;flex-direction:column;gap:1px;}
+.cms-nav-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.2);padding:12px 10px 5px;font-family:'Barlow',sans-serif;}
+.cms-nav-item{padding:9px 12px;border-radius:7px;font-size:12.5px;font-weight:500;color:rgba(255,255,255,.45);cursor:pointer;transition:all .14s;border-left:2px solid transparent;}
+.cms-nav-item:hover{background:rgba(255,255,255,.04);color:rgba(255,255,255,.75);}
+.cms-nav-item.active{background:rgba(232,96,10,.12);color:#fff;border-left-color:var(--orange);font-weight:600;}
+.cms-panel{background:rgba(10,11,16,1);padding:24px;overflow-y:auto;max-height:80vh;}
+.cms-sec{display:none;}
+.cms-sec.active{display:block;animation:abFadeIn .18s ease;}
+.cms-sec-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.07);}
+.cms-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
+.cms-fg{display:flex;flex-direction:column;gap:5px;}
+.cms-fg.full{grid-column:span 2;}
+.cms-lbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.3);}
+.cms-ctrl{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);color:var(--text);border-radius:7px;padding:9px 12px;font-size:13px;font-family:'Barlow',sans-serif;transition:border-color .15s;resize:vertical;width:100%;box-sizing:border-box;}
+.cms-ctrl:focus{outline:none;border-color:rgba(232,96,10,.5);}
+.cms-char-count{font-size:10px;color:rgba(255,255,255,.25);text-align:right;margin-top:2px;}
+.cms-img-zone{border:2px dashed rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.02);cursor:pointer;overflow:hidden;min-height:72px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.cms-img-zone:hover,.cms-img-zone.drag-over{border-color:rgba(232,96,10,.5);background:rgba(232,96,10,.04);}
+.cms-img-wide{min-height:90px;}
+.cms-img-placeholder{font-size:12px;color:rgba(255,255,255,.25);text-align:center;padding:14px;}
+.cms-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding-top:16px;border-top:1px solid rgba(255,255,255,.07);}
+.cms-unsaved{font-size:11px;color:#fbbf24;font-weight:600;}
+.cms-service-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:14px;}
+.cms-lang-tab{padding:6px 18px;border:none;border-bottom:2px solid transparent;background:transparent;color:rgba(255,255,255,.4);font-family:'Barlow Condensed',sans-serif;font-size:13.5px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:all .15s;}
+.cms-lang-tab.active-tab{border-bottom-color:var(--orange);color:#fff;}
+@media(max-width:900px){.cms-layout{grid-template-columns:1fr;}.cms-sidebar{flex-direction:row;overflow-x:auto;padding:10px;}.cms-grid{grid-template-columns:1fr;}.cms-fg.full{grid-column:span 1;}}
 </style>
 </head>
 <body>
@@ -20604,6 +21303,13 @@ const AB_RESSOURCES = [
 let _abResFilter = 'Tous';
 let _abResFavs   = JSON.parse(localStorage.getItem('ab_res_favs')||'[]');
 
+// ══════════════════════════════════════════════════════════
+// ADMIN — CATALOGUE PUBLIC
+// ══════════════════════════════════════════════════════════// ══════════════════════════════════════════════════════════
+// ADMIN — NOTRE ÉQUIPE
+// ══════════════════════════════════════════════════════════
+
+
 function abRenderRessources() {
   // Categories
   const cats = ['Tous', ...new Set(AB_RESSOURCES.map(r=>r.cat))];
@@ -20726,6 +21432,314 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
 });
 
+// ══════════════════════════════════════════════════════════════════
+// PANNEAU VITRINE — ÉDITEUR DE TEXTES I18N  (v2 — fix render)
+// ══════════════════════════════════════════════════════════════════
+
+// Cache section → keys (construit une seule fois)
+let _vtrIndex = null;
+
+// Sections et ordre d'affichage
+const VTR_SECTIONS = [
+  { id:'NAVBAR',            label:'🧭 Navbar & Menus' },
+  { id:'HERO ACCUEIL',      label:'🏠 Hero — Accueil' },
+  { id:'POURQUOI',          label:'✅ Pourquoi NOLDEX' },
+  { id:'CAROUSEL',          label:'🎠 Carrousel engins' },
+  { id:'SOLUTIONS',         label:'💡 Solutions secteurs' },
+  { id:'COMMENT (résumé)',  label:'📋 Comment ça marche' },
+  { id:'PLATEFORME APERÇU', label:'📱 Aperçu plateforme' },
+  { id:'COMMENTAIRES',      label:'💬 Témoignages' },
+  { id:'SIÈGE',             label:'📍 Siège & Présence' },
+  { id:'CTA',               label:'🚀 Call-to-Action' },
+  { id:'FOOTER',            label:'🔻 Footer' },
+  { id:'PAGE MARKETPLACE',  label:'🛒 Page Marketplace' },
+  { id:'PAGE PARTENAIRES',  label:'🤝 Page Partenaires' },
+  { id:'PAGE TARIFS',       label:'💰 Page Tarifs' },
+  { id:'PAGE COMMENT ÇA MARCHE', label:'📖 Page Comment ça marche' },
+  { id:'PAGE PLATEFORME',   label:'🖥️ Page Plateforme' },
+  { id:'PAGE DEVIS',        label:'📝 Page Devis' },
+  { id:'PAGE CATALOGUE',    label:'📋 Page Catalogue' },
+  { id:'PAGE ACQUISITION',  label:'🏗️ Page Acquisition' },
+  { id:'ROI CALCULATOR',    label:'📊 Calculateur ROI' },
+];
+
+// État éditeur
+let _vtrLang = 'fr';        // langue active dans l'éditeur
+let _vtrFilter = '';        // filtre texte
+let _vtrSecFilter = '';     // filtre section
+
+/** Construit l'index key → section et le cache */
+function _vtrBuildIndex() {
+  if (_vtrIndex) return _vtrIndex;
+  _vtrIndex = {};
+  const prefixMap = [
+    [['nav_','dd_','btn_login','btn_demo'], 'NAVBAR'],
+    [['hero_','stat_','btn_discover'],      'HERO ACCUEIL'],
+    [['lbl_atouts','title_why','feat'],     'POURQUOI'],
+    [['lbl_carousel','carousel_','conv_'],  'CAROUSEL'],
+    [['vid_'],                              'VIDÉOS'],
+    [['sol_','title_sol','lbl_sol','btn_sol'], 'SOLUTIONS'],
+    [['how_','title_how','lbl_how','step_'], 'COMMENT (résumé)'],
+    [['plat_','title_plat','lbl_plat'],     'PLATEFORME APERÇU'],
+    [['com_','title_com'],                  'COMMENTAIRES'],
+    [['siege_','title_siege','lbl_siege'],  'SIÈGE'],
+    [['cta_','title_cta'],                  'CTA'],
+    [['foot_'],                             'FOOTER'],
+    [['mkt_','title_mkt','lbl_mkt','btn_mkt'], 'PAGE MARKETPLACE'],
+    [['part_','title_part'],               'PAGE PARTENAIRES'],
+    [['tarif_','title_tarif'],             'PAGE TARIFS'],
+    [['cm_'],                              'PAGE COMMENT ÇA MARCHE'],
+    [['pp_'],                              'PAGE PLATEFORME'],
+    [['devis_','title_devis'],             'PAGE DEVIS'],
+    [['cat_','title_cat'],                 'PAGE CATALOGUE'],
+    [['acq_','title_acq'],                 'PAGE ACQUISITION'],
+    [['roi_'],                             'ROI CALCULATOR'],
+    [['dash_'],                            'DASHBOARD PARTENAIRE'],
+  ];
+  if (typeof NX_TR === 'undefined' || !NX_TR.fr) return {};
+  Object.keys(NX_TR.fr).forEach(key => {
+    let sec = 'Autres';
+    for (const [prefixes, s] of prefixMap) {
+      if (prefixes.some(p => key.startsWith(p))) { sec = s; break; }
+    }
+    _vtrIndex[key] = sec;
+  });
+  return _vtrIndex;
+}
+
+/** Valeur active (override ou défaut) */
+function _vtrVal(lang, key) {
+  const ov = (_NX_OVERRIDES[lang] || {})[key];
+  return (ov !== undefined && ov !== '') ? ov : (NX_TR[lang]?.[key] || '');
+}
+
+/** Render principal */
+function abRenderVitrine() {
+  if (typeof NX_TR === 'undefined' || !NX_TR.fr) { abToast('NX_TR non chargé.', 'e'); return; }
+  const idx    = _vtrBuildIndex();
+  const q      = (_vtrFilter || '').toLowerCase();
+
+  // Grouper par section
+  const groups = {};
+  Object.keys(NX_TR.fr).forEach(key => {
+    const sec = idx[key] || 'Autres';
+    (groups[sec] = groups[sec] || []).push(key);
+  });
+
+  // Boutons section rapide
+  const secBtns = document.getElementById('vtrSectionBtns');
+  if (secBtns) {
+    const btnStyle = (active) =>
+      `padding:3px 9px;border-radius:4px;border:1px solid var(--border);` +
+      `background:${active?'var(--orange)':'var(--steel-mid)'};` +
+      `color:${active?'#fff':'var(--text-dim)'};cursor:pointer;font-size:11px;`;
+    secBtns.innerHTML =
+      `<button onclick="vtrSetSection('')" style="${btnStyle(!_vtrSecFilter)}">Tout</button>` +
+      VTR_SECTIONS
+        .filter(s => groups[s.id] && groups[s.id].length)
+        .map(s => `<button onclick="vtrSetSection('${s.id}')" style="${btnStyle(_vtrSecFilter===s.id)}">${s.label}</button>`)
+        .join('');
+  }
+
+  // Tabs FR / EN
+  ['FR','EN'].forEach(l => {
+    const tab = document.getElementById('vtrTab'+l);
+    if (!tab) return;
+    const active = _vtrLang === l.toLowerCase();
+    tab.style.borderBottomColor = active ? 'var(--orange)' : 'transparent';
+    tab.style.color = active ? 'var(--text)' : 'var(--text-muted)';
+  });
+
+  const container = document.getElementById('vtrSections');
+  if (!container) return;
+
+  const sectionsToShow = VTR_SECTIONS.filter(s =>
+    groups[s.id] && groups[s.id].length && (!_vtrSecFilter || _vtrSecFilter === s.id)
+  );
+
+  let totalVisible = 0;
+  const html = [];
+
+  sectionsToShow.forEach(sec => {
+    const secId = sec.id;
+    const elId  = 'vtrs-' + secId.replace(/[^a-zA-Z0-9]/g, '_');
+
+    const keys = (groups[secId] || []).filter(key => {
+      if (!q) return true;
+      const val = _vtrVal(_vtrLang, key);
+      return key.toLowerCase().includes(q) || val.toLowerCase().includes(q);
+    });
+    if (!keys.length) return;
+    totalVisible += keys.length;
+
+    const hasOv = keys.some(k => (_NX_OVERRIDES[_vtrLang]||{})[k] !== undefined);
+    const ovBadge = hasOv
+      ? `<span style="margin-left:8px;font-size:10px;padding:2px 6px;border-radius:10px;background:rgba(232,96,10,0.18);color:#E8600A;font-weight:700;">✏️ modifié</span>`
+      : '';
+
+    // Build rows
+    const rows = keys.map(key => {
+      const defVal = NX_TR[_vtrLang]?.[key] || '';
+      const curVal = _vtrVal(_vtrLang, key);
+      const isOv   = (_NX_OVERRIDES[_vtrLang]||{})[key] !== undefined;
+      const isLong = defVal.length > 80 || defVal.includes('<') || defVal.includes('\n');
+      const borderC = isOv ? 'rgba(232,96,10,0.5)' : 'var(--border)';
+      const safeVal = curVal.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+      const safePh  = defVal.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+
+      return `<div style="display:flex;flex-direction:column;gap:3px;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <code style="font-size:11px;color:var(--orange);background:rgba(232,96,10,0.08);padding:2px 6px;border-radius:3px;">${key}</code>
+          ${isOv ? `<span style="font-size:10px;color:#E8600A;">✏️</span>
+            <button onclick="vtrResetKey('${_vtrLang}','${key}')"
+              style="font-size:10px;padding:1px 6px;border:1px solid rgba(232,96,10,0.3);border-radius:3px;background:transparent;color:var(--text-muted);cursor:pointer;">↺</button>` : ''}
+        </div>
+        ${isLong
+          ? `<textarea data-vtr-key="${key}" rows="3"
+              oninput="vtrMarkChanged(this,'${key}')"
+              placeholder="${safePh}"
+              style="width:100%;box-sizing:border-box;background:var(--steel-light);border:1px solid ${borderC};color:var(--text);border-radius:6px;padding:7px 10px;font-size:13px;font-family:'DM Sans',sans-serif;resize:vertical;">${safeVal}</textarea>`
+          : `<input type="text" data-vtr-key="${key}"
+              oninput="vtrMarkChanged(this,'${key}')"
+              placeholder="${safePh}"
+              value="${safeVal}"
+              style="width:100%;box-sizing:border-box;background:var(--steel-light);border:1px solid ${borderC};color:var(--text);border-radius:6px;padding:7px 10px;font-size:13px;font-family:'DM Sans',sans-serif;">`
+        }
+      </div>`;
+    }).join('');
+
+    html.push(`
+      <div class="ab-card" style="padding:0;overflow:hidden;">
+        <div onclick="vtrToggleSec('${elId}')"
+          style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;cursor:pointer;background:var(--steel-mid);user-select:none;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;letter-spacing:.5px;">
+            ${sec.label} ${ovBadge}
+            <span style="font-size:11px;color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px;">${keys.length} clé${keys.length>1?'s':''}</span>
+          </div>
+          <span id="arr-${elId}" style="color:var(--orange);font-size:16px;transition:transform .2s;">▾</span>
+        </div>
+        <div id="${elId}" style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;">
+          ${rows}
+          <div style="display:flex;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--border);">
+            <button class="ab-btn ab-btn-primary ab-btn-sm"
+              data-sec="${secId}"
+              onclick="vtrSaveSection(this.dataset.sec)">💾 Sauvegarder cette section</button>
+          </div>
+        </div>
+      </div>`);
+  });
+
+  container.innerHTML = html.join('');
+
+  const countEl = document.getElementById('vtrCount');
+  if (countEl) countEl.textContent = `${totalVisible} clé${totalVisible>1?'s':''}`;
+}
+
+function vtrToggleSec(elId) {
+  const el  = document.getElementById(elId);
+  const arr = document.getElementById('arr-' + elId);
+  if (!el) return;
+  const open = el.style.display !== 'none';
+  el.style.display  = open ? 'none' : 'flex';
+  if (arr) { arr.textContent = open ? '▸' : '▾'; arr.style.transform = ''; }
+}
+
+function vtrSetLang(lang) { _vtrLang = lang; abRenderVitrine(); }
+function vtrSetSection(sec) { _vtrSecFilter = sec; abRenderVitrine(); }
+function vtrFilter() { _vtrFilter = (document.getElementById('vtrSearch')?.value||'').trim(); abRenderVitrine(); }
+
+function _vtrCollect() {
+  const changes = {};
+  document.querySelectorAll('[data-vtr-key]').forEach(el => {
+    changes[el.dataset.vtrKey] = el.value;
+  });
+  return changes;
+}
+
+function vtrSave() {
+  const changes = _vtrCollect();
+  if (!_NX_OVERRIDES[_vtrLang]) _NX_OVERRIDES[_vtrLang] = {};
+  Object.entries(changes).forEach(([k, v]) => {
+    const def = NX_TR[_vtrLang]?.[k] || '';
+    if (v && v !== def) _NX_OVERRIDES[_vtrLang][k] = v;
+    else delete _NX_OVERRIDES[_vtrLang][k];
+  });
+  _vtrPersist();
+}
+
+function vtrSaveSection(secId) {
+  const idx    = _vtrBuildIndex();
+  const secKeys = Object.keys(NX_TR.fr).filter(k => (idx[k]||'Autres') === secId);
+  if (!_NX_OVERRIDES[_vtrLang]) _NX_OVERRIDES[_vtrLang] = {};
+  secKeys.forEach(key => {
+    const el = document.querySelector(`[data-vtr-key="${key}"]`);
+    if (!el) return;
+    const def = NX_TR[_vtrLang]?.[key] || '';
+    if (el.value && el.value !== def) _NX_OVERRIDES[_vtrLang][key] = el.value;
+    else delete _NX_OVERRIDES[_vtrLang][key];
+  });
+  _vtrPersist('section');
+}
+
+function vtrResetKey(lang, key) {
+  if (_NX_OVERRIDES[lang]) delete _NX_OVERRIDES[lang][key];
+  localStorage.setItem('nx_i18n_overrides', JSON.stringify(_NX_OVERRIDES));
+  applyLang();
+  abRenderVitrine();
+  abToast('Clé réinitialisée.', 'i');
+}
+
+function vtrReset() {
+  if (!confirm('Réinitialiser tous les textes aux valeurs par défaut ?\nCette action est irréversible.')) return;
+  _NX_OVERRIDES = { fr:{}, en:{} };
+  localStorage.removeItem('nx_i18n_overrides');
+  applyLang();
+  abRenderVitrine();
+  abToast('Vitrine réinitialisée.', 'i');
+}
+
+function _vtrPersist(scope) {
+  localStorage.setItem('nx_i18n_overrides', JSON.stringify(_NX_OVERRIDES));
+  applyLang();
+  abRenderVitrine();
+  const n = Object.keys(_NX_OVERRIDES[_vtrLang]||{}).length;
+  abToast(`✅ ${scope==='section'?'Section':'Vitrine'} sauvegardée — ${n} override${n>1?'s':''} (${_vtrLang.toUpperCase()}).`, 's');
+  if (_abOnline && _abSupa) {
+    _abSupa.from('platform_params').upsert({id:'vitrine_overrides',overrides:_NX_OVERRIDES},{onConflict:'id'}).catch(()=>{});
+  }
+}
+
+function vtrPreview() {
+  vtrSave();
+  closeAdmin();
+  showPage('accueil');
+}
+
+function vtrMarkChanged(el, key) {
+  const def = NX_TR[_vtrLang]?.[key] || '';
+  el.style.borderColor = (el.value && el.value !== def) ? 'rgba(232,96,10,0.6)' : 'var(--border)';
+}
+
+// Sync Supabase overrides au login admin
+(function() {
+  const _origInit = typeof abInitData === 'function' ? abInitData : null;
+  if (_origInit) {
+    window.abInitData = function() {
+      _origInit.apply(this, arguments);
+      if (_abOnline && _abSupa) {
+        _abSupa.from('platform_params').select('overrides').eq('id','vitrine_overrides').single()
+          .then(({data}) => {
+            if (data && data.overrides) {
+              _NX_OVERRIDES = data.overrides;
+              localStorage.setItem('nx_i18n_overrides', JSON.stringify(_NX_OVERRIDES));
+              applyLang();
+            }
+          }).catch(()=>{});
+      }
+    };
+  }
+})();
+
 </script>
 
 
@@ -20751,7 +21765,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if (!('serviceWorker' in navigator)) return;
 
   // SW code embarqué en base64 pour éviter les problèmes d'échappement
-  const swB64 = 'Ci8vIOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkAovLyBOT0xERVggTE9HSVNUSUNTIOKAlCBTZXJ2aWNlIFdvcmtlciB2Mi4wCi8vIFN0cmF0w6lnaWUgOiBDYWNoZS1GaXJzdCBwb3VyIGFzc2V0cywgTmV0d29yay1GaXJzdCBwb3VyIEFQSQovLyDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZAKY29uc3QgU1dfVkVSU0lPTiAgICA9ICdub2xkZXgtdjIuMCc7CmNvbnN0IENBQ0hFX1NUQVRJQyAgPSBTV19WRVJTSU9OICsgJy1zdGF0aWMnOwpjb25zdCBDQUNIRV9EWU5BTUlDID0gU1dfVkVSU0lPTiArICctZHluYW1pYyc7CgovLyBBc3NldHMgw6AgcHLDqWNhY2hlciAoc2hlbGwgZGUgbCdhcHApCmNvbnN0IFBSRUNBQ0hFX1VSTFMgPSBbCiAgJy8nLAogIHNlbGYubG9jYXRpb24uaHJlZiAgLy8gbGUgZmljaGllciBIVE1MIHByaW5jaXBhbApdOwoKLy8g4pSA4pSAIElOU1RBTEwg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACnNlbGYuYWRkRXZlbnRMaXN0ZW5lcignaW5zdGFsbCcsIGUgPT4gewogIGUud2FpdFVudGlsKAogICAgY2FjaGVzLm9wZW4oQ0FDSEVfU1RBVElDKS50aGVuKGNhY2hlID0+IHsKICAgICAgY29uc29sZS5sb2coJ1tTV10gUHLDqWNhY2hhZ2Ugc2hlbGwgYXBwJyk7CiAgICAgIHJldHVybiBjYWNoZS5hZGRBbGwoUFJFQ0FDSEVfVVJMUykuY2F0Y2goKCkgPT4ge30pOwogICAgfSkudGhlbigoKSA9PiBzZWxmLnNraXBXYWl0aW5nKCkpCiAgKTsKfSk7CgovLyDilIDilIAgQUNUSVZBVEUg4oCUIG5ldHRveWFnZSBhbmNpZW5zIGNhY2hlcyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdhY3RpdmF0ZScsIGUgPT4gewogIGUud2FpdFVudGlsKAogICAgY2FjaGVzLmtleXMoKS50aGVuKGtleXMgPT4KICAgICAgUHJvbWlzZS5hbGwoCiAgICAgICAga2V5cy5maWx0ZXIoayA9PiBrICE9PSBDQUNIRV9TVEFUSUMgJiYgayAhPT0gQ0FDSEVfRFlOQU1JQykKICAgICAgICAgICAgLm1hcChrID0+IHsgY29uc29sZS5sb2coJ1tTV10gU3VwcHJlc3Npb24gY2FjaGUgb2Jzb2zDqHRlOicsIGspOyByZXR1cm4gY2FjaGVzLmRlbGV0ZShrKTsgfSkKICAgICAgKQogICAgKS50aGVuKCgpID0+IHNlbGYuY2xpZW50cy5jbGFpbSgpKQogICk7Cn0pOwoKLy8g4pSA4pSAIEZFVENIIOKAlCBzdHJhdMOpZ2llIGh5YnJpZGUg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACnNlbGYuYWRkRXZlbnRMaXN0ZW5lcignZmV0Y2gnLCBlID0+IHsKICBjb25zdCB1cmwgPSBuZXcgVVJMKGUucmVxdWVzdC51cmwpOwoKICAvLyBOZSBwYXMgaW50ZXJjZXB0ZXIgbGVzIHJlcXXDqnRlcyBTdXBhYmFzZSAvIEFQSSBleHRlcm5lcwogIGlmICh1cmwuaG9zdG5hbWUuaW5jbHVkZXMoJ3N1cGFiYXNlLmNvJykgfHwKICAgICAgdXJsLmhvc3RuYW1lLmluY2x1ZGVzKCdnb29nbGVhcGlzLmNvbScpIHx8CiAgICAgIHVybC5ob3N0bmFtZS5pbmNsdWRlcygnY2RuLmpzZGVsaXZyLm5ldCcpIHx8CiAgICAgIHVybC5ob3N0bmFtZS5pbmNsdWRlcygnY2RuanMuY2xvdWRmbGFyZS5jb20nKSB8fAogICAgICB1cmwuaG9zdG5hbWUuaW5jbHVkZXMoJ2ZvbnRzLmdzdGF0aWMuY29tJykgfHwKICAgICAgZS5yZXF1ZXN0Lm1ldGhvZCAhPT0gJ0dFVCcpIHsKICAgIHJldHVybjsgLy8gbGFpc3NlciBwYXNzZXIKICB9CgogIC8vIENhY2hlLUZpcnN0IHBvdXIgbGVzIGZvbnRzIGV0IGFzc2V0cyBDRE4KICBpZiAodXJsLmhvc3RuYW1lICE9PSBzZWxmLmxvY2F0aW9uLmhvc3RuYW1lKSB7CiAgICBlLnJlc3BvbmRXaXRoKAogICAgICBjYWNoZXMubWF0Y2goZS5yZXF1ZXN0KS50aGVuKGNhY2hlZCA9PiB7CiAgICAgICAgaWYgKGNhY2hlZCkgcmV0dXJuIGNhY2hlZDsKICAgICAgICByZXR1cm4gZmV0Y2goZS5yZXF1ZXN0KS50aGVuKHJlc3AgPT4gewogICAgICAgICAgaWYgKHJlc3AgJiYgcmVzcC5zdGF0dXMgPT09IDIwMCkgewogICAgICAgICAgICBjb25zdCBjbG9uZSA9IHJlc3AuY2xvbmUoKTsKICAgICAgICAgICAgY2FjaGVzLm9wZW4oQ0FDSEVfRFlOQU1JQykudGhlbihjID0+IGMucHV0KGUucmVxdWVzdCwgY2xvbmUpKTsKICAgICAgICAgIH0KICAgICAgICAgIHJldHVybiByZXNwOwogICAgICAgIH0pLmNhdGNoKCgpID0+IGNhY2hlZCk7CiAgICAgIH0pCiAgICApOwogICAgcmV0dXJuOwogIH0KCiAgLy8gTmV0d29yay1GaXJzdCBwb3VyIGxlcyBwYWdlcyBIVE1MIGR1IG3Dqm1lIGRvbWFpbmUKICBlLnJlc3BvbmRXaXRoKAogICAgZmV0Y2goZS5yZXF1ZXN0KQogICAgICAudGhlbihyZXNwID0+IHsKICAgICAgICBpZiAocmVzcCAmJiByZXNwLnN0YXR1cyA9PT0gMjAwKSB7CiAgICAgICAgICBjb25zdCBjbG9uZSA9IHJlc3AuY2xvbmUoKTsKICAgICAgICAgIGNhY2hlcy5vcGVuKENBQ0hFX1NUQVRJQykudGhlbihjID0+IGMucHV0KGUucmVxdWVzdCwgY2xvbmUpKTsKICAgICAgICB9CiAgICAgICAgcmV0dXJuIHJlc3A7CiAgICAgIH0pCiAgICAgIC5jYXRjaCgoKSA9PiB7CiAgICAgICAgcmV0dXJuIGNhY2hlcy5tYXRjaChlLnJlcXVlc3QpLnRoZW4oY2FjaGVkID0+IHsKICAgICAgICAgIGlmIChjYWNoZWQpIHJldHVybiBjYWNoZWQ7CiAgICAgICAgICAvLyBGYWxsYmFjayBvZmZsaW5lIDogcmV0b3VybmVyIGxlIHNoZWxsIEhUTUwKICAgICAgICAgIHJldHVybiBjYWNoZXMubWF0Y2goJy8nKSB8fCBjYWNoZXMubWF0Y2goc2VsZi5sb2NhdGlvbi5ocmVmKTsKICAgICAgICB9KTsKICAgICAgfSkKICApOwp9KTsKCi8vIOKUgOKUgCBTWU5DIOKAlCBiYWNrZ3JvdW5kIHN5bmMgcG91ciBkZW1hbmRlcyBob3JzLWxpZ25lIOKUgOKUgOKUgOKUgOKUgOKUgApzZWxmLmFkZEV2ZW50TGlzdGVuZXIoJ3N5bmMnLCBlID0+IHsKICBpZiAoZS50YWcgPT09ICdzeW5jLWRlbWFuZGVzLWRldmlzJykgewogICAgZS53YWl0VW50aWwoc3luY1BlbmRpbmdEZXZpcygpKTsKICB9Cn0pOwoKYXN5bmMgZnVuY3Rpb24gc3luY1BlbmRpbmdEZXZpcygpIHsKICAvLyBMZXMgZGVtYW5kZXMgZW4gYXR0ZW50ZSBzb250IGRhbnMgbG9jYWxTdG9yYWdlIHZpYSBwb3N0TWVzc2FnZQogIGNvbnNvbGUubG9nKCdbU1ddIEJhY2tncm91bmQgc3luYyBkZW1hbmRlc19kZXZpcycpOwp9CgovLyDilIDilIAgUFVTSCBOT1RJRklDQVRJT05TIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApzZWxmLmFkZEV2ZW50TGlzdGVuZXIoJ3B1c2gnLCBlID0+IHsKICBpZiAoIWUuZGF0YSkgcmV0dXJuOwogIGNvbnN0IGRhdGEgPSBlLmRhdGEuanNvbigpOwogIGUud2FpdFVudGlsKAogICAgc2VsZi5yZWdpc3RyYXRpb24uc2hvd05vdGlmaWNhdGlvbihkYXRhLnRpdGxlIHx8ICdOT0xERVgnLCB7CiAgICAgIGJvZHk6ICAgIGRhdGEuYm9keSAgICB8fCAnTm91dmVsbGUgbm90aWZpY2F0aW9uJywKICAgICAgaWNvbjogICAgZGF0YS5pY29uICAgIHx8ICcvbG9nby5wbmcnLAogICAgICBiYWRnZTogICBkYXRhLmJhZGdlICAgfHwgJy9sb2dvLnBuZycsCiAgICAgIHRhZzogICAgIGRhdGEudGFnICAgICB8fCAnbm9sZGV4LW5vdGlmJywKICAgICAgZGF0YTogICAgZGF0YS51cmwgICAgIHx8ICcvJywKICAgICAgYWN0aW9uczogZGF0YS5hY3Rpb25zIHx8IFtdCiAgICB9KQogICk7Cn0pOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdub3RpZmljYXRpb25jbGljaycsIGUgPT4gewogIGUubm90aWZpY2F0aW9uLmNsb3NlKCk7CiAgZS53YWl0VW50aWwoY2xpZW50cy5vcGVuV2luZG93KGUubm90aWZpY2F0aW9uLmRhdGEgfHwgJy8nKSk7Cn0pOwo=';
+  const swB64 = 'Ci8vIOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkAovLyBOT0xERVggTE9HSVNUSUNTIOKAlCBTZXJ2aWNlIFdvcmtlciB2Mi4xCi8vIFN0cmF0w6lnaWUgOiBDYWNoZS1GaXJzdCBvZmZsaW5lLCBOZXR3b3JrLUZpcnN0IG9ubGluZQovLyDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZAKY29uc3QgU1dfVkVSU0lPTiAgICA9ICdub2xkZXgtdjIuMSc7CmNvbnN0IENBQ0hFX1NUQVRJQyAgPSBTV19WRVJTSU9OICsgJy1zdGF0aWMnOwpjb25zdCBDQUNIRV9EWU5BTUlDID0gU1dfVkVSU0lPTiArICctZHluYW1pYyc7CgovLyDilIDilIAgSU5TVEFMTCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdpbnN0YWxsJywgZSA9PiB7CiAgZS53YWl0VW50aWwoCiAgICBjYWNoZXMub3BlbihDQUNIRV9TVEFUSUMpLnRoZW4oY2FjaGUgPT4gewogICAgICBjb25zb2xlLmxvZygnW1NXXSBQcsOpY2FjaGFnZSBzaGVsbCBhcHAnKTsKICAgICAgcmV0dXJuIGNhY2hlLmFkZEFsbChbJy8nLCAnL2luZGV4Lmh0bWwnXSkuY2F0Y2goKCkgPT4ge30pOwogICAgfSkudGhlbigoKSA9PiBzZWxmLnNraXBXYWl0aW5nKCkpCiAgKTsKfSk7CgovLyDilIDilIAgQUNUSVZBVEUg4oCUIG5ldHRveWFnZSBhbmNpZW5zIGNhY2hlcyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdhY3RpdmF0ZScsIGUgPT4gewogIGUud2FpdFVudGlsKAogICAgY2FjaGVzLmtleXMoKS50aGVuKGtleXMgPT4KICAgICAgUHJvbWlzZS5hbGwoCiAgICAgICAga2V5cwogICAgICAgICAgLmZpbHRlcihrID0+IGsgIT09IENBQ0hFX1NUQVRJQyAmJiBrICE9PSBDQUNIRV9EWU5BTUlDKQogICAgICAgICAgLm1hcChrID0+IHsgY29uc29sZS5sb2coJ1tTV10gU3VwcHJlc3Npb24gY2FjaGUgb2Jzb2zDqHRlOicsIGspOyByZXR1cm4gY2FjaGVzLmRlbGV0ZShrKTsgfSkKICAgICAgKQogICAgKS50aGVuKCgpID0+IHNlbGYuY2xpZW50cy5jbGFpbSgpKQogICk7Cn0pOwoKLy8g4pSA4pSAIEZFVENIIOKAlCBzdHJhdMOpZ2llIGh5YnJpZGUg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACnNlbGYuYWRkRXZlbnRMaXN0ZW5lcignZmV0Y2gnLCBlID0+IHsKICBjb25zdCByZXEgPSBlLnJlcXVlc3Q7CiAgaWYgKHJlcS5tZXRob2QgIT09ICdHRVQnKSByZXR1cm47CgogIGNvbnN0IHVybCA9IG5ldyBVUkwocmVxLnVybCk7CiAgaWYgKHVybC5wcm90b2NvbCA9PT0gJ2Jsb2I6JyB8fCB1cmwucHJvdG9jb2wgPT09ICdjaHJvbWUtZXh0ZW5zaW9uOicpIHJldHVybjsKCiAgLy8gRXhjbHVyZSBsZXMgQVBJIGV4dGVybmVzIChwYXMgZGUgY2FjaGUpCiAgY29uc3QgQVBJX1NLSVAgPSBbCiAgICAnc3VwYWJhc2UuY28nLCAnZ29vZ2xlYXBpcy5jb20nLCAnZmlyZWJhc2Vpby5jb20nLAogICAgJ2ZpcmViYXNlYXBwLmNvbScsICdmaXJlYmFzZS5jb20nLAogICAgJ2Nkbi5qc2RlbGl2ci5uZXQnLCAnY2RuanMuY2xvdWRmbGFyZS5jb20nLCAndW5wa2cuY29tJwogIF07CiAgaWYgKEFQSV9TS0lQLnNvbWUoaCA9PiB1cmwuaG9zdG5hbWUuaW5jbHVkZXMoaCkpKSByZXR1cm47CgogIC8vIENhY2hlLUZpcnN0IHBvdXIgYXNzZXRzIHN0YXRpcXVlcyAoQ2xvdWRpbmFyeSwgR29vZ2xlIEZvbnRzKQogIGNvbnN0IENETl9DQUNIRSA9IFsKICAgICdjbG91ZGluYXJ5LmNvbScsICdmb250cy5nb29nbGVhcGlzLmNvbScsICdmb250cy5nc3RhdGljLmNvbScKICBdOwogIGlmIChDRE5fQ0FDSEUuc29tZShoID0+IHVybC5ob3N0bmFtZS5pbmNsdWRlcyhoKSkpIHsKICAgIGUucmVzcG9uZFdpdGgoCiAgICAgIGNhY2hlcy5tYXRjaChyZXEpLnRoZW4oY2FjaGVkID0+IHsKICAgICAgICBpZiAoY2FjaGVkKSByZXR1cm4gY2FjaGVkOwogICAgICAgIHJldHVybiBmZXRjaChyZXEpLnRoZW4ocmVzcCA9PiB7CiAgICAgICAgICBpZiAocmVzcCAmJiByZXNwLnN0YXR1cyA9PT0gMjAwKSB7CiAgICAgICAgICAgIGNvbnN0IGNsb25lID0gcmVzcC5jbG9uZSgpOwogICAgICAgICAgICBjYWNoZXMub3BlbihDQUNIRV9EWU5BTUlDKS50aGVuKGMgPT4gYy5wdXQocmVxLCBjbG9uZSkpOwogICAgICAgICAgfQogICAgICAgICAgcmV0dXJuIHJlc3A7CiAgICAgICAgfSkuY2F0Y2goKCkgPT4gY2FjaGVkIHx8IG5ldyBSZXNwb25zZSgnJywgeyBzdGF0dXM6IDUwMyB9KSk7CiAgICAgIH0pCiAgICApOwogICAgcmV0dXJuOwogIH0KCiAgLy8gTmV0d29yay1GaXJzdCBwb3VyIHRvdXQgbGUgcmVzdGUgKHBhZ2UgSFRNTCwgYXNzZXRzIGxvY2F1eCkKICAvLyBTaSBvZmZsaW5lIOKGkiBmYWxsYmFjayBjYWNoZSDihpIgZmFsbGJhY2sgc2hlbGwKICBlLnJlc3BvbmRXaXRoKAogICAgZmV0Y2gocmVxKQogICAgICAudGhlbihyZXNwID0+IHsKICAgICAgICBpZiAocmVzcCAmJiByZXNwLnN0YXR1cyA9PT0gMjAwKSB7CiAgICAgICAgICBjb25zdCBjbG9uZSA9IHJlc3AuY2xvbmUoKTsKICAgICAgICAgIGNhY2hlcy5vcGVuKENBQ0hFX1NUQVRJQykudGhlbihjID0+IGMucHV0KHJlcSwgY2xvbmUpKTsKICAgICAgICB9CiAgICAgICAgcmV0dXJuIHJlc3A7CiAgICAgIH0pCiAgICAgIC5jYXRjaCgoKSA9PgogICAgICAgIGNhY2hlcy5tYXRjaChyZXEpLnRoZW4oY2FjaGVkID0+IHsKICAgICAgICAgIGlmIChjYWNoZWQpIHJldHVybiBjYWNoZWQ7CiAgICAgICAgICByZXR1cm4gY2FjaGVzLm1hdGNoKCcvJykudGhlbihyID0+IHsKICAgICAgICAgICAgaWYgKHIpIHJldHVybiByOwogICAgICAgICAgICByZXR1cm4gY2FjaGVzLm1hdGNoKCcvaW5kZXguaHRtbCcpOwogICAgICAgICAgfSk7CiAgICAgICAgfSkKICAgICAgKQogICk7Cn0pOwoKLy8g4pSA4pSAIFBVU0ggTk9USUZJQ0FUSU9OUyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdwdXNoJywgZSA9PiB7CiAgaWYgKCFlLmRhdGEpIHJldHVybjsKICBjb25zdCBkYXRhID0gZS5kYXRhLmpzb24oKTsKICBlLndhaXRVbnRpbCgKICAgIHNlbGYucmVnaXN0cmF0aW9uLnNob3dOb3RpZmljYXRpb24oZGF0YS50aXRsZSB8fCAnTk9MREVYJywgewogICAgICBib2R5OiAgICBkYXRhLmJvZHkgICAgfHwgJ05vdXZlbGxlIG5vdGlmaWNhdGlvbicsCiAgICAgIGljb246ICAgIGRhdGEuaWNvbiAgICB8fCAnL2xvZ28ucG5nJywKICAgICAgYmFkZ2U6ICAgZGF0YS5iYWRnZSAgIHx8ICcvbG9nby5wbmcnLAogICAgICB0YWc6ICAgICBkYXRhLnRhZyAgICAgfHwgJ25vbGRleC1ub3RpZicsCiAgICAgIGRhdGE6ICAgIGRhdGEudXJsICAgICB8fCAnLycsCiAgICAgIGFjdGlvbnM6IGRhdGEuYWN0aW9ucyB8fCBbXQogICAgfSkKICApOwp9KTsKCnNlbGYuYWRkRXZlbnRMaXN0ZW5lcignbm90aWZpY2F0aW9uY2xpY2snLCBlID0+IHsKICBlLm5vdGlmaWNhdGlvbi5jbG9zZSgpOwogIGUud2FpdFVudGlsKGNsaWVudHMub3BlbldpbmRvdyhlLm5vdGlmaWNhdGlvbi5kYXRhIHx8ICcvJykpOwp9KTsK';
   function b64decode(s) {
     try { return decodeURIComponent(escape(atob(s))); } catch(e) { return atob(s); }
   }
@@ -20995,5 +22009,450 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 </script>
 
+<!-- ═══════════════════════════════════════════════════════
+     COMPTEUR DE VISITEURS — NOLDEX FLEET
+     ═══════════════════════════════════════════════════════
+     SQL À EXÉCUTER UNE SEULE FOIS dans Supabase > SQL Editor :
+
+     CREATE TABLE IF NOT EXISTS site_visits (
+       id text PRIMARY KEY DEFAULT 'noldexfleet',
+       count bigint DEFAULT 0,
+       updated_at timestamptz DEFAULT now()
+     );
+     INSERT INTO site_visits (id, count) VALUES ('noldexfleet', 0)
+       ON CONFLICT DO NOTHING;
+
+     CREATE OR REPLACE FUNCTION increment_visits()
+     RETURNS bigint LANGUAGE plpgsql SECURITY DEFINER AS $$
+     DECLARE new_count bigint;
+     BEGIN
+       UPDATE site_visits
+       SET count = count + 1, updated_at = now()
+       WHERE id = 'noldexfleet'
+       RETURNING count INTO new_count;
+       RETURN COALESCE(new_count, 0);
+     END;
+     $$;
+
+     -- RLS : autoriser la lecture publique du compteur
+     ALTER TABLE site_visits ENABLE ROW LEVEL SECURITY;
+     CREATE POLICY "public_read_visits"  ON site_visits FOR SELECT USING (true);
+     CREATE POLICY "public_count_visits" ON site_visits FOR UPDATE USING (true);
+     ═══════════════════════════════════════════════════════ -->
+<script>
+(function nxVisitCounter() {
+  // ── Affichage formaté du nombre ─────────────────────────
+  function fmtCount(n) {
+    if (!n || isNaN(n)) return '—';
+    if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0','') + 'M';
+    if (n >= 1000)    return (n / 1000).toFixed(1).replace('.0','') + 'k';
+    return n.toLocaleString('fr-FR');
+  }
+
+  // ── Mise à jour du DOM ────────────────────────────────────
+  function showCount(n) {
+    const el = document.getElementById('nx-visit-num');
+    if (!el) return;
+    el.textContent = fmtCount(n);
+    el.classList.add('counted');
+  }
+
+  // ── Clé de session pour ne pas recompter un rechargement ──
+  const SESSION_KEY = 'nx_visit_counted';
+  const LOCAL_KEY   = 'nx_visit_local';
+
+  // ── Lecture localStorage (fallback offline) ───────────────
+  function localCount() {
+    return parseInt(localStorage.getItem(LOCAL_KEY) || '0', 10);
+  }
+  function bumpLocal() {
+    const n = localCount() + 1;
+    localStorage.setItem(LOCAL_KEY, n);
+    return n;
+  }
+
+  // ── Fonction principale ───────────────────────────────────
+  async function track() {
+    // Attendre que Supabase soit prêt (max 3s)
+    let tries = 0;
+    while (!window._supa && tries++ < 30) {
+      await new Promise(r => setTimeout(r, 100));
+    }
+
+    const alreadyCounted = sessionStorage.getItem(SESSION_KEY);
+
+    if (!window._supa) {
+      // Mode offline — afficher compteur local uniquement
+      const localN = alreadyCounted ? localCount() : bumpLocal();
+      if (!alreadyCounted) sessionStorage.setItem(SESSION_KEY, '1');
+      showCount(localN);
+      return;
+    }
+
+    try {
+      if (alreadyCounted) {
+        // Ne pas incrémenter — juste lire le compteur actuel
+        const { data, error } = await window._supa
+          .from('site_visits')
+          .select('count')
+          .eq('id', 'noldexfleet')
+          .single();
+        if (!error && data) showCount(data.count);
+        else showCount(localCount());
+      } else {
+        // Incrémenter via RPC
+        sessionStorage.setItem(SESSION_KEY, '1');
+        const { data, error } = await window._supa.rpc('increment_visits');
+        if (!error && data !== null) {
+          showCount(data);
+          localStorage.setItem(LOCAL_KEY, data); // sync local
+        } else {
+          // RPC pas encore créée → fallback lecture directe + local bump
+          const localN = bumpLocal();
+          showCount(localN);
+        }
+      }
+    } catch (e) {
+      showCount(localCount());
+    }
+  }
+
+  // Lancer après le chargement complet
+  if (document.readyState === 'complete') track();
+  else window.addEventListener('load', track);
+})();
+
+/* ══════════════════════════════════════════════════════
+   CMS VITRINE — Moteur WordPress-like
+   SQL Supabase (exécuter une seule fois) :
+
+   CREATE TABLE IF NOT EXISTS site_config (
+     key text PRIMARY KEY,
+     value jsonb,
+     updated_at timestamptz DEFAULT now()
+   );
+   ALTER TABLE site_config ENABLE ROW LEVEL SECURITY;
+   CREATE POLICY "admin_all" ON site_config FOR ALL USING (true) WITH CHECK (true);
+   ══════════════════════════════════════════════════════ */
+(function() {
+
+const LS_KEY = 'nx_site_config';
+let _cfg = {}; // config in-memory
+let _cmsCurrentSec = 'identite';
+let _cmsUnsaved = {};
+
+// ── FIELD DEFINITIONS PER SECTION ─────────────────────
+const CMS_FIELDS = {
+  identite: ['logo_url','company_name','tagline','phone','whatsapp','email','address','accent_color'],
+  hero:     ['hero_title_fr','hero_title_en','hero_sub_fr','hero_sub_en','hero_cta_fr','hero_cta_en','hero_bg_url'],
+  about:    ['about_title_fr','about_title_en','about_text_fr','about_text_en','about_img_url','stat1_val','stat1_label_fr','stat2_val','stat2_label_fr'],
+  tarifs:   ['tarifs_title_fr','tarifs_sub_fr','tarif_min','tarif_note'],
+  social:   ['facebook','linkedin','instagram','youtube','tiktok','whatsapp_link'],
+  seo:      ['seo_title','seo_desc','seo_og_image','seo_keywords','ga_id'],
+  services: [] // handled separately as JSON array
+};
+
+// ── DOM APPLY MAP — clé config → sélecteur DOM ─────────
+const CMS_DOM_MAP = {
+  company_name:  [['h1.hero-title','html'], ['title','text'], ['.bar-brand-name','text']],
+  tagline:       [['.hero-subtitle','text']],
+  hero_title_fr: [['h1.hero-title','html']],
+  hero_sub_fr:   [['p.hero-subtitle','text']],
+  phone:         [['[data-cms="phone"]','text']],
+  email:         [['[data-cms="email"]','text']],
+  whatsapp_link: [['[data-cms="whatsapp"]','href']],
+  facebook:      [['[data-cms="facebook"]','href']],
+  linkedin:      [['[data-cms="linkedin"]','href']],
+  accent_color:  [] // applied via CSS variable
+};
+
+// ── LOAD FROM SUPABASE + LOCALSTORAGE ─────────────────
+async function cmsLoad() {
+  const sync = document.getElementById('cmsSyncStatus');
+  // 1. Load localStorage first (instant)
+  try { _cfg = JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch(e){ _cfg = {}; }
+  cmsPopulateFields();
+  // 2. Load Supabase (async)
+  if (window._supa) {
+    try {
+      const { data, error } = await window._supa.from('site_config').select('key,value');
+      if (!error && data) {
+        data.forEach(r => { _cfg[r.key] = r.value; });
+        localStorage.setItem(LS_KEY, JSON.stringify(_cfg));
+        cmsPopulateFields();
+        if (sync) sync.textContent = `Synchronisé avec Supabase — ${new Date().toLocaleTimeString('fr-FR')}`;
+      } else {
+        if (sync) sync.textContent = 'Mode local (table site_config non créée)';
+      }
+    } catch(e) {
+      if (sync) sync.textContent = 'Hors ligne — données locales';
+    }
+  } else {
+    if (sync) sync.textContent = 'Config locale (Supabase non disponible)';
+  }
+  cmsRenderServices();
+}
+
+// ── POPULATE FIELDS FROM _cfg ──────────────────────────
+function cmsPopulateFields() {
+  Object.entries(_cfg).forEach(([key, val]) => {
+    const el = document.getElementById('cms_' + key);
+    if (el) { el.value = typeof val === 'object' ? JSON.stringify(val) : (val || ''); }
+    // Sync color picker
+    if (key === 'accent_color') {
+      const picker = document.getElementById('cms_accent_color_picker');
+      if (picker && val) picker.value = val;
+    }
+    // Show image previews
+    const previewMap = {
+      logo_url: 'cmsLogoPreview', hero_bg_url: 'cmsHeroBgPreview',
+      about_img_url: 'cmsAboutImgPreview', seo_og_image: 'cmsOgPreview'
+    };
+    if (previewMap[key] && val) {
+      const img = document.getElementById(previewMap[key]);
+      const ph  = document.getElementById(previewMap[key].replace('Preview','Placeholder'));
+      if (img) { img.src = val; img.style.display = 'block'; }
+      if (ph)  { ph.style.display = 'none'; }
+    }
+  });
+}
+
+// ── SAVE SECTION ───────────────────────────────────────
+window.cmsSaveSec = async function(sec) {
+  const fields = CMS_FIELDS[sec] || [];
+  const data = {};
+  fields.forEach(key => {
+    const el = document.getElementById('cms_' + key);
+    if (el) data[key] = el.value.trim();
+  });
+  // Merge into _cfg
+  Object.assign(_cfg, data);
+  // Services: special JSON
+  if (sec === 'services') { _cfg['services'] = _cmsServices; }
+  // Persist locally
+  localStorage.setItem(LS_KEY, JSON.stringify(_cfg));
+  // Clear unsaved indicator
+  const uns = document.getElementById('cms' + sec.charAt(0).toUpperCase() + sec.slice(1) + 'Unsaved');
+  if (uns) uns.classList.add('d-none');
+  _cmsUnsaved[sec] = false;
+  // Apply to public DOM
+  cmsApplyToPublic();
+  // Sync to Supabase
+  const sync = document.getElementById('cmsSyncStatus');
+  if (sync) sync.textContent = '⏳ Sauvegarde…';
+  if (window._supa) {
+    try {
+      const upserts = Object.entries(data).map(([key, value]) => ({ key, value, updated_at: new Date().toISOString() }));
+      if (sec === 'services') upserts.push({ key: 'services', value: _cmsServices, updated_at: new Date().toISOString() });
+      const { error } = await window._supa.from('site_config').upsert(upserts);
+      if (sync) sync.textContent = error ? '⚠️ Erreur Supabase (local OK)' : `✅ Sauvegardé — ${new Date().toLocaleTimeString('fr-FR')}`;
+    } catch(e) {
+      if (sync) sync.textContent = '⚠️ Hors ligne — sauvegardé localement';
+    }
+  } else {
+    if (sync) sync.textContent = '💾 Sauvegardé localement';
+  }
+  if (window.abShowToast) abShowToast('✅ Section sauvegardée.', 's');
+};
+
+// ── APPLY CONFIG TO PUBLIC DOM ─────────────────────────
+function cmsApplyToPublic() {
+  Object.entries(CMS_DOM_MAP).forEach(([key, targets]) => {
+    const val = _cfg[key]; if (!val) return;
+    targets.forEach(([sel, attr]) => {
+      document.querySelectorAll(sel).forEach(el => {
+        if (attr === 'text') el.textContent = val;
+        else if (attr === 'html') el.innerHTML = val;
+        else if (attr === 'href') el.href = val;
+        else if (attr === 'src') el.src = val;
+      });
+    });
+  });
+  // Apply accent color as CSS variable
+  if (_cfg.accent_color) document.documentElement.style.setProperty('--orange', _cfg.accent_color);
+  // Apply logo
+  if (_cfg.logo_url) document.querySelectorAll('[data-noldex-logo]').forEach(el => { el.src = _cfg.logo_url; });
+  // Apply hero bg
+  if (_cfg.hero_bg_url) { const h = document.getElementById('heroSection'); if (h) h.style.backgroundImage = `url(${_cfg.hero_bg_url})`; }
+  // Apply meta SEO
+  if (_cfg.seo_title) document.title = _cfg.seo_title;
+  if (_cfg.seo_desc) { const m = document.querySelector('meta[name="description"]'); if (m) m.content = _cfg.seo_desc; }
+}
+
+// ── CMS NAV ────────────────────────────────────────────
+window.cmsShowSec = function(sec) {
+  _cmsCurrentSec = sec;
+  document.querySelectorAll('.cms-nav-item').forEach(el => el.classList.toggle('active', el.dataset.sec === sec));
+  document.querySelectorAll('.cms-sec').forEach(el => el.classList.toggle('active', el.id === 'cms-' + sec));
+  if (sec === 'i18n') abRenderVitrine();
+  if (sec === 'services') cmsRenderServices();
+};
+
+// ── MARK UNSAVED ───────────────────────────────────────
+window.cmsMark = function() {
+  const uns = document.getElementById('cms' + _cmsCurrentSec.charAt(0).toUpperCase() + _cmsCurrentSec.slice(1) + 'Unsaved');
+  if (uns) uns.classList.remove('d-none');
+  _cmsUnsaved[_cmsCurrentSec] = true;
+};
+
+// ── SEO CHAR COUNTER ───────────────────────────────────
+window.cmsSeoCount = function(el, countId, max) {
+  const c = document.getElementById(countId);
+  if (!c) return;
+  c.textContent = `${el.value.length}/${max}`;
+  c.style.color = el.value.length > max ? '#f87171' : 'rgba(255,255,255,.25)';
+};
+
+// ── SERVICES CRUD ──────────────────────────────────────
+let _cmsServices = [];
+function cmsRenderServices() {
+  _cmsServices = Array.isArray(_cfg.services) ? _cfg.services : [
+    { icon:'🚛', title_fr:'Large flotte', desc_fr:'50+ engins disponibles dans toute la Guinée' },
+    { icon:'📡', title_fr:'GPS temps réel', desc_fr:'Suivi 24h/24 de tous vos engins en chantier' },
+    { icon:'📄', title_fr:'Contrats digitaux', desc_fr:'Signature et archivage électronique' },
+    { icon:'💰', title_fr:'Orange Money', desc_fr:'Paiement sécurisé par Mobile Money' },
+  ];
+  const container = document.getElementById('cmsServicesCards');
+  if (!container) return;
+  container.innerHTML = _cmsServices.map((s, i) => `
+    <div class="cms-service-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;">Avantage ${i+1}</span>
+        <button class="ab-btn ab-btn-red ab-btn-sm" onclick="_cmsServices.splice(${i},1);cmsRenderServices();cmsMark()">🗑</button>
+      </div>
+      <div class="cms-grid" style="grid-template-columns:80px 1fr 1fr;gap:10px;">
+        <div class="cms-fg"><label class="cms-lbl">Icône</label><input class="cms-ctrl" value="${s.icon||''}" oninput="_cmsServices[${i}].icon=this.value;cmsMark()" placeholder="🚛"></div>
+        <div class="cms-fg"><label class="cms-lbl">Titre (FR)</label><input class="cms-ctrl" value="${s.title_fr||''}" oninput="_cmsServices[${i}].title_fr=this.value;cmsMark()"></div>
+        <div class="cms-fg"><label class="cms-lbl">Titre (EN)</label><input class="cms-ctrl" value="${s.title_en||''}" oninput="_cmsServices[${i}].title_en=this.value;cmsMark()"></div>
+        <div class="cms-fg" style="grid-column:2/4"><label class="cms-lbl">Description (FR)</label><input class="cms-ctrl" value="${s.desc_fr||''}" oninput="_cmsServices[${i}].desc_fr=this.value;cmsMark()"></div>
+      </div>
+    </div>`).join('');
+}
+window.cmsAddService = function() {
+  _cmsServices.push({ icon:'⭐', title_fr:'Nouveau service', title_en:'New service', desc_fr:'', desc_en:'' });
+  cmsRenderServices(); cmsMark();
+};
+
+// ── IMAGE UPLOAD VIA CLOUDINARY ────────────────────────
+window.cmsUploadImg = async function(input, cfgKey, zoneId, placeholderId, previewId, uploadingId) {
+  const file = input.files[0]; if (!file) return;
+  if (!window.cloudIsReady || !cloudIsReady()) {
+    if (window.abShowToast) abShowToast('Cloudinary non configuré dans Paramètres.','e');
+    return;
+  }
+  const zone     = document.getElementById(zoneId);
+  const ph       = document.getElementById(placeholderId);
+  const preview  = document.getElementById(previewId);
+  const uploading = document.getElementById(uploadingId);
+  if (zone) zone.classList.add('uploading');
+  if (ph) ph.style.display = 'none';
+  if (uploading) uploading.classList.remove('d-none');
+  try {
+    const cfg = _cloudCfg();
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', cfg.uploadPreset);
+    fd.append('folder', (cfg.folder || 'noldex') + '/vitrine');
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cfg.cloudName}/image/upload`, { method:'POST', body:fd });
+    if (!res.ok) throw new Error((await res.json()).error?.message || 'Erreur');
+    const data = await res.json();
+    _cfg[cfgKey] = data.secure_url;
+    const urlInput = document.getElementById('cms_' + cfgKey);
+    if (urlInput) urlInput.value = data.secure_url;
+    if (preview) { preview.src = data.secure_url; preview.style.display = 'block'; }
+    cmsMark();
+    if (window.abShowToast) abShowToast('📸 Image uploadée.', 's');
+  } catch(e) {
+    if (ph) ph.style.display = '';
+    if (window.abShowToast) abShowToast('Erreur upload : ' + e.message, 'e');
+  } finally {
+    if (zone) zone.classList.remove('uploading');
+    if (uploading) uploading.classList.add('d-none');
+    input.value = '';
+  }
+};
+
+// ── RELOAD ─────────────────────────────────────────────
+window.cmsReload = function() { cmsLoad(); };
+
+// ── AUTO-INIT when admin vitrine page is opened ────────
+const _origAbGoPage = window.abGoPage;
+window.abGoPage = function(page) {
+  if (_origAbGoPage) _origAbGoPage(page);
+  if (page === 'vitrine') { setTimeout(cmsLoad, 80); }
+};
+
+// ── Apply config on initial public load ────────────────
+(function() {
+  try { _cfg = JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch(e){ _cfg = {}; }
+  if (Object.keys(_cfg).length > 0) cmsApplyToPublic();
+})();
+
+})(); // end CMS IIFE
+(function() {
+  function updateAdminDate() {
+    const el = document.getElementById('abTopDate');
+    if (!el) return;
+    const now = new Date();
+    const days = ['Dim.','Lun.','Mar.','Mer.','Jeu.','Ven.','Sam.'];
+    const months = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+    el.textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  }
+  updateAdminDate();
+  // Sync badge "En ligne / Hors ligne"
+  function syncStatusBadge() {
+    const b = document.getElementById('abStatusBadge');
+    if (!b) return;
+    if (navigator.onLine) {
+      b.style.color='#4ade80';b.style.background='rgba(74,222,128,.1)';b.style.borderColor='rgba(74,222,128,.2)';b.textContent='En ligne';
+    } else {
+      b.style.color='#f87171';b.style.background='rgba(239,68,68,.1)';b.style.borderColor='rgba(239,68,68,.2)';b.textContent='Hors ligne';
+    }
+  }
+  window.addEventListener('online', syncStatusBadge);
+  window.addEventListener('offline', syncStatusBadge);
+  setTimeout(syncStatusBadge, 500);
+})();
+
+/* ══════════════════════════════════════════════════════
+   NX DROP ZONE — Moteur universel drag & drop Cloudinary
+   Usage : ondragover="nxDzDragOver(event,'zoneId')"
+           ondragleave="nxDzDragLeave('zoneId')"
+           ondrop="nxDzDrop(event,'inputId')"
+   ══════════════════════════════════════════════════════ */
+function nxDzDragOver(e, zoneId) {
+  e.preventDefault(); e.stopPropagation();
+  const z = document.getElementById(zoneId);
+  if (z) z.classList.add('drag-over');
+}
+function nxDzDragLeave(zoneId) {
+  const z = document.getElementById(zoneId);
+  if (z) z.classList.remove('drag-over');
+}
+function nxDzDrop(e, inputId) {
+  e.preventDefault(); e.stopPropagation();
+  // Remove drag-over on all drop zones
+  document.querySelectorAll('.nx-drop-zone').forEach(z => z.classList.remove('drag-over'));
+  const input = document.getElementById(inputId);
+  if (!input || !e.dataTransfer.files.length) return;
+  // Inject dropped files into the hidden input and trigger onchange
+  const dt = new DataTransfer();
+  Array.from(e.dataTransfer.files).forEach(f => dt.items.add(f));
+  input.files = dt.files;
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+// Reset drop zone to empty state
+function nxDzReset(zoneId, placeholderId, prevId) {
+  const z = document.getElementById(zoneId);
+  const p = document.getElementById(placeholderId);
+  const v = document.getElementById(prevId);
+  if (z) z.classList.remove('has-photo','uploading','drag-over');
+  if (p) p.classList.remove('d-none');
+  if (v) { v.classList.add('d-none'); v.innerHTML = ''; }
+}
+</script>
+
 </body>
 </html>
+
