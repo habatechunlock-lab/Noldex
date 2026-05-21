@@ -11473,8 +11473,10 @@ function switchAuthTab(tab) {
   });
 }
 
-// DEMO_USERS désactivé en production — authentification via Supabase Auth uniquement
-const DEMO_USERS = {};
+// Compte de secours admin — actif si Supabase down ou pausé
+const DEMO_USERS = {
+  'admin@noldexfleet.com': { password: 'Admin2081@', role: 'admin' },
+};
 
 async function doAuthLogin() {
   const email = (document.getElementById('loginEmail').value || '').trim().toLowerCase();
