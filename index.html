@@ -123,13 +123,6 @@
       "paymentAccepted": ["Orange Money", "MTN Mobile Money", "Virement bancaire"],
       "currenciesAccepted": "GNF",
       "priceRange": "$$",
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "reviewCount": "47",
-        "bestRating": "5",
-        "worstRating": "1"
-      },
       "sameAs": [
         "https://www.facebook.com/NoldexLogistics",
         "https://www.linkedin.com/company/noldex-logistics"
@@ -261,8 +254,8 @@
 // 1. Allez sur https://app.supabase.com → votre projet
 // 2. Settings → API → copiez "Project URL" et "anon/public key"
 // ══════════════════════════════════════════════════════════
-const SUPABASE_URL      = 'https://odxuhfeqfcwgnmimhszj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9keHVoZmVxZmN3Z25taW1oc3pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTg4MjUsImV4cCI6MjA5MzEzNDgyNX0.3m1ZQ_FlpILatotaIIvjOU9EqZO8MhT3LbGe2I_3Z4w';
+const SUPABASE_URL      = 'https://bpzboyddninckwksgino.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwemJveWRkbmluY2t3a3NnaW5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMTY1OTMsImV4cCI6MjA5NDg5MjU5M30.AU31lsgeaCpNH8ngfU46V0XdMyh84ekws0pdzwh-wkA';
 
 // ══════════════════════════════════════════════════════════
 // CLOUDINARY CONFIG — Upload photos engins
@@ -383,11 +376,25 @@ function _getRole(email, meta) {
 }
 
 // ── Callbacks post-connexion ───────────────────────────────
-function supaOnLogin(session) {
+async function supaOnLogin(session) {
   const role = _getRole(session.user.email, session.user.user_metadata);
-  if (role === 'admin')   { openAdmin(); }
-  else if (role === 'partner') { openPartnerDash(); }
-  else { openClientDash(); }
+  if (role === 'admin') {
+    openAdmin();
+  } else if (role === 'partner') {
+    // Vérifier si le compte partenaire est validé par l'admin
+    if (_supaReady && _supa) {
+      const { data } = await _supa.from('partenaires').select('validated,statut').eq('id', session.user.id).maybeSingle();
+      if (data && !data.validated) {
+        await supaSignOut();
+        const errEl = document.getElementById('loginErr');
+        if (errEl) { errEl.textContent = '⏳ Votre compte partenaire est en attente de validation par l\'administrateur.'; errEl.classList.add('show'); }
+        return;
+      }
+    }
+    openPartnerDash();
+  } else {
+    openClientDash();
+  }
 }
 function supaOnLogout() {
   // Fermer tous les dashboards
@@ -643,7 +650,9 @@ function _nxLogoFallback(imgEl) {
   imgEl.replaceWith(svg);
 }
 
-supaInit();
+supaInit().then(() => {
+  loadEnginsFromSupabase();
+});
 // Auto-init Firebase depuis config stockée ou constantes
 (function fbAutoInit() {
   try {
@@ -1136,18 +1145,10 @@ select:focus, input[type="text"]:focus {
   background: linear-gradient(135deg, var(--steel-mid), var(--steel-light));
   position: relative; overflow: hidden;
 }
-.engin-full-img img {
-  width: 100%; height: 100%; object-fit: cover;
-  position: absolute; inset: 0;
-  transition: transform 0.5s ease;
-}
-.engin-full-card:hover .engin-full-img img { transform: scale(1.06); }
-.engin-full-img::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(0deg, rgba(10,12,15,.65) 0%, transparent 60%);
-  z-index: 1; pointer-events: none;
-}
-.engin-full-img .badge { position: absolute; top: 12px; right: 12px; z-index: 2; }
+.engin-full-img img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; transition:transform .5s ease; }
+.engin-full-card:hover .engin-full-img img { transform:scale(1.06); }
+.engin-full-img::after { content:''; position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(0deg,rgba(10,12,15,.65) 0%,transparent 60%); }
+.engin-full-img .badge { position: absolute; top: 12px; right: 12px; z-index:2; }
 .engin-full-body { padding: 20px; }
 .engin-full-name {
   font-family: 'Barlow Condensed', sans-serif;
@@ -8382,7 +8383,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <!-- Expand button -->
         <button class="map-expand-btn" onclick="showPage('carte')">⤢ Pleine page</button>
-        <button class="map-expand-btn" onclick="mapOpenTab()" style="right:112px;">↗ Nouvel onglet</button>
+        <button class="map-expand-btn" onclick="window.open(location.pathname+'#carte','_blank')" style="right:112px;">↗ Nouvel onglet</button>
         <!-- Footer label -->
         <div class="map-gn-footer">🇬🇳 Guinée — 34 préfectures · Cliquez une ville</div>
       </div>
@@ -11334,17 +11335,41 @@ service cloud.firestore {
 <!-- JAVASCRIPT -->
 <!-- ============================================================ -->
 <script>
-// ===== DATA ENGINS =====
-const engins = [
-  { id:1, emoji:'🚛', photo:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80', name:'Camion Benne HOWO 40T', type:'camion', capacite:'40 tonnes', loc:'Siguiri', region:'Siguiri', status:'Disponible', prix:'850 000 GNF/jour', specs:['40 T charge utile','HOWO 2022','4×2 diesel'] },
-  { id:2, emoji:'🚜', photo:'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80', name:'Chargeuse Caterpillar 966H', type:'chargeuse', capacite:'6 m³', loc:'Boké', region:'Boké', status:'Disponible', prix:'1 200 000 GNF/jour', specs:['6 m³ godet','CAT 966H','Cabine climatisée'] },
-  { id:3, emoji:'🚰', photo:'https://images.unsplash.com/photo-1563089145-599997674d42?w=600&q=80', name:'Citerne Shacman 45 000 L', type:'citerne', capacite:'45 000 L', loc:'Conakry', region:'Conakry', status:'Disponible', prix:'700 000 GNF/jour', specs:['45 000 L','Shacman 2021','Pompe intégrée'] },
-  { id:4, emoji:'⛏️', photo:'https://images.unsplash.com/photo-1579613832125-5d34a13ffe2a?w=600&q=80', name:'Pelle Komatsu PC200', type:'pelle', capacite:'0,8 m³', loc:'Kindia', region:'Kindia', status:'En entretien', prix:'1 500 000 GNF/jour', specs:['0,8 m³ godet','Komatsu PC200','20 T op. weight'] },
-  { id:5, emoji:'🏗️', photo:'https://images.unsplash.com/photo-1565008576549-57569a49371d?w=600&q=80', name:'Grue mobile Grove RT600E', type:'grue', capacite:'60 T', loc:'Conakry', region:'Conakry', status:'Disponible', prix:'3 000 000 GNF/jour', specs:['60 T capacité','Grove RT600E','Flèche 43 m'] },
-  { id:6, emoji:'🚛', photo:'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&q=80', name:'Camion Benne Sino 30T', type:'camion', capacite:'30 tonnes', loc:'Boké', region:'Boké', status:'Disponible', prix:'650 000 GNF/jour', specs:['30 T charge utile','Sinotruk 2020','6×4'] },
+// ===== DATA ENGINS — Supabase Live =====
+const ENGINS_FALLBACK = [
+  { id:'eng-001', emoji:'🚛', nom:'Camion Benne HOWO 40T',      type:'camion',   cap:'40 tonnes', ville:'Siguiri', statut:'Disponible',   prix:850000,  photo_url:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80' },
+  { id:'eng-002', emoji:'🚜', nom:'Chargeuse Caterpillar 966H', type:'chargeuse',cap:'6 m³',      ville:'Boké',    statut:'Disponible',   prix:1200000, photo_url:'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80' },
+  { id:'eng-003', emoji:'🚰', nom:'Citerne Shacman 45 000 L',   type:'citerne',  cap:'45 000 L',  ville:'Conakry', statut:'Disponible',   prix:700000,  photo_url:'https://images.unsplash.com/photo-1563089145-599997674d42?w=600&q=80' },
+  { id:'eng-004', emoji:'⛏️', nom:'Pelle Komatsu PC200',         type:'pelle',    cap:'0,8 m³',    ville:'Kindia',  statut:'En entretien', prix:1500000, photo_url:'https://images.unsplash.com/photo-1579613832125-5d34a13ffe2a?w=600&q=80' },
+  { id:'eng-005', emoji:'🏗️', nom:'Grue mobile Grove RT600E',    type:'grue',     cap:'60 T',      ville:'Conakry', statut:'Disponible',   prix:3000000, photo_url:'https://images.unsplash.com/photo-1565008576549-57569a49371d?w=600&q=80' },
+  { id:'eng-006', emoji:'🚛', nom:'Camion Benne Sino 30T',       type:'camion',   cap:'30 tonnes', ville:'Boké',    statut:'Disponible',   prix:650000,  photo_url:'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&q=80' },
 ];
 
+let engins         = [...ENGINS_FALLBACK];
 let filteredEngins = [...engins];
+
+async function loadEnginsFromSupabase() {
+  if (!_supaReady || !_supa) return;
+  try {
+    const { data, error } = await _supa.from('engins').select('*').eq('validated', true).order('created_at', { ascending: false });
+    if (error) throw error;
+    if (data && data.length > 0) {
+      engins = data; filteredEngins = [...engins]; renderEngins();
+      if (NX_DEV) console.log('[NOLDEX] ' + data.length + ' engins depuis Supabase ✅');
+    }
+    // Realtime vitrine
+    _supa.channel('vitrine-engins-rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'engins' }, async () => {
+        const { data: fresh } = await _supa.from('engins').select('*').eq('validated', true).order('created_at', { ascending: false });
+        if (fresh) { engins = fresh; filteredEngins = [...engins]; renderEngins(); }
+      }).subscribe();
+  } catch(e) { console.warn('[NOLDEX] Fallback statique:', e.message); }
+}
+
+function _formatPrix(e) {
+  if (typeof e.prix === 'number') return e.prix.toLocaleString('fr-FR') + ' GNF';
+  return e.prix || '—';
+}
 
 function renderEngins() {
   const list = document.getElementById('enginsList');
@@ -11354,26 +11379,32 @@ function renderEngins() {
     return;
   }
   list.innerHTML = filteredEngins.map(e => {
-    const badgeClass = e.status === 'Disponible' ? 'badge-green' : e.status === 'En entretien' ? 'badge-orange' : 'badge-red';
+    const statut   = e.statut || e.status || 'Disponible';
+    const nom      = e.nom    || e.name   || '—';
+    const ville    = e.ville  || e.loc    || '—';
+    const cap      = e.cap    || e.capacite || '—';
+    const emoji    = e.emoji  || '🚛';
+    const photoUrl = e.photo_url || '';
+    const badgeClass = statut === 'Disponible' ? 'badge-green' : statut === 'En entretien' ? 'badge-orange' : 'badge-red';
+    const imgHtml = photoUrl
+      ? `<img src="${photoUrl}" alt="${nom}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+         <span style="font-size:64px;display:none;position:absolute;inset:0;align-items:center;justify-content:center;">${emoji}</span>`
+      : `<span style="font-size:64px;position:relative;z-index:1;">${emoji}</span>`;
     return `
       <div class="engin-full-card" onclick="showPage('devis')">
         <div class="engin-full-img">
-          ${e.photo
-            ? `<img src="${e.photo}" alt="${e.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-               <span style="font-size:64px;display:none;position:relative;z-index:1;">${e.emoji}</span>`
-            : `<span style="font-size:64px;position:relative;z-index:1;">${e.emoji}</span>`
-          }
-          <div class="badge ${badgeClass} badge-dot">${e.status}</div>
+          ${imgHtml}
+          <div class="badge ${badgeClass} badge-dot">${statut}</div>
         </div>
         <div class="engin-full-body">
-          <div class="engin-full-name">${e.name}</div>
+          <div class="engin-full-name">${nom}</div>
           <div class="engin-full-specs">
-            <span class="spec">📍 <strong>${e.loc}</strong></span>
-            <span class="spec">⚖️ <strong>${e.capacite}</strong></span>
-            ${e.specs.map(s=>`<span class="spec">• ${s}</span>`).join('')}
+            <span class="spec">📍 <strong>${ville}</strong></span>
+            <span class="spec">⚖️ <strong>${cap}</strong></span>
+            ${e.type ? `<span class="spec">• ${e.type}</span>` : ''}
           </div>
           <div class="engin-full-footer">
-            <div class="engin-price">${e.prix} <span>/ jour</span></div>
+            <div class="engin-price">${_formatPrix(e)} <span>/ jour</span></div>
             <button class="btn-sm btn-primary" onclick="event.stopPropagation();showPage('devis')">Demander un devis →</button>
           </div>
         </div>
@@ -11382,19 +11413,20 @@ function renderEngins() {
 }
 
 function filterEngins() {
-  const type   = document.getElementById('filterType')?.value || '';
-  const loc    = document.getElementById('filterLoc')?.value || '';
+  const type   = document.getElementById('filterType')?.value   || '';
+  const loc    = document.getElementById('filterLoc')?.value    || '';
   const status = document.getElementById('filterStatus')?.value || '';
-  const sort   = document.getElementById('filterSort')?.value || '';
-  filteredEngins = engins.filter(e =>
-    (!type || e.type === type) &&
-    (!loc || e.region === loc) &&
-    (!status || e.status === status)
-  );
-  const _parsePrice = s => { if (typeof s === 'number') return s; return parseInt((s||'0').replace(/\D/g,'')) || 0; };
-  if (sort === 'prix_asc')  filteredEngins.sort((a,b) => (_parsePrice(a.tarifJ||a.prix)) - (_parsePrice(b.tarifJ||b.prix)));
-  if (sort === 'prix_desc') filteredEngins.sort((a,b) => (_parsePrice(b.tarifJ||b.prix)) - (_parsePrice(a.tarifJ||a.prix)));
-  if (sort === 'dispo')     filteredEngins.sort((a,b) => (a.status==='Disponible'?-1:1));
+  const sort   = document.getElementById('filterSort')?.value   || '';
+  filteredEngins = engins.filter(e => {
+    const eType   = e.type   || '';
+    const eVille  = e.ville  || e.region || '';
+    const eStatut = e.statut || e.status || '';
+    return (!type || eType === type) && (!loc || eVille === loc) && (!status || eStatut === status);
+  });
+  const _p = v => typeof v === 'number' ? v : parseInt((v||'0').replace(/\D/g,'')) || 0;
+  if (sort === 'prix_asc')  filteredEngins.sort((a,b) => _p(a.prix) - _p(b.prix));
+  if (sort === 'prix_desc') filteredEngins.sort((a,b) => _p(b.prix) - _p(a.prix));
+  if (sort === 'dispo')     filteredEngins.sort((a,b) => ((a.statut||a.status)==='Disponible'?-1:1));
   renderEngins();
 }
 
@@ -11447,7 +11479,13 @@ function showPage(id) {
 // Restaurer la page depuis le hash au chargement
 (function() {
   const hash = location.hash.replace('#','');
-  if (hash && hash !== 'nxadmin' && document.getElementById('page-'+hash)) {
+  if (!hash || hash === 'nxadmin') return;
+  // Vérifier via showPage (qui gère le mapping partenaires → partenaires-new etc.)
+  const pageMap = { 'tarifs':'page-tarifs', 'partenaires':'page-partenaires-new',
+    'partenaires-new':'page-partenaires-new', 'catalogue':'page-catalogue',
+    'acquisition':'page-acquisition', 'carte':'page-carte' };
+  const pageId = pageMap[hash] || ('page-' + hash);
+  if (document.getElementById(pageId)) {
     setTimeout(() => showPage(hash), 100);
   }
 })();
@@ -11692,11 +11730,29 @@ async function doAuthSignup() {
 
   try {
     if (_supaReady) {
-      await supaSignUp(email, pass, { societe, role });
-      okEl.textContent = '✅ Compte créé ! Vérifiez votre email pour confirmer votre inscription.';
+      // Créer le compte Supabase Auth
+      const signupData = await supaSignUp(email, pass, { societe, role, validated: role === 'client' });
+
+      // Si partenaire → enregistrer dans la table partenaires avec validated: false
+      if (role === 'partner' && signupData?.user) {
+        await _supa.from('partenaires').insert([{
+          id:        signupData.user.id,
+          nom:       societe || email,
+          email:     email,
+          contact:   societe || '',
+          tel:       '',
+          ville:     '',
+          engins:    0,
+          validated: false,
+          statut:    'En attente',
+          created_at: new Date().toISOString()
+        }]);
+        okEl.textContent = '✅ Demande envoyée ! Votre compte partenaire sera activé par l\'administrateur sous 24h.';
+      } else {
+        okEl.textContent = '✅ Compte créé ! Vérifiez votre email pour confirmer votre inscription.';
+      }
       okEl.classList.add('show');
     } else {
-      // Mode démo — simuler création
       await new Promise(r => setTimeout(r, 800));
       okEl.textContent = '✅ Compte démo créé pour ' + email + '. Configurez Supabase pour activer l\'auth réelle.';
       okEl.classList.add('show');
@@ -11751,8 +11807,16 @@ function openPartnerDash() {
 }
 function openClientDash() {
   closeAuthModal();
-  document.getElementById('loginClientOverlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  const dcOverlay = document.getElementById('dashClientOverlay');
+  if (dcOverlay) {
+    document.getElementById('loginClientOverlay')?.classList.remove('open');
+    dcOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (typeof dcInitData === 'function') dcInitData();
+    if (typeof dcGoPage === 'function') dcGoPage('marketplace');
+  } else {
+    openAuthModal('login'); // fallback
+  }
 }
 
 // INSCRIPTION PARTENAIRE — soumettre
@@ -12733,81 +12797,102 @@ function dGenerateContrat(demandeId) {
   if (!d) { dToast('Demande introuvable.','e'); return; }
   const profil = dDB.getO('profil');
 
-  const { jsPDF } = window.jspdf;
-  if (!jsPDF) { dToast('jsPDF non chargé. Attendez et réessayez.','e'); return; }
+  const _jspdfLib = window.jspdf;
+  if (!_jspdfLib || !_jspdfLib.jsPDF) { dToast('jsPDF non chargé. Attendez et réessayez.','e'); return; }
+  const { jsPDF } = _jspdfLib;
 
   const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
   const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
   const num = 'CCL-'+ new Date().getFullYear() +'-'+ String(Math.floor(Math.random()*9000)+1000);
   const today = new Date().toLocaleDateString('fr-GN',{day:'2-digit',month:'long',year:'numeric'});
+  const OG = [232, 96, 10], DK = [30, 35, 45], GR = [100, 110, 125], LG = [220, 225, 232], AL = [248, 249, 251];
 
-  // ── En-tête ──
-  doc.setFillColor(232, 96, 10); // orange NOLDEX
-  doc.rect(0, 0, W, 36, 'F');
-  doc.setTextColor(255,255,255);
-  doc.setFont('helvetica','bold');
-  doc.setFontSize(20);
-  doc.text('NOLDEX LOGISTICS SARL', 14, 16);
-  doc.setFontSize(9);
-  doc.setFont('helvetica','normal');
-  doc.text('Location d\'engins lourds — Guinée | www.noldexfleet.com', 14, 24);
-  doc.text(`Contrat N° ${num}`, 14, 31);
-  doc.setTextColor(20,20,20);
+  // ── En-tête pro ──
+  // Bande orange fine en haut
+  doc.setFillColor(...OG); doc.rect(0, 0, W, 2.5, 'F');
+  // Bloc logo/nom à gauche
+  doc.setFillColor(...OG); doc.roundedRect(12, 8, 10, 10, 1.5, 1.5, 'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica','bold');
+  doc.text('NL', 17, 15, {align:'center'});
+  doc.setTextColor(...DK); doc.setFontSize(13); doc.setFont('helvetica','bold');
+  doc.text('NOLDEX LOGISTICS SARL', 26, 14);
+  doc.setTextColor(...GR); doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+  doc.text('Location d\'engins lourds · Guinée · noldexfleet.com', 26, 20);
+  // N° contrat à droite
+  doc.setTextColor(...OG); doc.setFontSize(8); doc.setFont('helvetica','bold');
+  doc.text('N° ' + num, W - 12, 12, {align:'right'});
+  doc.setTextColor(...GR); doc.setFontSize(7); doc.setFont('helvetica','normal');
+  doc.text('Établi le ' + today, W - 12, 18, {align:'right'});
+  // Filet séparateur
+  doc.setDrawColor(...LG); doc.setLineWidth(0.5);
+  doc.line(12, 26, W - 12, 26);
 
   // ── Titre ──
-  doc.setFontSize(15); doc.setFont('helvetica','bold');
-  doc.text('CONTRAT DE LOCATION D\'ENGIN LOURD', W/2, 48, {align:'center'});
-  doc.setFontSize(9); doc.setFont('helvetica','normal');
-  doc.setTextColor(100,100,100);
-  doc.text(`Établi le ${today}  —  Statut : Accepté`, W/2, 55, {align:'center'});
-  doc.setTextColor(20,20,20);
+  doc.setTextColor(...DK); doc.setFontSize(14); doc.setFont('helvetica','bold');
+  doc.text('CONTRAT DE LOCATION D\'ENGIN LOURD', W/2, 36, {align:'center'});
+  doc.setFillColor(...OG); doc.rect(W/2 - 30, 38.5, 60, 0.8, 'F'); // underline orange
+  doc.setTextColor(...GR); doc.setFontSize(8); doc.setFont('helvetica','normal');
+  doc.text('Statut : Accepté', W/2, 44, {align:'center'});
 
-  // ── Parties ──
-  doc.setFontSize(10); doc.setFont('helvetica','bold');
-  doc.text('BAILLEUR (Partenaire NOLDEX)', 14, 67);
-  doc.setFont('helvetica','normal'); doc.setFontSize(9);
+  // ── Parties — 2 colonnes sur fond gris clair ──
+  const boxY = 50, boxH = 32;
+  doc.setFillColor(...AL); doc.roundedRect(12, boxY, W/2-16, boxH, 2, 2, 'F');
+  doc.setFillColor(...AL); doc.roundedRect(W/2+4, boxY, W/2-16, boxH, 2, 2, 'F');
+  // Titres colonnes
+  doc.setFillColor(...OG);
+  doc.roundedRect(12, boxY, W/2-16, 7, 2, 2, 'F'); doc.rect(12, boxY+3, W/2-16, 4, 'F');
+  doc.roundedRect(W/2+4, boxY, W/2-16, 7, 2, 2, 'F'); doc.rect(W/2+4, boxY+3, W/2-16, 4, 'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+  doc.text('BAILLEUR — Partenaire NOLDEX', 15, boxY+5);
+  doc.text('LOCATAIRE — Client', W/2+7, boxY+5);
+  // Contenu parties
   const nom = profil.nom || 'Partenaire NOLDEX';
   const soc = profil.societe || '—';
   const tel = profil.tel || '—';
   const email = profil.email || '—';
-  doc.text([`Nom : ${nom}`, `Société : ${soc}`, `Tél : ${tel}`, `Email : ${email}`], 14, 74);
+  doc.setTextColor(...DK); doc.setFontSize(8); doc.setFont('helvetica','normal');
+  doc.text(`${nom}`, 15, boxY+13);
+  doc.setTextColor(...GR); doc.setFontSize(7.5);
+  doc.text([`Société : ${soc}`, `Tél : ${tel}`, `Email : ${email}`], 15, boxY+18.5, {lineHeightFactor:1.6});
+  doc.setTextColor(...DK); doc.setFontSize(8); doc.setFont('helvetica','normal');
+  doc.text(`${d.client}`, W/2+7, boxY+13);
+  doc.setTextColor(...GR); doc.setFontSize(7.5);
+  doc.text([`Société : ${d.societe}`, `Tél : ${d.tel}`, `Email : ${d.email||'—'}`], W/2+7, boxY+18.5, {lineHeightFactor:1.6});
 
-  doc.setFontSize(10); doc.setFont('helvetica','bold');
-  doc.text('LOCATAIRE (Client)', 110, 67);
-  doc.setFont('helvetica','normal'); doc.setFontSize(9);
-  doc.text([`Nom : ${d.client}`, `Société : ${d.societe}`, `Tél : ${d.tel}`, `Email : ${d.email||'—'}`], 110, 74);
+  let y = boxY + boxH + 10;
 
   // ── Détails location ──
-  doc.setFontSize(10); doc.setFont('helvetica','bold');
-  doc.setFillColor(245,245,245);
-  doc.rect(14, 100, W-28, 6, 'F');
-  doc.text('DÉTAILS DE LA LOCATION', 16, 104.5);
-  doc.setFont('helvetica','normal'); doc.setFontSize(9);
+  doc.setFillColor(...AL); doc.rect(12, y, W-24, 7, 'F');
+  doc.setTextColor(...OG); doc.setFontSize(9); doc.setFont('helvetica','bold');
+  doc.text('DÉTAILS DE LA LOCATION', 15, y+5);
+  y += 9;
 
   doc.autoTable({
-    startY: 108,
-    margin:{left:14,right:14},
-    theme:'grid',
-    headStyles:{fillColor:[232,96,10],textColor:255,fontSize:9,fontStyle:'bold'},
-    bodyStyles:{fontSize:9},
-    head:[['Champ','Valeur']],
+    startY: y,
+    margin:{left:12,right:12},
+    theme:'plain',
+    styles:{fontSize:8.5, cellPadding:3.5, textColor:DK, fillColor:[255,255,255], lineColor:LG, lineWidth:0.3},
+    headStyles:{fillColor:OG, textColor:[255,255,255], fontStyle:'bold', fontSize:8.5},
+    alternateRowStyles:{fillColor:AL},
+    head:[['Champ','Détail']],
     body:[
-      ['Engin demandé', d.engin || '—'],
+      ['Engin demandé',    d.engin    || '—'],
       ['Lieu de chantier', d.location || '—'],
-      ['Date de début', d.dateDebut || '—'],
-      ['Durée', d.duree || '—'],
-      ['Description / Besoins', d.desc || '—'],
-    ]
+      ['Date de début',    d.dateDebut|| '—'],
+      ['Durée',            d.duree    || '—'],
+      ['Description',      d.desc     || '—'],
+    ],
+    columnStyles: { 0: { fontStyle:'bold', cellWidth:55 } },
   });
 
-  const y1 = doc.lastAutoTable.finalY + 12;
+  y = doc.lastAutoTable.finalY + 10;
 
   // ── Conditions générales ──
-  doc.setFontSize(10); doc.setFont('helvetica','bold');
-  doc.setFillColor(245,245,245);
-  doc.rect(14, y1, W-28, 6, 'F');
-  doc.text('CONDITIONS GÉNÉRALES', 16, y1+4.5);
-  doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+  doc.setFillColor(...AL); doc.rect(12, y, W-24, 7, 'F');
+  doc.setTextColor(...OG); doc.setFontSize(9); doc.setFont('helvetica','bold');
+  doc.text('CONDITIONS GÉNÉRALES', 15, y+5);
+  y += 11;
   const cg = [
     '1. Le bailleur met à disposition l\'engin en bon état de fonctionnement pour la durée convenue.',
     '2. Le locataire est responsable de l\'engin pendant la durée de location (dommages, vol, carburant).',
@@ -12817,30 +12902,39 @@ function dGenerateContrat(demandeId) {
     '6. Le paiement s\'effectue via Orange Money ou MTN MoMo, au plus tard à la prise en charge de l\'engin.',
     '7. Tout litige sera soumis au Tribunal de Commerce de Conakry (Guinée).',
   ];
-  doc.text(cg, 14, y1+12, {maxWidth:W-28, lineHeightFactor:1.6});
+  doc.setTextColor(...DK); doc.setFontSize(8); doc.setFont('helvetica','normal');
+  doc.text(cg, 12, y, {maxWidth:W-24, lineHeightFactor:1.65});
 
-  const y2 = y1 + 12 + cg.length*5.5;
+  const y2 = y + cg.length * 5.2 + 8;
 
   // ── Signatures ──
-  doc.setFontSize(9); doc.setFont('helvetica','bold');
-  doc.text('Signature du Bailleur', 14, y2+10);
-  doc.text('Signature du Locataire', 110, y2+10);
-  doc.setFont('helvetica','normal');
-  doc.text(nom, 14, y2+16);
-  doc.text(d.client, 110, y2+16);
-  doc.line(14, y2+26, 80, y2+26);
-  doc.line(110, y2+26, 176, y2+26);
-  doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text('Date & cachet', 14, y2+30);
-  doc.text('Date & cachet', 110, y2+30);
+  doc.setDrawColor(...LG); doc.setLineWidth(0.4);
+  doc.line(12, y2, W-12, y2); // séparateur
+  const sigY = y2 + 6;
+  // Cadres signatures
+  doc.setFillColor(...AL); doc.roundedRect(12, sigY, W/2-18, 30, 2, 2, 'F');
+  doc.setFillColor(...AL); doc.roundedRect(W/2+6, sigY, W/2-18, 30, 2, 2, 'F');
+  doc.setTextColor(...OG); doc.setFontSize(8); doc.setFont('helvetica','bold');
+  doc.text('Signature du Bailleur', 15, sigY+7);
+  doc.text('Signature du Locataire', W/2+9, sigY+7);
+  doc.setTextColor(...GR); doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+  doc.text(nom, 15, sigY+13);
+  doc.text(d.client, W/2+9, sigY+13);
+  doc.setDrawColor(...GR); doc.setLineWidth(0.5);
+  doc.line(15, sigY+26, W/2-10, sigY+26);
+  doc.line(W/2+9, sigY+26, W-14, sigY+26);
+  doc.setTextColor(...GR); doc.setFontSize(7);
+  doc.text('Date & cachet', 15, sigY+30);
+  doc.text('Date & cachet', W/2+9, sigY+30);
 
   // ── Pied de page ──
-  doc.setFillColor(232, 96, 10);
-  doc.rect(0, 285, W, 12, 'F');
+  doc.setDrawColor(...LG); doc.setLineWidth(0.5);
+  doc.line(12, H-14, W-12, H-14);
+  doc.setFillColor(...OG); doc.rect(0, H-5, W, 5, 'F'); // bande orange pied
   doc.setTextColor(255,255,255); doc.setFontSize(7);
-  const _cfgPhone = (localStorage.getItem('nx_site_config') ? JSON.parse(localStorage.getItem('nx_site_config') || '{}').phone : null) || '+224 628 00 00 00';
-  const _cfgEmail = (localStorage.getItem('nx_site_config') ? JSON.parse(localStorage.getItem('nx_site_config') || '{}').email : null) || 'contact@noldexfleet.com';
-  doc.text(`NOLDEX LOGISTICS SARL — Conakry, Guinée — ${_cfgPhone} — ${_cfgEmail}`, W/2, 292, {align:'center'});
+  const _cfgPhone = (localStorage.getItem('nx_site_config') ? JSON.parse(localStorage.getItem('nx_site_config') || '{}').phone : null) || '+224 621 78 52 52';
+  const _cfgEmail2 = (localStorage.getItem('nx_site_config') ? JSON.parse(localStorage.getItem('nx_site_config') || '{}').email : null) || 'info@noldexfleet.com';
+  doc.text(`NOLDEX LOGISTICS SARL  ·  Conakry, Guinée  ·  ${_cfgPhone}  ·  ${_cfgEmail2}  ·  noldexfleet.com`, W/2, H-1.8, {align:'center'});
 
   doc.save(`Contrat_NOLDEX_${num}.pdf`);
   dToast(`📄 Contrat ${num} généré.`,'s');
@@ -15642,124 +15736,197 @@ function generateCataloguePDF() {
   var todayF = new Date().toISOString().split("T")[0];
   var doc; try{ doc=new JsPDF("p","mm","a4"); }catch(ex){ alert("Erreur: "+ex.message); return; }
   var W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight();
-  var OG=[232,96,10], DK=[10,12,15], TX=[220,225,232], DIM=[100,110,125];
+  // Palette pro
+  var OG=[232,96,10], DK=[30,35,45], GR=[100,110,125], LG=[220,225,232], AL=[248,249,251], WH=[255,255,255];
 
   function hdr(title, sub) {
-    doc.setFillColor(DK[0],DK[1],DK[2]); doc.rect(0,0,W,44,"F");
-    doc.setFillColor(OG[0],OG[1],OG[2]); doc.rect(0,44,W,3,"F");
-    doc.setFillColor(OG[0],OG[1],OG[2]); doc.roundedRect(10,8,28,28,2,2,"F");
-    doc.setTextColor(255,255,255); doc.setFontSize(14); doc.setFont("helvetica","bold");
-    doc.text("NL",24,25,{align:"center"});
-    doc.setTextColor(OG[0],OG[1],OG[2]); doc.setFontSize(14); doc.text("NOLDEX LOGISTICS SARL",42,17);
-    doc.setTextColor(DIM[0],DIM[1],DIM[2]); doc.setFontSize(8); doc.setFont("helvetica","normal");
-    doc.text("Marketplace B2B Guinee · noldexfleet.com · +224 621 78 52 52",42,24);
-    doc.text("Belle-vue, Commune de Dixinn, Conakry, Guinee",42,30);
-    doc.setTextColor(255,255,255); doc.setFontSize(12); doc.setFont("helvetica","bold"); doc.text(title,42,39);
-    doc.setTextColor(DIM[0],DIM[1],DIM[2]); doc.setFontSize(8); doc.setFont("helvetica","normal"); doc.text(sub,W-10,39,{align:"right"});
+    // Fond blanc + barre orange top
+    doc.setFillColor(...WH); doc.rect(0,0,W,H,'F');
+    doc.setFillColor(...OG); doc.rect(0,0,W,2.5,'F');
+    // Logo NL
+    doc.setFillColor(...OG); doc.roundedRect(12,8,11,11,1.5,1.5,'F');
+    doc.setTextColor(...WH); doc.setFontSize(8); doc.setFont("helvetica","bold");
+    doc.text("NL",17.5,15.5,{align:"center"});
+    // Nom + infos
+    doc.setTextColor(...DK); doc.setFontSize(13); doc.text("NOLDEX LOGISTICS SARL",27,14);
+    doc.setTextColor(...GR); doc.setFontSize(7); doc.setFont("helvetica","normal");
+    doc.text("Marketplace B2B · noldexfleet.com · +224 621 78 52 52",27,20);
+    // Titre rapport
+    doc.setTextColor(...OG); doc.setFontSize(10); doc.setFont("helvetica","bold");
+    doc.text(title, W-12, 13, {align:"right"});
+    doc.setTextColor(...GR); doc.setFontSize(7); doc.setFont("helvetica","normal");
+    doc.text(sub, W-12, 19, {align:"right"});
+    // Filet
+    doc.setDrawColor(...LG); doc.setLineWidth(0.5);
+    doc.line(12,26,W-12,26);
   }
+
   function ftr(){
     var pg=doc.internal.getCurrentPageInfo().pageNumber;
-    doc.setFillColor(DK[0],DK[1],DK[2]); doc.rect(0,H-10,W,10,"F");
-    doc.setTextColor(DIM[0],DIM[1],DIM[2]); doc.setFontSize(7); doc.setFont("helvetica","normal");
-    doc.text("NOLDEX LOGISTICS SARL — Catalogue Engins 2026 — Confidentiel",10,H-3.5);
-    doc.text("Page "+pg,W-10,H-3.5,{align:"right"});
+    doc.setDrawColor(...LG); doc.setLineWidth(0.4);
+    doc.line(12,H-12,W-12,H-12);
+    doc.setFillColor(...OG); doc.rect(0,H-5,W,5,'F');
+    doc.setTextColor(...WH); doc.setFontSize(7); doc.setFont("helvetica","normal");
+    doc.text("NOLDEX LOGISTICS SARL — Catalogue "+new Date().getFullYear()+" — Confidentiel",12,H-1.8);
+    doc.text("Page "+pg,W-12,H-1.8,{align:"right"});
   }
+
   function fmt(n){ return n>=1e6?(n/1e6).toFixed(1)+" M GNF":(n>=1e3?Math.round(n/1e3)+" K GNF":n+" GNF"); }
 
-  // COUVERTURE
-  doc.setFillColor(DK[0],DK[1],DK[2]); doc.rect(0,0,W,H,"F");
-  doc.setDrawColor(18,25,38); doc.setLineWidth(0.25);
-  for(var gx=0;gx<W;gx+=20) doc.line(gx,0,gx,H);
-  for(var gy=0;gy<H;gy+=20) doc.line(0,gy,W,gy);
-  doc.setFillColor(OG[0],OG[1],OG[2]); doc.roundedRect(20,42,58,58,5,5,"F");
-  doc.setTextColor(255,255,255); doc.setFontSize(30); doc.setFont("helvetica","bold"); doc.text("NL",49,76,{align:"center"});
-  doc.setFontSize(38); doc.text("CATALOGUE",20,122);
-  doc.setTextColor(OG[0],OG[1],OG[2]); doc.text("DES ENGINS",20,140);
-  doc.setTextColor(255,255,255); doc.text("LOURDS",20,158);
-  doc.setTextColor(DIM[0],DIM[1],DIM[2]); doc.setFontSize(14); doc.setFont("helvetica","normal");
-  doc.text("Marketplace B2B · Guinee · Edition "+new Date().getFullYear(),20,172);
-  doc.setFillColor(OG[0],OG[1],OG[2]); doc.rect(20,180,90,2.5,"F");
+  // ── PAGE COUVERTURE ──
+  doc.setFillColor(...WH); doc.rect(0,0,W,H,'F');
+  // Bande orange côté gauche
+  doc.setFillColor(...OG); doc.rect(0,0,62,H,'F');
+  // Logo grand
+  doc.setFillColor(...WH); doc.roundedRect(14,38,34,34,4,4,'F');
+  doc.setTextColor(...OG); doc.setFontSize(28); doc.setFont("helvetica","bold");
+  doc.text("NL",31,60,{align:"center"});
+  // Titre vertical sur la bande orange
+  doc.setTextColor(...WH); doc.setFontSize(10); doc.setFont("helvetica","bold");
+  doc.text("NOLDEX LOGISTICS SARL",31,90,{align:"center"});
+  doc.setFontSize(7); doc.setFont("helvetica","normal");
+  doc.text("noldexfleet.com",31,98,{align:"center"});
 
+  // Contenu droite
+  doc.setTextColor(...DK); doc.setFontSize(36); doc.setFont("helvetica","bold");
+  doc.text("CATALOGUE",70,55);
+  doc.setFontSize(36); doc.setTextColor(...OG);
+  doc.text("DES ENGINS",70,72);
+  doc.setFontSize(36); doc.setTextColor(...DK);
+  doc.text("LOURDS",70,89);
+  doc.setFillColor(...OG); doc.rect(70,93,70,2,'F');
+  doc.setTextColor(...GR); doc.setFontSize(11); doc.setFont("helvetica","normal");
+  doc.text("Marketplace B2B · Guinée · Édition "+new Date().getFullYear(),70,101);
+
+  // Stats couverture
   var dispo=data.filter(function(e){return e.statut==="Disponible";}).length;
   var gpsN=data.filter(function(e){return e.gps;}).length;
   var vmap={}; data.forEach(function(e){vmap[e.ville]=1;});
   var tmap={}; data.forEach(function(e){tmap[e.type]=1;});
   var covStats=[[String(data.length),"Engins"],[String(dispo),"Disponibles"],[String(gpsN),"GPS"],[String(Object.keys(tmap).length),"Types"],[String(Object.keys(vmap).length),"Villes"]];
+  var sx=70, sy=120;
   covStats.forEach(function(sv,i){
-    var bx=20+(i%3)*62, by=192+(Math.floor(i/3)*42);
-    doc.setFillColor(14,20,32); doc.roundedRect(bx,by,54,34,3,3,"F");
-    doc.setDrawColor(OG[0],OG[1],OG[2]); doc.roundedRect(bx,by,54,34,3,3,"S");
-    doc.setFillColor(OG[0],OG[1],OG[2]); doc.rect(bx,by,54,2,"F");
-    doc.setTextColor(OG[0],OG[1],OG[2]); doc.setFontSize(18); doc.setFont("helvetica","bold");
-    doc.text(sv[0],bx+27,by+16,{align:"center"});
-    doc.setTextColor(DIM[0],DIM[1],DIM[2]); doc.setFontSize(8); doc.setFont("helvetica","normal");
-    doc.text(sv[1],bx+27,by+27,{align:"center"});
+    var bx=sx+(i%3)*42, by=sy+Math.floor(i/3)*30;
+    doc.setFillColor(...AL); doc.roundedRect(bx,by,36,22,2,2,'F');
+    doc.setFillColor(...OG); doc.rect(bx,by,36,1.5,'F');
+    doc.setTextColor(...OG); doc.setFontSize(16); doc.setFont("helvetica","bold");
+    doc.text(sv[0],bx+18,by+13,{align:"center"});
+    doc.setTextColor(...GR); doc.setFontSize(7); doc.setFont("helvetica","normal");
+    doc.text(sv[1],bx+18,by+19,{align:"center"});
   });
-  doc.setFillColor(14,20,32); doc.roundedRect(20,H-60,W-40,44,4,4,"F");
-  doc.setTextColor(OG[0],OG[1],OG[2]); doc.setFontSize(11); doc.setFont("helvetica","bold");
-  doc.text("NOLDEX LOGISTICS SARL",30,H-47);
-  doc.setTextColor(DIM[0],DIM[1],DIM[2]); doc.setFontSize(9); doc.setFont("helvetica","normal");
-  doc.text("Belle-vue, Commune de Dixinn, Conakry, Guinee",30,H-37);
-  doc.text("+224 621 78 52 52 · +224 620 22 14 09 · info@noldexfleet.com",30,H-28);
-  doc.setTextColor(OG[0],OG[1],OG[2]); doc.text("www.noldexfleet.com",30,H-20);
-  doc.setTextColor(DIM[0],DIM[1],DIM[2]); doc.setFontSize(8); doc.text("Edition "+today,W-14,H-20,{align:"right"});
 
-  // PAGE 2: RÉSUMÉ
-  doc.addPage(); hdr("RESUME FLOTTE","Edition "+today);
+  // Pied couverture
+  doc.setFillColor(...AL); doc.roundedRect(70,H-44,W-82,32,3,3,'F');
+  doc.setFillColor(...OG); doc.rect(70,H-44,3,32,'F');
+  doc.setTextColor(...OG); doc.setFontSize(10); doc.setFont("helvetica","bold");
+  doc.text("NOLDEX LOGISTICS SARL",78,H-33);
+  doc.setTextColor(...GR); doc.setFontSize(8); doc.setFont("helvetica","normal");
+  doc.text("Belle-vue, Commune de Dixinn, Conakry, Guinée",78,H-24);
+  doc.text("+224 621 78 52 52  ·  info@noldexfleet.com  ·  noldexfleet.com",78,H-16);
+  doc.setTextColor(...GR); doc.setFontSize(7.5); doc.text("Édition "+today,W-14,H-44+28,{align:"right"});
+
+  // ── PAGE 2: RÉSUMÉ ──
+  doc.addPage(); hdr("RÉSUMÉ FLOTTE","Édition "+today);
   var tkeys=[]; data.forEach(function(e){if(!tkeys.includes(e.type))tkeys.push(e.type);});
   var sumRows=tkeys.map(function(t){
     var sub=data.filter(function(e){return e.type===t;});
     var avg=Math.round(sub.reduce(function(a,e){return a+(e.tarifJ||0);},0)/sub.length);
     return [t,sub.length,sub.filter(function(e){return e.statut==="Disponible";}).length,sub.filter(function(e){return e.gps;}).length,avg.toLocaleString()+" GNF"];
   });
-  doc.autoTable({head:[["Type","Nb","Disponibles","GPS","Tarif moy. / jour"]],body:sumRows,startY:54,margin:{left:10,right:10},theme:"grid",styles:{fontSize:9,cellPadding:3,textColor:TX,fillColor:DK,lineColor:[30,45,65],lineWidth:0.3},headStyles:{fillColor:OG,textColor:[255,255,255],fontStyle:"bold"},alternateRowStyles:{fillColor:[14,22,36]},didDrawPage:function(){ftr();}});
+  doc.autoTable({head:[["Type","Nb total","Disponibles","GPS","Tarif moy. / jour"]],body:sumRows,
+    startY:32,margin:{left:12,right:12},theme:"plain",
+    styles:{fontSize:9,cellPadding:3.5,textColor:DK,fillColor:WH,lineColor:LG,lineWidth:0.3},
+    headStyles:{fillColor:OG,textColor:WH,fontStyle:"bold",fontSize:9},
+    alternateRowStyles:{fillColor:AL},
+    didDrawPage:function(){ftr();}});
+  ftr();
 
-  // FICHES ENGINS
+  // ── FICHES ENGINS ──
   data.forEach(function(e){
     doc.addPage();
-    hdr("FICHE : "+e.nom.toUpperCase(),"Ref: "+e.id.toUpperCase()+" · "+e.ville+" · "+e.annee);
-    var y=54;
-    var bc=e.statut==="Disponible"?[45,212,160]:e.statut==="En location"?OG:[240,79,90];
-    doc.setFillColor(bc[0],bc[1],bc[2]); doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont("helvetica","bold");
-    var btxt="● "+e.statut, bw=doc.getTextWidth(btxt)+10;
-    doc.roundedRect(10,y,bw,9,2,2,"F"); doc.text(btxt,15,y+6.5);
-    if(e.gps){doc.setFillColor(45,212,160);var gt="● GPS ACTIF",gw=doc.getTextWidth(gt)+10;doc.roundedRect(10+bw+4,y,gw,9,2,2,"F");doc.setTextColor(10,12,15);doc.text(gt,14+bw+4,y+6.5);}
-    if(e.ribbon==="new"){doc.setFillColor(45,212,160);var nt="NOUVEAU",nw=doc.getTextWidth(nt)+10;var ox=e.gps?10+bw+gw+8:10+bw+4;doc.roundedRect(ox,y,nw,9,2,2,"F");doc.setTextColor(10,12,15);doc.text(nt,ox+5,y+6.5);}
+    hdr("FICHE ENGIN","Réf. "+e.id.toUpperCase());
+    var y=32;
+
+    // Badge statut
+    var bc=e.statut==="Disponible"?[45,185,95]:e.statut==="En location"?OG:[230,80,80];
+    doc.setFillColor(bc[0]+'1A'.toString(16),bc[1],bc[2]); // light version unused
+    doc.setDrawColor(bc[0],bc[1],bc[2]); doc.setLineWidth(0.4);
+    var btxt="  ● "+e.statut, bw=doc.getTextWidth(btxt)+6;
+    doc.setFillColor(255,255,255); doc.roundedRect(12,y,bw,8,1.5,1.5,'FD');
+    doc.setTextColor(bc[0],bc[1],bc[2]); doc.setFontSize(8); doc.setFont("helvetica","bold");
+    doc.text(btxt,14,y+5.5);
+    var ox=12+bw+4;
+    if(e.gps){
+      doc.setDrawColor(45,185,95); doc.setFillColor(255,255,255);
+      var gt="  ● GPS ACTIF", gw=doc.getTextWidth(gt)+6;
+      doc.roundedRect(ox,y,gw,8,1.5,1.5,'FD');
+      doc.setTextColor(45,185,95); doc.text(gt,ox+2,y+5.5);
+      ox+=gw+4;
+    }
+    if(e.ribbon==="new"){
+      doc.setDrawColor(...OG); doc.setFillColor(255,255,255);
+      var nt="  NOUVEAU", nw=doc.getTextWidth(nt)+6;
+      doc.roundedRect(ox,y,nw,8,1.5,1.5,'FD');
+      doc.setTextColor(...OG); doc.text(nt,ox+2,y+5.5);
+    }
     y+=14;
-    doc.setTextColor(OG[0],OG[1],OG[2]); doc.setFontSize(18); doc.setFont("helvetica","bold"); doc.text(e.nom,10,y); y+=8;
-    doc.setTextColor(DIM[0],DIM[1],DIM[2]); doc.setFontSize(9); doc.setFont("helvetica","normal");
-    doc.text((e.type||"")+" · "+(e.marque||"")+" "+(e.modele||"")+" · "+e.ville+", Guinee",10,y); y+=10;
-    doc.setFillColor(OG[0],OG[1],OG[2]); doc.rect(10,y,W-20,1.5,"F"); y+=7;
-    var sp=e.specs||[["Cap.",e.cap],["Ville",e.ville],["Annee",e.annee]];
-    var nc=3,nr=Math.ceil(sp.length/nc),cw=(W-20)/nc;
-    for(var r=0;r<nr;r++){
+
+    // Nom + sous-titre
+    doc.setTextColor(...DK); doc.setFontSize(18); doc.setFont("helvetica","bold");
+    doc.text(e.nom,12,y); y+=7;
+    doc.setTextColor(...GR); doc.setFontSize(9); doc.setFont("helvetica","normal");
+    doc.text((e.type||"")+(e.marque?" · "+e.marque:"")+(e.modele?" "+e.modele:"")+" · "+e.ville+", Guinée",12,y); y+=7;
+    // Filet accent
+    doc.setDrawColor(...OG); doc.setLineWidth(1.5);
+    doc.line(12,y,50,y); doc.setLineWidth(0.5); doc.setDrawColor(...LG);
+    doc.line(52,y,W-12,y); y+=8;
+
+    // Spécifications — grille sur fond blanc
+    var sp=e.specs||[["Capacité",e.cap||"—"],["Ville",e.ville],["Année",e.annee||"—"]];
+    var nc=3,cw=(W-24)/nc;
+    for(var r=0;r<Math.ceil(sp.length/nc);r++){
       for(var c=0;c<nc;c++){
         var si=r*nc+c; if(si>=sp.length)break;
-        var bx=10+c*cw,by=y;
-        doc.setFillColor(14,20,32);doc.roundedRect(bx+1,by,cw-3,23,2,2,"F");
-        doc.setFillColor(OG[0],OG[1],OG[2]);doc.rect(bx+1,by,cw-3,1.5,"F");
-        doc.setTextColor(DIM[0],DIM[1],DIM[2]);doc.setFontSize(7);doc.text((sp[si][0]||"").toUpperCase(),bx+4,by+8);
-        doc.setTextColor(TX[0],TX[1],TX[2]);doc.setFontSize(9);doc.setFont("helvetica","bold");doc.text(String(sp[si][1]||"—"),bx+4,by+18);doc.setFont("helvetica","normal");
+        var bx=12+c*cw, by=y;
+        doc.setFillColor(...AL); doc.roundedRect(bx+1,by,cw-3,21,2,2,'F');
+        doc.setFillColor(...OG); doc.rect(bx+1,by,cw-3,1.5,'F');
+        doc.setTextColor(...GR); doc.setFontSize(7); doc.setFont("helvetica","normal");
+        doc.text((sp[si][0]||"").toUpperCase(),bx+4,by+8);
+        doc.setTextColor(...DK); doc.setFontSize(9); doc.setFont("helvetica","bold");
+        doc.text(String(sp[si][1]||"—"),bx+4,by+17);
       }
-      y+=26;
+      y+=24;
     }
     y+=4;
-    var ls=doc.splitTextToSize(e.desc||"—",W-26);
-    doc.setFillColor(12,18,28);doc.roundedRect(10,y,W-20,ls.length*5+12,3,3,"F");
-    doc.setFillColor(OG[0],OG[1],OG[2]);doc.rect(10,y,3,ls.length*5+12,"F");
-    doc.setTextColor(DIM[0],DIM[1],DIM[2]);doc.setFontSize(9);doc.text(ls,15,y+7);y+=ls.length*5+18;
-    doc.setFillColor(14,20,32);doc.roundedRect(10,y,W-20,40,3,3,"F");
-    doc.setFillColor(OG[0],OG[1],OG[2]);doc.rect(10,y,W-20,2,"F");
-    doc.setTextColor(OG[0],OG[1],OG[2]);doc.setFontSize(10);doc.setFont("helvetica","bold");doc.text("TARIFS DE LOCATION",14,y+13);
-    doc.setTextColor(TX[0],TX[1],TX[2]);doc.setFontSize(8);doc.setFont("helvetica","normal");
-    doc.text("Journalier",14,y+23);doc.text("Hebdomadaire",W/3+4,y+23);doc.text("Mensuel",2*W/3+4,y+23);
-    doc.setTextColor(OG[0],OG[1],OG[2]);doc.setFontSize(14);doc.setFont("helvetica","bold");doc.text(fmt(e.tarifJ),14,y+35);
-    doc.setTextColor(200,205,215);doc.text(e.tarifS?fmt(e.tarifS):"Sur devis",W/3+4,y+35);
-    doc.setTextColor(TX[0],TX[1],TX[2]);doc.text(e.tarifM?fmt(e.tarifM):"Sur devis",2*W/3+4,y+35);
-    y+=46;
-    doc.setFillColor(OG[0],OG[1],OG[2]);doc.roundedRect(10,y,W-20,20,3,3,"F");
-    doc.setTextColor(255,255,255);doc.setFontSize(9);doc.setFont("helvetica","bold");
-    doc.text("Louer cet engin : noldexfleet.com  |  +224 621 78 52 52  |  info@noldexfleet.com",W/2,y+12,{align:"center"});
+
+    // Description
+    var ls=doc.splitTextToSize(e.desc||"—",W-30);
+    doc.setFillColor(...AL); doc.roundedRect(12,y,W-24,ls.length*5+12,2,2,'F');
+    doc.setFillColor(...OG); doc.rect(12,y,2.5,ls.length*5+12,'F');
+    doc.setTextColor(...DK); doc.setFontSize(8.5); doc.setFont("helvetica","normal");
+    doc.text(ls,17,y+7); y+=ls.length*5+18;
+
+    // Tarifs
+    doc.setFillColor(...AL); doc.roundedRect(12,y,W-24,38,2,2,'F');
+    doc.setFillColor(...OG); doc.rect(12,y,W-24,1.5,'F');
+    doc.setTextColor(...OG); doc.setFontSize(9); doc.setFont("helvetica","bold");
+    doc.text("TARIFS DE LOCATION",16,y+10);
+    // 3 colonnes tarifs
+    var cw3=(W-28)/3;
+    [["Journalier",e.tarifJ],["Hebdomadaire",e.tarifS||null],["Mensuel",e.tarifM||null]].forEach(function(t,i){
+      var tx=16+i*cw3;
+      doc.setTextColor(...GR); doc.setFontSize(7.5); doc.setFont("helvetica","normal");
+      doc.text(t[0],tx,y+20);
+      doc.setTextColor(i===0?OG[0]:DK[0], i===0?OG[1]:DK[1], i===0?OG[2]:DK[2]);
+      doc.setFontSize(i===0?13:10); doc.setFont("helvetica","bold");
+      doc.text(t[1]?fmt(t[1]):"Sur devis",tx,y+30);
+    });
+    y+=44;
+
+    // CTA
+    doc.setFillColor(...OG); doc.roundedRect(12,y,W-24,14,2,2,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(8.5); doc.setFont("helvetica","bold");
+    doc.text("Louer cet engin : noldexfleet.com   |   +224 621 78 52 52   |   info@noldexfleet.com",W/2,y+9,{align:"center"});
     ftr();
   });
 
@@ -16394,8 +16561,24 @@ function generateCataloguePDF() {
 
       <!-- ══ PAGE: VALIDATION ══ -->
       <div class="ab-page" id="abp-validation">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;text-transform:uppercase;margin-bottom:6px;">Validation des engins</div>
-        <div style="font-size:13px;color:var(--text-dim);margin-bottom:20px;">Engins soumis par des partenaires, en attente de vérification et publication.</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;text-transform:uppercase;margin-bottom:6px;">Validation</div>
+        <div style="font-size:13px;color:var(--text-dim);margin-bottom:20px;">Comptes partenaires et engins en attente de vérification.</div>
+
+        <!-- ══ COMPTES PARTENAIRES EN ATTENTE ══ -->
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;text-transform:uppercase;margin-bottom:10px;color:var(--orange);">
+          👤 Comptes partenaires en attente <span id="abNbPartenairesAttente" style="font-size:13px;font-weight:400;color:var(--text-dim);"></span>
+        </div>
+        <div class="ab-card" style="margin-bottom:24px;">
+          <table class="ab-table">
+            <thead><tr><th>Société / Nom</th><th>Email</th><th>Ville</th><th>Date demande</th><th>Statut</th><th>Actions</th></tr></thead>
+            <tbody id="abPartenairesAttenteBody"></tbody>
+          </table>
+        </div>
+
+        <!-- ══ ENGINS EN ATTENTE ══ -->
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;text-transform:uppercase;margin-bottom:10px;color:var(--orange);">
+          🚛 Engins en attente de validation
+        </div>
         <div class="ab-card">
           <table class="ab-table">
             <thead><tr><th>Engin</th><th>Marque / Modèle</th><th>Propriétaire</th><th>Ville</th><th>Date soumission</th><th>Statut</th><th>Actions</th></tr></thead>
@@ -16891,7 +17074,7 @@ create table if not exists contrats    (id text primary key, client text, "engin
 create table if not exists demandes    (id text primary key, client text, engin text, chantier text, debut text, fin text, statut text, created_at timestamptz default now());
 create table if not exists paiements   (id text primary key, "contratId" text, client text, montant numeric, date text, mode text, statut text, created_at timestamptz default now());
 create table if not exists maintenance (id text primary key, "enginId" text, engin text, type text, description text, date text, cout numeric, statut text, created_at timestamptz default now());
-create table if not exists partenaires (id text primary key, nom text, contact text, tel text, email text, ville text, engins int default 0, created_at timestamptz default now());
+create table if not exists partenaires (id text primary key, nom text, contact text, tel text, email text, ville text, engins int default 0, validated boolean default false, statut text default 'En attente', created_at timestamptz default now());
 create table if not exists platform_params (id text primary key default 'main', nom text, email text, tel text, adresse text, commission numeric, "commPart" numeric, tva numeric, devise text, om text, mtn text, rib text, rccm text, nif text, site text);
 
 -- Activer RLS (Row Level Security) — à configurer selon vos besoins
@@ -17731,15 +17914,20 @@ const AB_TABLES = ['engins','clients','contrats','demandes','paiements','mainten
 
 function abSupaInit() {
   try {
-    const cfg = JSON.parse(localStorage.getItem('ab_supabase')||'{}');
-    if(cfg.url && cfg.key && window.supabase) {
-      _abSupa   = window.supabase.createClient(cfg.url, cfg.key);
+    // Priorité : constantes globales (SUPABASE_URL/KEY) → localStorage fallback
+    const url = (typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL.startsWith('https://'))
+      ? SUPABASE_URL : (JSON.parse(localStorage.getItem('ab_supabase')||'{}').url || '');
+    const key = (typeof SUPABASE_ANON_KEY !== 'undefined' && SUPABASE_ANON_KEY.startsWith('eyJ'))
+      ? SUPABASE_ANON_KEY : (JSON.parse(localStorage.getItem('ab_supabase')||'{}').key || '');
+    if (url && key && window.supabase) {
+      _abSupa   = _supa || window.supabase.createClient(url, key);
       _abOnline = true;
     } else {
       _abOnline = false;
     }
   } catch(e) { _abOnline = false; }
   abUpdateSupaBadge();
+  if (_abOnline) abStartRealtime();
 }
 
 function abUpdateSupaBadge() {
@@ -17785,6 +17973,55 @@ const abDB = {
     if(_abOnline){ try{ await _abSupa.from(table).delete().eq('id',id); }catch(e){} }
   }
 };
+
+// ── SUPABASE REALTIME — sync temps réel dashboard admin ──────────
+let _abRtChannels = [];
+
+function abStartRealtime() {
+  if (!_abOnline || !_abSupa) return;
+  // Nettoyer les anciens channels
+  _abRtChannels.forEach(ch => { try { _abSupa.removeChannel(ch); } catch(e){} });
+  _abRtChannels = [];
+
+  const tables = ['engins','clients','contrats','demandes','paiements','maintenance','partenaires'];
+
+  tables.forEach(table => {
+    const ch = _abSupa
+      .channel(`admin-rt-${table}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table }, async (payload) => {
+        // Mettre à jour localStorage
+        const rows = await abDB.fetch(table);
+        // Rafraîchir la page admin si elle est ouverte
+        const overlay = document.getElementById('dashAdminOverlay');
+        if (overlay && overlay.classList.contains('open')) {
+          const activePage = document.querySelector('.ab-page.active');
+          if (activePage) {
+            const pageId = activePage.id.replace('abp-','');
+            abRenderPage(pageId);
+          }
+          // Toast discret selon le type d'événement
+          const labels = { engins:'engin', clients:'client', contrats:'contrat', demandes:'demande', paiements:'paiement', maintenance:'maintenance', partenaires:'partenaire' };
+          const label = labels[table] || table;
+          if (payload.eventType === 'INSERT') abToast(`➕ Nouveau ${label} ajouté`, 'i');
+          if (payload.eventType === 'UPDATE') abToast(`✏️ ${label.charAt(0).toUpperCase()+label.slice(1)} mis à jour`, 'i');
+          if (payload.eventType === 'DELETE') abToast(`🗑 ${label.charAt(0).toUpperCase()+label.slice(1)} supprimé`, 'e');
+        }
+        // Badge navigation validation
+        abUpdateBadges();
+      })
+      .subscribe((status) => {
+        if (NX_DEV) console.log(`[Realtime] ${table}: ${status}`);
+      });
+    _abRtChannels.push(ch);
+  });
+
+  if (NX_DEV) console.log('[NOLDEX] Supabase Realtime activé sur', tables.length, 'tables ✅');
+}
+
+function abStopRealtime() {
+  _abRtChannels.forEach(ch => { try { _abSupa.removeChannel(ch); } catch(e){} });
+  _abRtChannels = [];
+}
 
 async function _abSync(table,rows){
   if(!_abOnline||!rows.length) return;
@@ -18398,7 +18635,36 @@ function abDeleteEngin(id) {
 }
 
 // ADMIN — VALIDATION
-function abRenderValidation() {
+async function abRenderValidation() {
+  // ── Comptes partenaires en attente ──
+  let partenairesAttente = [];
+  if (_supaReady && _supa) {
+    const { data } = await _supa.from('partenaires').select('*').eq('validated', false).order('created_at', { ascending: false });
+    partenairesAttente = data || [];
+  } else {
+    partenairesAttente = abDB.get('partenaires').filter(p => !p.validated);
+  }
+
+  const nbAttente = partenairesAttente.length;
+  const nbEl = document.getElementById('abNbPartenairesAttente');
+  if (nbEl) nbEl.textContent = nbAttente > 0 ? `(${nbAttente})` : '(aucun)';
+
+  document.getElementById('abPartenairesAttenteBody').innerHTML = partenairesAttente.length
+    ? partenairesAttente.map(p => `
+    <tr>
+      <td><strong>${p.nom || '—'}</strong></td>
+      <td style="font-size:12px;color:var(--text-dim);">${p.email || '—'}</td>
+      <td>${p.ville || '—'}</td>
+      <td class="fs-12">${p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR') : '—'}</td>
+      <td>${abBadge('En attente')}</td>
+      <td style="display:flex;gap:6px;">
+        <button class="ab-btn ab-btn-green ab-btn-sm" onclick="abValiderPartenaire('${p.id}','${p.email}')">✓ Valider</button>
+        <button class="ab-btn ab-btn-red ab-btn-sm" onclick="abRejeterPartenaire('${p.id}','${p.email}')">✕ Rejeter</button>
+      </td>
+    </tr>`).join('')
+    : '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px;">✅ Aucun compte en attente.</td></tr>';
+
+  // ── Engins en attente ──
   const toValid = abDB.get('engins').filter(e=>!e.validated);
   document.getElementById('abValidFullBody').innerHTML = toValid.length ? toValid.map(e=>`
     <tr>
@@ -18414,6 +18680,41 @@ function abRenderValidation() {
       </td>
     </tr>`).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px;">✅ Aucun engin en attente de validation.</td></tr>';
   abUpdateBadges();
+}
+
+async function abValiderPartenaire(id, email) {
+  if (!confirm(`Valider le compte partenaire ${email} ?`)) return;
+  try {
+    if (_supaReady && _supa) {
+      // Mettre à jour la table partenaires
+      await _supa.from('partenaires').update({ validated: true, statut: 'Actif' }).eq('id', id);
+      // Mettre à jour user_metadata dans auth.users
+      await _supa.from('auth_users_meta').select('*').eq('id', id).maybeSingle().catch(()=>{});
+      // Note: la mise à jour auth.users se fait via SQL car l'API admin n'est pas disponible côté client
+      // L'admin peut aussi aller dans Supabase Dashboard > Auth > Users > Edit
+    } else {
+      abDB.set('partenaires', abDB.get('partenaires').map(p => p.id === id ? {...p, validated:true, statut:'Actif'} : p));
+    }
+    abToast('✅ Compte partenaire validé ! Il peut maintenant se connecter.', 's');
+    abRenderValidation();
+  } catch(e) {
+    abToast('Erreur: ' + e.message, 'e');
+  }
+}
+
+async function abRejeterPartenaire(id, email) {
+  if (!confirm(`Rejeter et supprimer le compte partenaire ${email} ?`)) return;
+  try {
+    if (_supaReady && _supa) {
+      await _supa.from('partenaires').delete().eq('id', id);
+    } else {
+      abDB.set('partenaires', abDB.get('partenaires').filter(p => p.id !== id));
+    }
+    abToast('Compte partenaire rejeté et supprimé.', 'e');
+    abRenderValidation();
+  } catch(e) {
+    abToast('Erreur: ' + e.message, 'e');
+  }
 }
 function abValiderEngin(id) {
   abDB.set('engins',abDB.get('engins').map(e=>e.id===id?{...e,validated:true}:e));
@@ -19812,13 +20113,16 @@ function abExportXLSX(type) {
   }
 }
 
-// PDF GENERATION — jsPDF + AutoTable (robuste)
-const PDF_ORANGE = [232, 96, 10];
-const PDF_DARK   = [13,  18, 26];
-const PDF_TEXT   = [175, 182, 194];
+// PDF GENERATION — jsPDF + AutoTable (thème professionnel blanc)
+// Palette Pro
+const PDF_ORANGE  = [232, 96, 10];
+const PDF_DARK    = [30,  35,  45];   // texte principal
+const PDF_GRAY    = [100, 110, 125];  // texte secondaire
+const PDF_LGRAY   = [220, 225, 232];  // bordures
+const PDF_ROWALT  = [248, 249, 251];  // lignes alternées
+const PDF_WHITE   = [255, 255, 255];
 
 function abGetJsPDF() {
-  // Supporte les différentes façons dont jsPDF peut être exposé
   if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
   if (window.jsPDF)                        return window.jsPDF;
   if (window.jspdf)                        return window.jspdf;
@@ -19828,56 +20132,81 @@ function abGetJsPDF() {
 function abPdfHeader(doc, title, subtitle) {
   const p = abDB.getO('ab_params');
   const W = doc.internal.pageSize.getWidth();
-  doc.setFillColor(...PDF_DARK);
-  doc.rect(0, 0, W, 38, 'F');
+
+  // Fond blanc — barre orange gauche 5px + filet bas orange
+  doc.setFillColor(...PDF_WHITE);
+  doc.rect(0, 0, W, 40, 'F');
   doc.setFillColor(...PDF_ORANGE);
-  doc.rect(0, 38, W, 2.5, 'F');
+  doc.rect(0, 0, 4, 40, 'F');          // accent vertical gauche
+  doc.rect(0, 40, W, 0.8, 'F');        // filet séparateur
+
+  // Nom société — texte sombre
+  doc.setTextColor(...PDF_DARK);
+  doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+  doc.text(p.nom || 'NOLDEX LOGISTICS SARL', 12, 13);
+
+  // Infos contact
+  doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...PDF_GRAY);
+  const infoLine = [p.adresse || 'Conakry, Guinée', p.email, p.tel].filter(Boolean).join('   ·   ');
+  doc.text(infoLine, 12, 20);
+  if (p.rccm) doc.text('RCCM : ' + p.rccm + (p.nif ? '   NIF : ' + p.nif : ''), 12, 27);
+
+  // Titre rapport — orange
   doc.setTextColor(...PDF_ORANGE);
-  doc.setFontSize(15); doc.setFont('helvetica', 'bold');
-  doc.text(p.nom || 'NOLDEX LOGISTICS SARL', 14, 13);
-  doc.setTextColor(...PDF_TEXT);
-  doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-  const infoLine = [p.adresse || 'Conakry, Guinée', p.email || '', p.tel || ''].filter(Boolean).join('  ·  ');
-  doc.text(infoLine, 14, 21);
-  if (p.rccm) doc.text('RCCM : ' + p.rccm + (p.nif ? '   NIF : ' + p.nif : ''), 14, 27);
-  doc.setTextColor(235, 235, 235);
-  doc.setFontSize(12); doc.setFont('helvetica', 'bold');
-  doc.text(title, 14, 33);
-  doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...PDF_TEXT);
-  doc.text('Généré le ' + new Date().toLocaleDateString('fr-FR'), W - 14, 33, { align: 'right' });
-  if (subtitle) { doc.setFontSize(7.5); doc.text(subtitle, 14, 37); }
+  doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+  doc.text(title, 12, subtitle ? 34 : 36);
+  if (subtitle) {
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...PDF_GRAY);
+    doc.text(subtitle, 12, 39.5);
+  }
+
+  // Date — alignée à droite
+  doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...PDF_GRAY);
+  doc.text('Généré le ' + new Date().toLocaleDateString('fr-FR'), W - 12, 36, { align: 'right' });
 }
 
 function abPdfFooter(doc) {
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
   const p = abDB.getO('ab_params');
-  doc.setFillColor(...PDF_DARK);
-  doc.rect(0, H - 10, W, 10, 'F');
-  doc.setTextColor(...PDF_TEXT); doc.setFontSize(7); doc.setFont('helvetica', 'normal');
-  doc.text((p.nom || 'NOLDEX LOGISTICS SARL') + ' — Document confidentiel', 14, H - 3.5);
-  doc.text('Page ' + doc.internal.getCurrentPageInfo().pageNumber, W - 14, H - 3.5, { align: 'right' });
+  // Filet supérieur simple
+  doc.setDrawColor(...PDF_LGRAY); doc.setLineWidth(0.5);
+  doc.line(12, H - 12, W - 12, H - 12);
+  doc.setTextColor(...PDF_GRAY); doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+  doc.text((p.nom || 'NOLDEX LOGISTICS SARL') + ' — Document confidentiel', 12, H - 6);
+  doc.text('Page ' + doc.internal.getCurrentPageInfo().pageNumber, W - 12, H - 6, { align: 'right' });
 }
 
 function abPdfTable(doc, head, body, startY, extra = {}) {
   if (!body.length) {
-    doc.setFontSize(9); doc.setTextColor(...PDF_TEXT);
-    doc.text('Aucune donnée disponible.', 14, startY + 6);
-    return startY + 14;
+    doc.setFontSize(9); doc.setTextColor(...PDF_GRAY);
+    doc.text('Aucune donnée disponible.', 12, startY + 6);
+    return startY + 16;
   }
   doc.autoTable({
     head: [head],
     body,
     startY,
-    margin: { left: 14, right: 14 },
-    theme: 'grid',
-    styles:           { fontSize: 7.5, cellPadding: 2.5, textColor: [215, 218, 225], fillColor: [20, 30, 45], lineColor: [38, 52, 74], lineWidth: 0.25 },
-    headStyles:       { fillColor: PDF_ORANGE, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
-    alternateRowStyles: { fillColor: [15, 23, 36] },
-    didDrawPage: (data) => { abPdfFooter(doc); },
+    margin: { left: 12, right: 12 },
+    theme: 'plain',
+    styles: {
+      fontSize: 8, cellPadding: 3,
+      textColor: PDF_DARK, fillColor: PDF_WHITE,
+      lineColor: PDF_LGRAY, lineWidth: 0.3,
+    },
+    headStyles: {
+      fillColor: PDF_ORANGE, textColor: PDF_WHITE,
+      fontStyle: 'bold', fontSize: 8.5,
+      cellPadding: { top: 4, bottom: 4, left: 3, right: 3 },
+    },
+    alternateRowStyles: { fillColor: PDF_ROWALT },
+    didDrawPage: () => { abPdfFooter(doc); },
     ...extra,
   });
-  return doc.lastAutoTable.finalY + 8;
+  return doc.lastAutoTable.finalY + 10;
 }
 
 function abGeneratePDF(type) {
@@ -19908,16 +20237,26 @@ function abGeneratePDF(type) {
   };
 
   const info = TYPES[type] || TYPES.complet;
+  const W = doc.internal.pageSize.getWidth();
   abPdfHeader(doc, info.title, info.sub);
-  let y = 46;
+  let y = 48;
+
+  // Helper titre de section
+  function sectionTitle(label) {
+    doc.setFillColor(...PDF_ROWALT);
+    doc.rect(12, y - 4, W - 24, 10, 'F');
+    doc.setDrawColor(...PDF_ORANGE); doc.setLineWidth(0.4);
+    doc.line(12, y + 6, W - 12, y + 6);
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...PDF_ORANGE);
+    doc.text(label, 14, y + 3);
+    y += 12;
+  }
 
   try {
     // ── FLOTTE ──────────────────────────────────────────
     if (type === 'flotte' || type === 'complet') {
-      if (type === 'complet') {
-        doc.setFontSize(10); doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...PDF_ORANGE); doc.text('1.  FLOTTE D\'ENGINS', 14, y); y += 5;
-      }
+      if (type === 'complet') sectionTitle('1.  FLOTTE D\'ENGINS');
       const engins = abDB.get('engins').filter(e => e.validated);
       y = abPdfTable(doc,
         ['#', 'Nom', 'Type', 'Propriétaire', 'Ville', 'Statut', 'Tarif/j GNF'],
@@ -19926,18 +20265,15 @@ function abGeneratePDF(type) {
       );
       const dispo = engins.filter(e => e.statut === 'Disponible').length;
       const inLoc = engins.filter(e => e.statut === 'En location').length;
-      doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...PDF_TEXT);
-      doc.text(`Total ${engins.length} engins  ·  Disponibles : ${dispo}  ·  En location : ${inLoc}  ·  Autres : ${engins.length - dispo - inLoc}`, 14, y - 2);
-      y += 6;
+      doc.setFontSize(7.5); doc.setFont('helvetica', 'italic'); doc.setTextColor(...PDF_GRAY);
+      doc.text(`Total ${engins.length} engins  ·  Disponibles : ${dispo}  ·  En location : ${inLoc}  ·  Autres : ${engins.length - dispo - inLoc}`, 12, y - 4);
+      y += 4;
     }
 
     // ── FINANCIER ────────────────────────────────────────
     if (type === 'financier' || type === 'complet') {
-      if (y > 220 && type === 'complet') { doc.addPage(); abPdfHeader(doc, info.title, info.sub); y = 46; }
-      if (type === 'complet') {
-        doc.setFontSize(10); doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...PDF_ORANGE); doc.text('2.  RAPPORT FINANCIER', 14, y); y += 5;
-      }
+      if (y > 220 && type === 'complet') { doc.addPage(); abPdfHeader(doc, info.title, info.sub); y = 48; }
+      if (type === 'complet') sectionTitle('2.  RAPPORT FINANCIER');
       const pai = abDB.get('paiements');
       const caTotal = pai.filter(p => p.statut === 'Payé').reduce((a, p) => a + p.montant, 0);
       y = abPdfTable(doc,
@@ -19945,18 +20281,15 @@ function abGeneratePDF(type) {
         pai.map(p => [p.date, p.contrat, p.client, p.engin, (p.montant || 0).toLocaleString('fr-FR'), p.canal, p.statut]),
         y
       );
-      doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...PDF_ORANGE);
-      doc.text('CA total encaissé : ' + caTotal.toLocaleString('fr-FR') + ' GNF', 14, y - 2);
-      y += 8;
+      doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...PDF_ORANGE);
+      doc.text('CA total encaissé : ' + caTotal.toLocaleString('fr-FR') + ' GNF', 12, y - 4);
+      y += 6;
     }
 
     // ── CONTRATS ─────────────────────────────────────────
     if (type === 'contrats' || type === 'complet') {
-      if (y > 220 && type === 'complet') { doc.addPage(); abPdfHeader(doc, info.title, info.sub); y = 46; }
-      if (type === 'complet') {
-        doc.setFontSize(10); doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...PDF_ORANGE); doc.text('3.  CONTRATS DE LOCATION', 14, y); y += 5;
-      }
+      if (y > 220 && type === 'complet') { doc.addPage(); abPdfHeader(doc, info.title, info.sub); y = 48; }
+      if (type === 'complet') sectionTitle('3.  CONTRATS DE LOCATION');
       y = abPdfTable(doc,
         ['N° CCL', 'Client', 'Engin', 'Chantier', 'Début', 'Fin', 'Montant GNF', 'Statut'],
         abDB.get('contrats').map(c => [c.id, c.client, c.engin, c.chantier, c.debut, c.fin, (c.montant || 0).toLocaleString('fr-FR'), c.statut]),
@@ -19966,11 +20299,8 @@ function abGeneratePDF(type) {
 
     // ── MAINTENANCE ──────────────────────────────────────
     if (type === 'maintenance' || type === 'complet') {
-      if (y > 220 && type === 'complet') { doc.addPage(); abPdfHeader(doc, info.title, info.sub); y = 46; }
-      if (type === 'complet') {
-        doc.setFontSize(10); doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...PDF_ORANGE); doc.text('4.  MAINTENANCE', 14, y); y += 5;
-      }
+      if (y > 220 && type === 'complet') { doc.addPage(); abPdfHeader(doc, info.title, info.sub); y = 48; }
+      if (type === 'complet') sectionTitle('4.  MAINTENANCE');
       const maint = abDB.get('maintenance');
       const coutTot = maint.reduce((a, m) => a + (m.cout || 0), 0);
       y = abPdfTable(doc,
@@ -19978,18 +20308,15 @@ function abGeneratePDF(type) {
         maint.map(m => [m.engin, m.type, m.ville, m.date, m.tech, (m.cout || 0).toLocaleString('fr-FR'), m.statut]),
         y
       );
-      doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...PDF_ORANGE);
-      doc.text('Coût total maintenance : ' + coutTot.toLocaleString('fr-FR') + ' GNF', 14, y - 2);
-      y += 8;
+      doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...PDF_ORANGE);
+      doc.text('Coût total maintenance : ' + coutTot.toLocaleString('fr-FR') + ' GNF', 12, y - 4);
+      y += 6;
     }
 
     // ── CLIENTS ──────────────────────────────────────────
     if (type === 'clients' || type === 'complet') {
-      if (y > 220 && type === 'complet') { doc.addPage(); abPdfHeader(doc, info.title, info.sub); y = 46; }
-      if (type === 'complet') {
-        doc.setFontSize(10); doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...PDF_ORANGE); doc.text('5.  CLIENTS B2B', 14, y); y += 5;
-      }
+      if (y > 220 && type === 'complet') { doc.addPage(); abPdfHeader(doc, info.title, info.sub); y = 48; }
+      if (type === 'complet') sectionTitle('5.  CLIENTS B2B');
       y = abPdfTable(doc,
         ['Société', 'Contact', 'Téléphone', 'Secteur', 'Ville', 'Locations', 'CA GNF', 'Statut'],
         abDB.get('clients').map(c => [c.societe, c.contact, c.tel, c.secteur, c.ville, c.locations || 0, (c.total || 0).toLocaleString('fr-FR'), c.statut]),
@@ -22275,7 +22602,7 @@ window.cmsSaveSec = async function(sec) {
   } else {
     if (sync) sync.textContent = '💾 Sauvegardé localement';
   }
-  if (window.abShowToast) abShowToast('✅ Section sauvegardée.', 's');
+  if (window.abToast) abToast('✅ Section sauvegardée.', 's');
 };
 
 // ── APPLY CONFIG TO PUBLIC DOM ─────────────────────────
@@ -22360,7 +22687,7 @@ window.cmsAddService = function() {
 window.cmsUploadImg = async function(input, cfgKey, zoneId, placeholderId, previewId, uploadingId) {
   const file = input.files[0]; if (!file) return;
   if (!window.cloudIsReady || !cloudIsReady()) {
-    if (window.abShowToast) abShowToast('Cloudinary non configuré dans Paramètres.','e');
+    if (window.abToast) abToast('Cloudinary non configuré dans Paramètres.','e');
     return;
   }
   const zone     = document.getElementById(zoneId);
@@ -22384,10 +22711,10 @@ window.cmsUploadImg = async function(input, cfgKey, zoneId, placeholderId, previ
     if (urlInput) urlInput.value = data.secure_url;
     if (preview) { preview.src = data.secure_url; preview.style.display = 'block'; }
     cmsMark();
-    if (window.abShowToast) abShowToast('📸 Image uploadée.', 's');
+    if (window.abToast) abToast('📸 Image uploadée.', 's');
   } catch(e) {
     if (ph) ph.style.display = '';
-    if (window.abShowToast) abShowToast('Erreur upload : ' + e.message, 'e');
+    if (window.abToast) abToast('Erreur upload : ' + e.message, 'e');
   } finally {
     if (zone) zone.classList.remove('uploading');
     if (uploading) uploading.classList.add('d-none');
