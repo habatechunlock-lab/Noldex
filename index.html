@@ -13295,6 +13295,20 @@ function abRenderVideosAdmin() {
     </div>`;
   }).join('');
 }
+function abVidSeedDemo() {
+  if (!confirm('Charger 4 vidéos YouTube de démonstration ? Vous pourrez les remplacer par vos propres vidéos Cloudinary.')) return;
+  const demos = [
+    { source:'youtube', youtubeId:'UvW6LsK8ASE', title:'Flotte NOLDEX en action — Chantiers miniers & BTP Guinée', type:'🚛 Flotte complète', desc:'Camions benne, chargeuses et pelles au travail sur les chantiers guinéens.', featured:true, ordre:0, leadText:'Camions benne, chargeuses, pelles mécaniques et grues au travail sur les chantiers guinéens et miniers d\'Afrique de l\'Ouest.' },
+    { source:'youtube', youtubeId:'uPSdrYqYWeU', title:'Camion Benne HOWO 40T — Transport minerai', type:'🚛 Camion Benne', desc:'Transport de minerai · Siguiri · Haute Guinée', featured:false, ordre:1 },
+    { source:'youtube', youtubeId:'y-N83asG-K8', title:'Chargeuse Caterpillar 966H — Terrassement', type:'🚜 Chargeuse CAT', desc:'Terrassement & chargement · Zone industrielle Boké', featured:false, ordre:2 },
+    { source:'youtube', youtubeId:'iPG267idrrY', title:'Pelle Komatsu PC200 — Excavation BTP', type:'⛏️ Pelle hydraulique', desc:'Excavation fondations · Chantier BTP Conakry', featured:false, ordre:3 },
+  ];
+  demos.forEach(d => vidDB.add(d));
+  abToast('4 vidéos de démonstration ajoutées. Remplacez-les par vos vidéos Cloudinary.', 's');
+  abRenderVideosAdmin();
+  renderVideos();
+}
+
 function abVidToggleSource() {
   const src = document.getElementById('avSource').value;
   document.getElementById('avCldBlock').style.display = src==='cloudinary' ? '' : 'none';
@@ -13391,7 +13405,38 @@ function abRenderGalleryAdmin() {
     </div>`;
   }).join('');
 }
-function abGalOpenModal(id){
+function abGalImportFromMarketplace() {
+  const engins = abDB.get('engins').filter(e => e.validated !== false);
+  if (!engins.length) { abToast('Aucun engin dans le Marketplace. Ajoutez-en d\'abord.', 'e'); return; }
+  const existing = galDB.get();
+  const existingNoms = new Set(existing.map(x => x.nom));
+  let added = 0;
+  engins.forEach(e => {
+    if (existingNoms.has(e.nom)) return; // ne pas dupliquer
+    galDB.add({
+      publicId: e.photoUrl ? e.photoUrl.replace(/^.*\/upload\/(?:f_auto,q_auto\/)?/, '').replace(/\.\w+$/, '') : '',
+      nom:      e.nom      || '',
+      type:     e.type     || 'Camion benne',
+      ville:    e.ville    || '',
+      statut:   e.statut   || 'Disponible',
+      cap:      e.cap      || '',
+      annee:    e.annee    || '',
+      marque:   e.marque   || '',
+      modele:   e.modele   || '',
+      prix:     e.prix     || 0,
+      gps:      e.gps      || false,
+      desc:     e.desc     || '',
+    });
+    added++;
+  });
+  if (added > 0) {
+    abToast(`✅ ${added} engin${added>1?'s':''} importé${added>1?'s':''} dans la Galerie.`, 's');
+    abRenderGalleryAdmin();
+  } else {
+    abToast('Tous les engins du Marketplace sont déjà dans la Galerie.', 'i');
+  }
+}
+function abGalOpenModal(id) {
   document.getElementById('agEditId').value='';
   document.getElementById('abGalModalTitle').textContent=id?'Modifier l\'équipement':'Ajouter un équipement';
   ['agPublicId','agNom','agVille','agCap','agAnnee','agMarque','agModele','agDesc','agPrix'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
@@ -17793,8 +17838,12 @@ create policy "public_all" on platform_params for all using (true) with check (t
         <div id="abVidList" style="display:flex;flex-direction:column;gap:12px;"></div>
         <div id="abVidEmpty" style="display:none;text-align:center;padding:60px 20px;color:var(--text-dim);">
           <div style="font-size:40px;margin-bottom:10px;">🎬</div>
-          <div style="font-size:15px;font-weight:600;">Aucune vidéo configurée</div>
-          <div style="font-size:12px;margin-top:6px;">Cliquez sur "Ajouter une vidéo" pour commencer</div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);">Aucune vidéo configurée</div>
+          <div style="font-size:12px;margin-top:6px;margin-bottom:20px;">Uploadez vos vidéos sur Cloudinary puis ajoutez leur Public ID ici</div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <button class="ab-btn ab-btn-primary" onclick="abVidOpenModal()">＋ Ajouter une vidéo Cloudinary</button>
+            <button class="ab-btn ab-btn-ghost" onclick="abVidSeedDemo()">🧪 Charger des exemples YouTube</button>
+          </div>
         </div>
       </div>
 
@@ -17877,8 +17926,8 @@ create policy "public_all" on platform_params for all using (true) with check (t
             <div class="ab-ph-sub">Gérez les équipements affichés sur la page Galerie — indépendant de Supabase</div>
           </div>
           <div class="ab-ph-actions">
+            <button class="ab-btn ab-btn-ghost ab-btn-sm" onclick="abGalImportFromMarketplace()">⬇️ Importer depuis Marketplace</button>
             <button class="ab-btn ab-btn-primary ab-btn-sm" onclick="abGalOpenModal()">＋ Ajouter un équipement</button>
-            <button class="ab-btn ab-btn-ghost ab-btn-sm" onclick="showPage('gallery')" target="_blank">🔗 Voir la galerie</button>
           </div>
         </div>
 
@@ -17889,8 +17938,12 @@ create policy "public_all" on platform_params for all using (true) with check (t
         <div id="abGalGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;"></div>
         <div id="abGalEmpty" style="display:none;text-align:center;padding:60px 20px;color:var(--text-dim);">
           <div style="font-size:40px;margin-bottom:10px;">🖼️</div>
-          <div style="font-size:15px;font-weight:600;">Aucun équipement dans la galerie</div>
-          <div style="font-size:12px;margin-top:6px;">Cliquez sur "Ajouter un équipement" pour commencer</div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);">Aucun équipement dans la galerie</div>
+          <div style="font-size:12px;margin-top:6px;margin-bottom:20px;">Importez vos engins du Marketplace ou ajoutez-les manuellement</div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <button class="ab-btn ab-btn-primary" onclick="abGalImportFromMarketplace()">⬇️ Importer depuis Marketplace</button>
+            <button class="ab-btn ab-btn-ghost" onclick="abGalOpenModal()">＋ Ajouter manuellement</button>
+          </div>
         </div>
       </div>
 
