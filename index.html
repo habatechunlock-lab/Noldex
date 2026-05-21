@@ -7903,124 +7903,10 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="hero-particles" aria-hidden="true" id="heroParticles"></div>
 
     <!-- ═══ VÉHICULES EN MOUVEMENT ═══ -->
-    <div class="hero-vehicles" aria-hidden="true">
+    <div class="hero-vehicles" aria-hidden="true" id="heroVehicles">
       <div class="hero-ground"></div>
       <div class="hero-road-marks"></div>
-
-      <!-- Couche 3 : arrière-plan — lent, très transparent -->
-      <div class="vh-layer" style="animation-name:vhDriveL3;animation-duration:38s;animation-delay:-12s;opacity:.06;bottom:30px;">
-        <svg width="220" height="70" viewBox="0 0 220 70" fill="rgba(232,96,10,1)">
-          <!-- Camion benne arrière-plan -->
-          <rect x="0" y="18" width="148" height="36" rx="3"/>
-          <rect x="4" y="10" width="140" height="12" rx="2" opacity=".7"/>
-          <rect x="148" y="22" width="52" height="32" rx="4"/>
-          <rect x="158" y="10" width="34" height="18" rx="3"/>
-          <rect x="185" y="4" width="5" height="14" rx="2"/>
-          <circle cx="25" cy="58" r="11"/><circle cx="25" cy="58" r="5" fill="rgba(0,0,0,.3)"/>
-          <circle cx="75" cy="58" r="11"/><circle cx="75" cy="58" r="5" fill="rgba(0,0,0,.3)"/>
-          <circle cx="125" cy="58" r="11"/><circle cx="125" cy="58" r="5" fill="rgba(0,0,0,.3)"/>
-          <circle cx="170" cy="58" r="11"/><circle cx="170" cy="58" r="5" fill="rgba(0,0,0,.3)"/>
-          <circle cx="196" cy="58" r="11"/><circle cx="196" cy="58" r="5" fill="rgba(0,0,0,.3)"/>
-        </svg>
-      </div>
-
-      <!-- Couche 2 : milieu — vitesse moyenne -->
-      <div class="vh-layer" style="animation-name:vhDriveL2;animation-duration:24s;animation-delay:-6s;opacity:.10;bottom:10px;">
-        <!-- Chargeuse/excavatrice -->
-        <svg width="160" height="80" viewBox="0 0 160 80" fill="rgba(232,96,10,1)">
-          <!-- Corps -->
-          <rect x="30" y="30" width="80" height="32" rx="4"/>
-          <!-- Cabine -->
-          <rect x="70" y="12" width="36" height="22" rx="3"/>
-          <rect x="76" y="15" width="14" height="13" rx="2" fill="rgba(79,142,240,.4)"/>
-          <!-- Bras -->
-          <rect x="100" y="8" width="50" height="8" rx="3" transform="rotate(-20 100 20)"/>
-          <rect x="135" y="0" width="30" height="6" rx="2" transform="rotate(10 135 10)"/>
-          <!-- Godet -->
-          <path d="M148 2 L160 0 L158 14 L145 14 Z"/>
-          <!-- Chenilles -->
-          <rect x="28" y="58" width="88" height="14" rx="7"/>
-          <rect x="34" y="62" width="76" height="6" rx="3" fill="rgba(0,0,0,.3)"/>
-          <!-- Roues chenilles -->
-          <circle cx="38" cy="65" r="9" fill="rgba(0,0,0,.2)"/>
-          <circle cx="108" cy="65" r="9" fill="rgba(0,0,0,.2)"/>
-          <circle cx="60" cy="65" r="7" fill="rgba(0,0,0,.15)"/>
-          <circle cx="85" cy="65" r="7" fill="rgba(0,0,0,.15)"/>
-        </svg>
-      </div>
-
-      <!-- Couche 1 : premier plan — rapide, plus visible -->
-      <div class="vh-layer" style="animation-name:vhDriveL;animation-duration:16s;animation-delay:-3s;opacity:.16;bottom:0;">
-        <!-- Gros camion benne -->
-        <svg width="280" height="90" viewBox="0 0 280 90" fill="rgba(232,96,10,1)">
-          <rect x="0" y="20" width="188" height="44" rx="4"/>
-          <rect x="6" y="10" width="176" height="14" rx="3" opacity=".8"/>
-          <rect x="8" y="6" width="160" height="8" rx="2" opacity=".5"/>
-          <!-- Cabin -->
-          <rect x="188" y="26" width="68" height="38" rx="5"/>
-          <rect x="200" y="12" width="48" height="22" rx="4"/>
-          <!-- Windows -->
-          <rect x="204" y="15" width="18" height="14" rx="2" fill="rgba(79,142,240,.35)"/>
-          <rect x="226" y="15" width="14" height="14" rx="2" fill="rgba(79,142,240,.25)"/>
-          <!-- Exhaust pipes -->
-          <rect x="242" y="2" width="6" height="18" rx="3"/>
-          <rect x="250" y="5" width="5" height="14" rx="2.5" opacity=".7"/>
-          <!-- Wheels -->
-          <circle cx="28"  cy="74" r="14"/><circle cx="28"  cy="74" r="6" fill="rgba(0,0,0,.25)"/>
-          <circle cx="72"  cy="74" r="14"/><circle cx="72"  cy="74" r="6" fill="rgba(0,0,0,.25)"/>
-          <circle cx="118" cy="74" r="14"/><circle cx="118" cy="74" r="6" fill="rgba(0,0,0,.25)"/>
-          <circle cx="158" cy="74" r="14"/><circle cx="158" cy="74" r="6" fill="rgba(0,0,0,.25)"/>
-          <circle cx="214" cy="74" r="14"/><circle cx="214" cy="74" r="6" fill="rgba(0,0,0,.25)"/>
-          <circle cx="246" cy="74" r="14"/><circle cx="246" cy="74" r="6" fill="rgba(0,0,0,.25)"/>
-          <!-- Headlights -->
-          <rect x="255" y="38" width="8" height="5" rx="1" fill="rgba(255,220,100,.6)"/>
-          <rect x="255" y="48" width="8" height="4" rx="1" fill="rgba(255,220,100,.4)"/>
-        </svg>
-        <!-- Dust puffs under wheels -->
-        <div class="dust-puff" style="left:24px;animation-delay:0s;animation-duration:1.2s;width:16px;height:16px;"></div>
-        <div class="dust-puff" style="left:68px;animation-delay:.4s;animation-duration:1.5s;width:12px;height:12px;"></div>
-        <div class="dust-puff" style="left:114px;animation-delay:.8s;animation-duration:1.1s;width:14px;height:14px;"></div>
-      </div>
-
-      <!-- 2e camion premier plan décalé -->
-      <div class="vh-layer" style="animation-name:vhDriveL;animation-duration:20s;animation-delay:-10s;opacity:.11;bottom:5px;">
-        <svg width="200" height="75" viewBox="0 0 200 75" fill="rgba(232,96,10,.9)">
-          <!-- Citerne -->
-          <ellipse cx="80" cy="36" rx="80" ry="22"/>
-          <rect x="0" y="26" width="160" height="22" rx="0"/>
-          <rect x="160" y="20" width="25" height="34" rx="3"/>
-          <rect x="162" y="30" width="8" height="6" rx="1" fill="rgba(79,142,240,.35)"/>
-          <rect x="172" y="30" width="8" height="6" rx="1" fill="rgba(79,142,240,.25)"/>
-          <rect x="176" y="14" width="4" height="12" rx="2"/>
-          <circle cx="25"  cy="62" r="12"/><circle cx="25"  cy="62" r="5" fill="rgba(0,0,0,.2)"/>
-          <circle cx="65"  cy="62" r="12"/><circle cx="65"  cy="62" r="5" fill="rgba(0,0,0,.2)"/>
-          <circle cx="110" cy="62" r="12"/><circle cx="110" cy="62" r="5" fill="rgba(0,0,0,.2)"/>
-          <circle cx="172" cy="62" r="12"/><circle cx="172" cy="62" r="5" fill="rgba(0,0,0,.2)"/>
-          <circle cx="186" cy="62" r="12"/><circle cx="186" cy="62" r="5" fill="rgba(0,0,0,.2)"/>
-        </svg>
-      </div>
-
-      <!-- Pelle mécanique fond -->
-      <div class="vh-layer" style="animation-name:vhDriveL3;animation-duration:45s;animation-delay:-20s;opacity:.07;bottom:20px;">
-        <svg width="190" height="90" viewBox="0 0 190 90" fill="rgba(232,96,10,1)">
-          <rect x="40" y="35" width="95" height="36" rx="5"/>
-          <rect x="80" y="14" width="44" height="26" rx="4"/>
-          <rect x="86" y="17" width="16" height="16" rx="2" fill="rgba(79,142,240,.4)"/>
-          <!-- Bras long -->
-          <rect x="115" y="6" width="65" height="10" rx="4" transform="rotate(-15 115 20)"/>
-          <rect x="160" y="0" width="35" height="8" rx="3" transform="rotate(8 160 10)"/>
-          <path d="M175 0 L190 2 L188 18 L172 16 Z"/>
-          <!-- Contrepoids -->
-          <rect x="38" y="42" width="22" height="20" rx="3"/>
-          <!-- Chenilles -->
-          <rect x="35" y="66" width="105" height="16" rx="8"/>
-          <rect x="42" y="70" width="91" height="8" rx="4" fill="rgba(0,0,0,.3)"/>
-          <circle cx="46"  cy="74" r="11" fill="rgba(0,0,0,.25)"/>
-          <circle cx="128" cy="74" r="11" fill="rgba(0,0,0,.25)"/>
-          <circle cx="76"  cy="74" r="8"  fill="rgba(0,0,0,.15)"/>
-          <circle cx="100" cy="74" r="8"  fill="rgba(0,0,0,.15)"/>
-        </svg>
-      </div>
+      <!-- Rendu par renderHeroAnimations() -->
     </div>
     <div class="container hero-content">
       <div class="hero-tag">🇬🇳 Première plateforme B2B guinéenne</div>
@@ -13034,6 +12920,81 @@ function dGenerateContrat(demandeId) {
 // CLOUDINARY — Upload photo engin (dashboard partenaire)
 // ══════════════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
+// ANIMATIONS HERO — Couches de véhicules administrables
+// ══════════════════════════════════════════════════════════════════
+
+const ANIM_KEY = 'nxanim_layers';
+
+const ANIM_DEFAULTS = [
+  { id:'l1', label:'Camion benne (arrière-plan)', enabled:true, anim:'vhDriveL3', duration:'38s', delay:'-12s', opacity:.06, bottom:'30px', svgW:220, svgH:70, svg:`<svg width="220" height="70" viewBox="0 0 220 70" fill="rgba(232,96,10,1)"><rect x="0" y="18" width="148" height="36" rx="3"/><rect x="4" y="10" width="140" height="12" rx="2" opacity=".7"/><rect x="148" y="22" width="52" height="32" rx="4"/><rect x="158" y="10" width="34" height="18" rx="3"/><rect x="185" y="4" width="5" height="14" rx="2"/><circle cx="25" cy="58" r="11"/><circle cx="25" cy="58" r="5" fill="rgba(0,0,0,.3)"/><circle cx="75" cy="58" r="11"/><circle cx="75" cy="58" r="5" fill="rgba(0,0,0,.3)"/><circle cx="125" cy="58" r="11"/><circle cx="125" cy="58" r="5" fill="rgba(0,0,0,.3)"/><circle cx="170" cy="58" r="11"/><circle cx="170" cy="58" r="5" fill="rgba(0,0,0,.3)"/><circle cx="196" cy="58" r="11"/><circle cx="196" cy="58" r="5" fill="rgba(0,0,0,.3)"/></svg>`, publicId:'' },
+  { id:'l2', label:'Chargeuse (milieu)', enabled:true, anim:'vhDriveL2', duration:'24s', delay:'-6s', opacity:.10, bottom:'10px', svgW:160, svgH:80, svg:`<svg width="160" height="80" viewBox="0 0 160 80" fill="rgba(232,96,10,1)"><rect x="30" y="30" width="80" height="32" rx="4"/><rect x="70" y="12" width="36" height="22" rx="3"/><rect x="76" y="15" width="14" height="13" rx="2" fill="rgba(79,142,240,.4)"/><rect x="100" y="8" width="50" height="8" rx="3" transform="rotate(-20 100 20)"/><rect x="135" y="0" width="30" height="6" rx="2" transform="rotate(10 135 10)"/><path d="M148 2 L160 0 L158 14 L145 14 Z"/><rect x="28" y="58" width="88" height="14" rx="7"/><rect x="34" y="62" width="76" height="6" rx="3" fill="rgba(0,0,0,.3)"/><circle cx="38" cy="65" r="9" fill="rgba(0,0,0,.2)"/><circle cx="108" cy="65" r="9" fill="rgba(0,0,0,.2)"/><circle cx="60" cy="65" r="7" fill="rgba(0,0,0,.15)"/><circle cx="85" cy="65" r="7" fill="rgba(0,0,0,.15)"/></svg>`, publicId:'' },
+  { id:'l3', label:'Gros camion (premier plan)', enabled:true, anim:'vhDriveL', duration:'16s', delay:'-3s', opacity:.16, bottom:'0', svgW:280, svgH:90, svg:`<svg width="280" height="90" viewBox="0 0 280 90" fill="rgba(232,96,10,1)"><rect x="0" y="20" width="188" height="44" rx="4"/><rect x="6" y="10" width="176" height="14" rx="3" opacity=".8"/><rect x="8" y="6" width="160" height="8" rx="2" opacity=".5"/><rect x="188" y="26" width="68" height="38" rx="5"/><rect x="200" y="12" width="48" height="22" rx="4"/><rect x="204" y="15" width="18" height="14" rx="2" fill="rgba(79,142,240,.35)"/><rect x="226" y="15" width="14" height="14" rx="2" fill="rgba(79,142,240,.25)"/><rect x="242" y="2" width="6" height="18" rx="3"/><rect x="250" y="5" width="5" height="14" rx="2.5" opacity=".7"/><circle cx="28" cy="74" r="14"/><circle cx="28" cy="74" r="6" fill="rgba(0,0,0,.25)"/><circle cx="72" cy="74" r="14"/><circle cx="72" cy="74" r="6" fill="rgba(0,0,0,.25)"/><circle cx="118" cy="74" r="14"/><circle cx="118" cy="74" r="6" fill="rgba(0,0,0,.25)"/><circle cx="158" cy="74" r="14"/><circle cx="158" cy="74" r="6" fill="rgba(0,0,0,.25)"/><circle cx="214" cy="74" r="14"/><circle cx="214" cy="74" r="6" fill="rgba(0,0,0,.25)"/><circle cx="246" cy="74" r="14"/><circle cx="246" cy="74" r="6" fill="rgba(0,0,0,.25)"/><rect x="255" y="38" width="8" height="5" rx="1" fill="rgba(255,220,100,.6)"/><rect x="255" y="48" width="8" height="4" rx="1" fill="rgba(255,220,100,.4)"/></svg>`, publicId:'', dust:true },
+  { id:'l4', label:'Citerne (premier plan décalé)', enabled:true, anim:'vhDriveL', duration:'20s', delay:'-10s', opacity:.11, bottom:'5px', svgW:200, svgH:75, svg:`<svg width="200" height="75" viewBox="0 0 200 75" fill="rgba(232,96,10,.9)"><ellipse cx="80" cy="36" rx="80" ry="22"/><rect x="0" y="26" width="160" height="22" rx="0"/><rect x="160" y="20" width="25" height="34" rx="3"/><rect x="162" y="30" width="8" height="6" rx="1" fill="rgba(79,142,240,.35)"/><rect x="172" y="30" width="8" height="6" rx="1" fill="rgba(79,142,240,.25)"/><rect x="176" y="14" width="4" height="12" rx="2"/><circle cx="25" cy="62" r="12"/><circle cx="25" cy="62" r="5" fill="rgba(0,0,0,.2)"/><circle cx="65" cy="62" r="12"/><circle cx="65" cy="62" r="5" fill="rgba(0,0,0,.2)"/><circle cx="110" cy="62" r="12"/><circle cx="110" cy="62" r="5" fill="rgba(0,0,0,.2)"/><circle cx="172" cy="62" r="12"/><circle cx="172" cy="62" r="5" fill="rgba(0,0,0,.2)"/><circle cx="186" cy="62" r="12"/><circle cx="186" cy="62" r="5" fill="rgba(0,0,0,.2)"/></svg>`, publicId:'' },
+  { id:'l5', label:'Pelle (arrière-plan fond)', enabled:true, anim:'vhDriveL3', duration:'45s', delay:'-20s', opacity:.07, bottom:'20px', svgW:190, svgH:90, svg:`<svg width="190" height="90" viewBox="0 0 190 90" fill="rgba(232,96,10,1)"><rect x="40" y="35" width="95" height="36" rx="5"/><rect x="80" y="14" width="44" height="26" rx="4"/><rect x="86" y="17" width="16" height="16" rx="2" fill="rgba(79,142,240,.4)"/><rect x="115" y="6" width="65" height="10" rx="4" transform="rotate(-15 115 20)"/><rect x="160" y="0" width="35" height="8" rx="3" transform="rotate(8 160 10)"/><path d="M175 0 L190 2 L188 18 L172 16 Z"/><rect x="38" y="42" width="22" height="20" rx="3"/><rect x="35" y="66" width="105" height="16" rx="8"/><rect x="42" y="70" width="91" height="8" rx="4" fill="rgba(0,0,0,.3)"/><circle cx="46" cy="74" r="11" fill="rgba(0,0,0,.25)"/><circle cx="128" cy="74" r="11" fill="rgba(0,0,0,.25)"/><circle cx="76" cy="74" r="8" fill="rgba(0,0,0,.15)"/><circle cx="100" cy="74" r="8" fill="rgba(0,0,0,.15)"/></svg>`, publicId:'' },
+];
+
+const animDB = {
+  get() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(ANIM_KEY) || '[]');
+      return ANIM_DEFAULTS.map(def => {
+        const s = saved.find(x => x.id === def.id);
+        return s ? { ...def, ...s } : { ...def };
+      });
+    } catch { return ANIM_DEFAULTS.map(d => ({...d})); }
+  },
+  save(layers) { localStorage.setItem(ANIM_KEY, JSON.stringify(layers)); },
+  updateLayer(id, data) {
+    const layers = this.get();
+    const idx = layers.findIndex(l => l.id === id);
+    if (idx >= 0) { layers[idx] = { ...layers[idx], ...data }; this.save(layers); }
+  },
+  reset() { localStorage.removeItem(ANIM_KEY); },
+};
+
+function renderHeroAnimations() {
+  const wrap = document.getElementById('heroVehicles');
+  if (!wrap) return;
+  const cfg = _cloudCfg();
+  const cn  = cfg.cloudName || 'dpyboca4x';
+  const layers = animDB.get();
+  const ground    = wrap.querySelector('.hero-ground');
+  const roadmarks = wrap.querySelector('.hero-road-marks');
+  wrap.innerHTML = '';
+  if (ground)    wrap.appendChild(ground);
+  if (roadmarks) wrap.appendChild(roadmarks);
+  layers.forEach(layer => {
+    if (!layer.enabled) return;
+    const div = document.createElement('div');
+    div.className = 'vh-layer';
+    div.style.cssText = `animation-name:${layer.anim};animation-duration:${layer.duration};animation-delay:${layer.delay};opacity:${layer.opacity};bottom:${layer.bottom};`;
+    if (layer.publicId) {
+      const url = `https://res.cloudinary.com/${cn}/image/upload/f_auto,q_auto,h_${layer.svgH * 2}/${layer.publicId}`;
+      const img = document.createElement('img');
+      img.src = url;
+      img.style.cssText = `height:${layer.svgH}px;width:auto;display:block;filter:brightness(0) invert(1);`;
+      img.alt = layer.label;
+      img.onerror = () => { div.innerHTML = layer.svg; };
+      div.appendChild(img);
+    } else {
+      div.innerHTML = layer.svg;
+    }
+    if (layer.dust && !layer.publicId) {
+      ['24px:0s:1.2s:16px','68px:.4s:1.5s:12px','114px:.8s:1.1s:14px'].forEach(p => {
+        const [left,delay,dur,size] = p.split(':');
+        const d = document.createElement('div');
+        d.className = 'dust-puff';
+        d.style.cssText = `left:${left};animation-delay:${delay};animation-duration:${dur};width:${size};height:${size};`;
+        div.appendChild(d);
+      });
+    }
+    wrap.appendChild(div);
+  });
+}
+document.addEventListener('DOMContentLoaded', renderHeroAnimations);
+
+// ══════════════════════════════════════════════════════════════════
 // PAGE GALLERY — Base indépendante (localStorage, sans Supabase)
 // ══════════════════════════════════════════════════════════════════
 
@@ -13265,6 +13226,71 @@ function renderVideos() {
 }
 
 document.addEventListener('DOMContentLoaded', renderVideos);
+
+// ── ADMIN — ANIMATIONS HERO ───────────────────────────────────────
+function abRenderAnimationsAdmin() {
+  const list = document.getElementById('abAnimLayers');
+  if (!list) return;
+  const layers = animDB.get();
+  const cfg = _cloudCfg();
+  const cn  = cfg.cloudName || 'dpyboca4x';
+
+  list.innerHTML = layers.map((layer, idx) => {
+    const thumb = layer.publicId
+      ? `https://res.cloudinary.com/${cn}/image/upload/f_auto,q_auto,h_80/${layer.publicId}`
+      : '';
+    return `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">
+
+      <!-- Aperçu SVG ou image -->
+      <div style="flex-shrink:0;width:160px;height:70px;background:#0a0c14;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);">
+        ${thumb
+          ? `<img src="${thumb}" style="max-height:64px;width:auto;filter:brightness(0) invert(1);opacity:.7;" onerror="this.style.display='none'">`
+          : `<div style="opacity:.5;transform:scale(.35);transform-origin:left center;">${layer.svg}</div>`}
+      </div>
+
+      <!-- Contrôles -->
+      <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div style="font-weight:700;font-size:14px;color:var(--text);">${idx+1}. ${layer.label}</div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;margin-left:auto;">
+            <input type="checkbox" ${layer.enabled?'checked':''} onchange="animDB.updateLayer('${layer.id}',{enabled:this.checked});renderHeroAnimations();abRenderAnimationsAdmin();" style="accent-color:var(--orange);">
+            Activer
+          </label>
+        </div>
+
+        <!-- Public ID -->
+        <div>
+          <label style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;">Public ID Cloudinary <span style="color:var(--text-muted);">(laisser vide = SVG par défaut)</span></label>
+          <div style="display:flex;gap:8px;">
+            <input class="ab-fctrl" value="${layer.publicId||''}"
+              placeholder="noldex/animations/camion-benne"
+              style="flex:1;font-family:monospace;font-size:12px;"
+              onchange="animDB.updateLayer('${layer.id}',{publicId:this.value.trim()});renderHeroAnimations();abRenderAnimationsAdmin();">
+            ${layer.publicId ? `<button class="ab-btn ab-btn-ghost ab-btn-sm c-red" onclick="animDB.updateLayer('${layer.id}',{publicId:''});renderHeroAnimations();abRenderAnimationsAdmin();">✕</button>` : ''}
+          </div>
+        </div>
+
+        <!-- Opacité + Vitesse -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;">Opacité</label>
+            <input type="range" min="0.02" max="0.4" step="0.01" value="${layer.opacity}"
+              style="width:100%;accent-color:var(--orange);"
+              oninput="this.nextElementSibling.textContent=Math.round(this.value*100)+'%'"
+              onchange="animDB.updateLayer('${layer.id}',{opacity:parseFloat(this.value)});renderHeroAnimations();">
+            <span style="font-size:11px;color:var(--text-dim);">${Math.round(layer.opacity*100)}%</span>
+          </div>
+          <div>
+            <label style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;">Durée animation</label>
+            <input class="ab-fctrl" value="${layer.duration}" style="font-size:12px;"
+              onchange="animDB.updateLayer('${layer.id}',{duration:this.value});renderHeroAnimations();">
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
 
 // ── ADMIN — VIDÉOS ────────────────────────────────────────────────
 function abRenderVideosAdmin() {
@@ -16954,8 +16980,9 @@ function generateCataloguePDF() {
       <div class="ab-nav-sec">Système</div>
       <div class="ab-nav-item" onclick="abGoPage('parametres')"><span class="ab-ni">⚙️</span> Paramètres</div>
       <div class="ab-nav-item" onclick="abGoPage('vitrine')"><span class="ab-ni">✏️</span> Vitrine — Textes</div>
-      <div class="ab-nav-item" onclick="abGoPage('gallery')"><span class="ab-ni">🖼️</span> Galerie Médias</div>
-      <div class="ab-nav-item" onclick="abGoPage('videos')"><span class="ab-ni">🎬</span> Vidéos</div>
+      <div class="ab-nav-item" onclick="window.open(location.pathname+'?abpage=gallery','_blank')"><span class="ab-ni">🖼️</span> Galerie Médias ↗</div>
+      <div class="ab-nav-item" onclick="window.open(location.pathname+'?abpage=videos','_blank')"><span class="ab-ni">🎬</span> Vidéos ↗</div>
+      <div class="ab-nav-item" onclick="abGoPage('animations')"><span class="ab-ni">✨</span> Animations Hero</div>
 
       <!-- ⑨ RÉFÉRENCES -->
       <div class="ab-nav-sec">Références</div>
@@ -17821,6 +17848,25 @@ create policy "public_all" on platform_params for all using (true) with check (t
       <!-- ══════════════════════════════════════════════════
            PAGE VITRINE — CMS WORDPRESS-LIKE
            ══════════════════════════════════════════════════ -->
+      <div class="ab-page" id="abp-animations">
+        <div class="ab-ph">
+          <div class="ab-ph-left">
+            <div class="ab-ph-title">✨ Animations Hero</div>
+            <div class="ab-ph-sub">Remplacez les SVG par vos vraies photos d'engins (PNG transparent recommandé)</div>
+          </div>
+          <div class="ab-ph-actions">
+            <button class="ab-btn ab-btn-ghost ab-btn-sm" onclick="animDB.reset();renderHeroAnimations();abRenderAnimationsAdmin();abToast('Réinitialisé aux SVG par défaut.','s')">↺ Réinitialiser</button>
+          </div>
+        </div>
+
+        <div style="background:rgba(232,96,10,.08);border:1px solid rgba(232,96,10,.2);border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:var(--text-dim);">
+          💡 Uploadez vos photos d'engins sur Cloudinary en <strong style="color:var(--orange);">PNG avec fond transparent</strong> → copiez le Public ID → collez ci-dessous.<br>
+          La photo remplace le SVG et conserve la même animation de traversée d'écran.
+        </div>
+
+        <div id="abAnimLayers" style="display:flex;flex-direction:column;gap:16px;"></div>
+      </div>
+
       <div class="ab-page" id="abp-videos">
         <div class="ab-ph">
           <div class="ab-ph-left">
@@ -19090,7 +19136,8 @@ const abPageTitles = {
   ressources:'Ressources & Liens externes',
   vitrine:   'Éditeur Vitrine — Textes',
   gallery:   'Galerie Médias',
-  videos:    'Vidéos'
+  videos:    'Vidéos',
+  animations:'Animations Hero'
 };
 function abGoPage(id) {
   document.querySelectorAll('.ab-page').forEach(function(p){
@@ -19118,6 +19165,7 @@ function abRenderPage(id) {
     ressources:abRenderRessources,
     gallery:abRenderGalleryAdmin,
     videos:abRenderVideosAdmin,
+    animations:abRenderAnimationsAdmin,
     vitrine:abRenderVitrine
   };
   if(map[id]) map[id]();
@@ -22463,10 +22511,46 @@ document.addEventListener('DOMContentLoaded', ()=>{
   pubRenderComments();
 
   // ── ACCÈS ADMIN CACHÉ — 3 méthodes ───────────────────────
-  // Méthode 1 : URL secrète ?nxadmin ou #nxadmin
+  // ── ACCÈS PAGES ADMIN STANDALONE via ?abpage=xxx ──────────────────
+  const _abPageParam = new URLSearchParams(location.search).get('abpage');
+  if (_abPageParam && ['gallery','videos'].includes(_abPageParam)) {
+    // Nettoyer l'URL sans recharger
+    history.replaceState(null, '', location.pathname);
+    // Attendre que Supabase init puis ouvrir l'admin sur la bonne page
+    const _openAdminPage = () => {
+      if (typeof openAdmin === 'function') {
+        openAdmin();
+        setTimeout(() => {
+          if (typeof abGoPage === 'function') abGoPage(_abPageParam);
+        }, 200);
+      } else {
+        setTimeout(_openAdminPage, 100);
+      }
+    };
+    // Déclencher après auth Supabase ou direct si déjà prêt
+    if (_supaReady && _supaSession) {
+      setTimeout(_openAdminPage, 300);
+    } else {
+      // Montrer le login admin direct
+      setTimeout(() => {
+        if (typeof adminDirectLogin === 'function') {
+          adminDirectLogin();
+          // Après login, intercepter pour aller sur la bonne page
+          const _origOpenAdmin = window.openAdmin;
+          window.openAdmin = function() {
+            _origOpenAdmin && _origOpenAdmin();
+            setTimeout(() => abGoPage(_abPageParam), 200);
+            window.openAdmin = _origOpenAdmin;
+          };
+        }
+      }, 400);
+    }
+  }
+
+  // ── ACCÈS ADMIN CACHÉ — ?nxadmin ou #nxadmin ──────────────────────
   const _params = new URLSearchParams(location.search);
   if (_params.has('nxadmin') || location.hash === '#nxadmin') {
-    history.replaceState(null,'', location.pathname); // nettoyer l'URL
+    history.replaceState(null,'', location.pathname);
     setTimeout(adminDirectLogin, 500);
   }
 
