@@ -3488,7 +3488,7 @@ textarea.d-fctrl { resize: vertical; min-height: 80px; }
 /* ===== ADMIN TOPBAR — bouton QR ===== */
 #dashAdminOverlay {
   display:none; position:fixed; inset:0; z-index:7000;
-  background:var(--steel); flex-direction:row; overflow:hidden;
+  background:#0d1117; flex-direction:row; overflow:hidden;
 }
 #dashAdminOverlay.open { display:flex; }
 
@@ -3499,8 +3499,8 @@ textarea.d-fctrl { resize: vertical; min-height: 80px; }
 /* ── SIDEBAR ─────────────────────────────────────────── */
 .ab-sidebar {
   width:248px; flex-shrink:0;
-  background:linear-gradient(180deg,#08090d 0%,#060709 100%);
-  border-right:1px solid rgba(255,255,255,.06);
+  background:linear-gradient(180deg,#060c18 0%,#04080f 100%);
+  border-right:1px solid rgba(99,179,255,.08);
   display:flex; flex-direction:column;
   transition:transform 0.28s cubic-bezier(.4,0,.2,1);
   overflow:hidden;
@@ -19577,6 +19577,7 @@ function abOpenEnginModal(id) {
     document.getElementById('abEGps').value = e.gps ? '1' : '0';
     document.getElementById('abETraccarId').value = e.traccarId||'';
     if(e.photoUrl) abSetEnginPhotoPreview(e.photoUrl);
+    if(e.publicId && !e.photoUrl) { document.getElementById('abEPublicId').value = e.publicId; abPreviewFromPublicId(); }
   } else {
     ['abENom','abEProp','abECap','abEPrix','abETraccarId'].forEach(i=>document.getElementById(i).value='');
     document.getElementById('abEGps').value = '0';
@@ -19604,6 +19605,7 @@ function abSaveEngin() {
     gps: document.getElementById('abEGps').value === '1',
     traccarId: traccarIdRaw ? parseInt(traccarIdRaw) : null,
     photoUrl: document.getElementById('abEPhotoUrl').value || null,
+    publicId: document.getElementById('abEPublicId').value.trim() || null,
     validated: true
   };
   if(abEditingEnginId) {
