@@ -9977,7 +9977,6 @@ document.addEventListener('DOMContentLoaded', () => {
 <!-- PAGE: NOTRE ÉQUIPE -->
 <!-- ============================================================ -->
 <div class="page" id="page-equipe">
-
   <!-- HERO -->
   <section class="equipe-hero">
     <div class="equipe-hero-bg"></div>
@@ -9992,166 +9991,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   <section class="section-sm">
     <div class="container">
+      <!-- Membres — rendu par renderEquipe() -->
+      <div id="equipeMembers"></div>
 
-      <!-- DIRECTION -->
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
-        <span style="font-size:20px;">👑</span>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;text-transform:uppercase;">Direction</div>
-        <div style="flex:1;height:1px;background:var(--border);"></div>
-      </div>
-
-      <div class="equipe-grid" style="margin-bottom:48px;">
-
-        <!-- PDG -->
-        <div class="equipe-card pdg">
-          <div class="equipe-card-photo">
-            <div class="equipe-card-photo-placeholder" style="background:rgba(201,168,76,.12);border-color:rgba(201,168,76,.3);">👤</div>
-            <div class="equipe-card-dept direction">Direction Générale</div>
-          </div>
-          <div class="equipe-card-body">
-            <div class="equipe-card-name">KEITA KAMA</div>
-            <div class="equipe-card-role">Président Directeur Général — PDG</div>
-            <div class="equipe-card-bio">Fondateur de NOLDEX LOGISTICS SARL, KEITA KAMA pilote la vision stratégique de la première plateforme B2B guinéenne de gestion et de location d'engins lourds. Expert en logistique industrielle et en développement des affaires en Afrique de l'Ouest.</div>
-            <div class="equipe-card-foot">
-              <a href="tel:+224621785252" class="equipe-social-btn" title="Appeler">📞</a>
-              <a href="https://wa.me/224621785252" target="_blank" class="equipe-social-btn" title="WhatsApp">💬</a>
-              <a href="mailto:pdg@noldexfleet.com" class="equipe-social-btn" title="Email">✉️</a>
-              <div class="equipe-location">📍 Conakry, Guinée</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- DG Technique -->
-        <div class="equipe-card">
-          <div class="equipe-card-photo">
-            <div class="equipe-card-photo-placeholder">👤</div>
-            <div class="equipe-card-dept direction">Direction Technique</div>
-          </div>
-          <div class="equipe-card-body">
-            <div class="equipe-card-name">Directeur Technique</div>
-            <div class="equipe-card-role">Responsable Technique & GPS</div>
-            <div class="equipe-card-bio">Supervision de la flotte, maintenance préventive, intégration GPS Traccar et homologation des engins. Garant de la qualité et de la disponibilité opérationnelle de chaque engin publié sur NOLDEX Fleet.</div>
-            <div class="equipe-card-foot">
-              <a href="mailto:technique@noldexfleet.com" class="equipe-social-btn" title="Email">✉️</a>
-              <div class="equipe-location">📍 Conakry, Guinée</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- DG Commercial -->
-        <div class="equipe-card">
-          <div class="equipe-card-photo">
-            <div class="equipe-card-photo-placeholder">👤</div>
-            <div class="equipe-card-dept commercial">Commercial & Partenariats</div>
-          </div>
-          <div class="equipe-card-body">
-            <div class="equipe-card-name">Responsable Commercial</div>
-            <div class="equipe-card-role">Développement Commercial & Partenariats</div>
-            <div class="equipe-card-bio">Gestion du portefeuille clients B2B et partenaires propriétaires. Développement des contrats avec les sociétés minières, BTP et industrielles sur tout le territoire guinéen.</div>
-            <div class="equipe-card-foot">
-              <a href="mailto:commercial@noldexfleet.com" class="equipe-social-btn" title="Email">✉️</a>
-              <div class="equipe-location">📍 Conakry, Guinée</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ÉQUIPE TECH -->
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
-        <span style="font-size:20px;">💻</span>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;text-transform:uppercase;">Équipe Technologie</div>
-        <div style="flex:1;height:1px;background:var(--border);"></div>
-      </div>
-
-      <div class="equipe-grid" style="margin-bottom:48px;">
-
-        <div class="equipe-card">
-          <div class="equipe-card-photo">
-            <div class="equipe-card-photo-placeholder">👤</div>
-            <div class="equipe-card-dept tech">Développement</div>
-          </div>
-          <div class="equipe-card-body">
-            <div class="equipe-card-name">Lead Développeur</div>
-            <div class="equipe-card-role">Développement Plateforme & Mobile</div>
-            <div class="equipe-card-bio">Développement et maintenance de la plateforme NOLDEX Fleet, de l'application Android et des intégrations GPS/Supabase/Firebase. Stack : JavaScript, Firebase, Supabase, PWA.</div>
-            <div class="equipe-card-foot">
-              <a href="mailto:tech@noldexfleet.com" class="equipe-social-btn" title="Email">✉️</a>
-              <div class="equipe-location">📍 Conakry, Guinée</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="equipe-card">
-          <div class="equipe-card-photo">
-            <div class="equipe-card-photo-placeholder">👤</div>
-            <div class="equipe-card-dept tech">GPS & Data</div>
-          </div>
-          <div class="equipe-card-body">
-            <div class="equipe-card-name">Responsable GPS & Data</div>
-            <div class="equipe-card-role">Suivi GPS · Traccar · Analyse de données</div>
-            <div class="equipe-card-bio">Installation et gestion des trackers GPS Traccar sur les engins partenaires. Analyse des données de déplacement, alertes de zone et reporting mensuel de performance.</div>
-            <div class="equipe-card-foot">
-              <a href="mailto:gps@noldexfleet.com" class="equipe-social-btn" title="Email">✉️</a>
-              <div class="equipe-location">📍 Conakry, Guinée</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="equipe-card">
-          <div class="equipe-card-photo">
-            <div class="equipe-card-photo-placeholder">👤</div>
-            <div class="equipe-card-dept ops">Opérations</div>
-          </div>
-          <div class="equipe-card-body">
-            <div class="equipe-card-name">Responsable Opérations</div>
-            <div class="equipe-card-role">Coordination · Contrats · Paiements</div>
-            <div class="equipe-card-bio">Coordination des opérations de location, gestion des contrats CCL, suivi des paiements Orange Money / MTN MoMo et interface entre partenaires et clients B2B.</div>
-            <div class="equipe-card-foot">
-              <a href="mailto:ops@noldexfleet.com" class="equipe-social-btn" title="Email">✉️</a>
-              <div class="equipe-location">📍 Siguiri, Guinée</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- VALEURS -->
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
-        <span style="font-size:20px;">⭐</span>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;text-transform:uppercase;">Nos valeurs</div>
-        <div style="flex:1;height:1px;background:var(--border);"></div>
-      </div>
-
-      <div class="equipe-valeurs">
-        <div class="equipe-valeur">
-          <div class="equipe-valeur-icon">🇬🇳</div>
-          <div class="equipe-valeur-title">Guinée d'abord</div>
-          <div class="equipe-valeur-desc">Une plateforme conçue par des Guinéens pour les acteurs économiques guinéens. Nous comprenons les réalités du terrain.</div>
-        </div>
-        <div class="equipe-valeur">
-          <div class="equipe-valeur-icon">🔒</div>
-          <div class="equipe-valeur-title">Confiance</div>
-          <div class="equipe-valeur-desc">Chaque engin est inspecté. Chaque contrat est tracé. Chaque paiement est garanti. La confiance est notre principal actif.</div>
-        </div>
-        <div class="equipe-valeur">
-          <div class="equipe-valeur-icon">⚡</div>
-          <div class="equipe-valeur-title">Innovation</div>
-          <div class="equipe-valeur-desc">GPS temps réel, contrats digitaux, paiements mobiles — nous apportons la technologie là où elle manque le plus.</div>
-        </div>
-        <div class="equipe-valeur">
-          <div class="equipe-valeur-icon">🤝</div>
-          <div class="equipe-valeur-title">Partenariat</div>
-          <div class="equipe-valeur-desc">Nous grandissons avec vous. Le succès de nos partenaires et clients est notre succès. Commission uniquement sur les locations réalisées.</div>
-        </div>
-      </div>
+      <!-- Valeurs — rendu par renderEquipeValeurs() -->
+      <div id="equipeValeurs"></div>
 
       <!-- CTA Rejoindre -->
-      <div style="text-align:center;padding:40px;background:linear-gradient(135deg,rgba(232,96,10,.08),transparent);border:1px solid var(--border);border-radius:14px;">
+      <div id="equipeCTA" style="text-align:center;padding:40px;background:linear-gradient(135deg,rgba(232,96,10,.08),transparent);border:1px solid var(--border);border-radius:14px;">
         <div style="font-size:32px;margin-bottom:12px;">💼</div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;text-transform:uppercase;margin-bottom:10px;">Rejoindre notre équipe</div>
         <div style="font-size:15px;color:var(--text-dim);margin-bottom:24px;max-width:480px;margin-left:auto;margin-right:auto;">Vous partagez notre vision de digitaliser la logistique guinéenne ? Envoyez-nous votre candidature.</div>
         <a href="mailto:recrutement@noldexfleet.com" class="btn btn-main" style="text-decoration:none;display:inline-flex;">✉️ Envoyer votre candidature</a>
       </div>
-
     </div>
   </section>
 </div>
@@ -12921,7 +12773,134 @@ function dGenerateContrat(demandeId) {
 // ══════════════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════════════
-// ANIMATIONS HERO — Couches de véhicules administrables
+// ÉQUIPE — Membres et valeurs administrables
+// ══════════════════════════════════════════════════════════════════
+
+const EQUIPE_KEY   = 'nxequipe_members';
+const VALEURS_KEY  = 'nxequipe_valeurs';
+
+const EQUIPE_DEFAULTS = [
+  { id:'em1', nom:'KEITA KAMA', role:'Président Directeur Général — PDG', dept:'Direction Générale', deptType:'direction', bio:'Fondateur de NOLDEX LOGISTICS SARL, KEITA KAMA pilote la vision stratégique de la première plateforme B2B guinéenne de gestion et de location d\'engins lourds. Expert en logistique industrielle et en développement des affaires en Afrique de l\'Ouest.', tel:'+224621785252', whatsapp:'+224621785252', email:'pdg@noldexfleet.com', location:'Conakry, Guinée', publicId:'', isPdg:true, ordre:0, enabled:true },
+  { id:'em2', nom:'Directeur Technique', role:'Responsable Technique & GPS', dept:'Direction Technique', deptType:'direction', bio:'Supervision de la flotte, maintenance préventive, intégration GPS Traccar et homologation des engins. Garant de la qualité et de la disponibilité opérationnelle de chaque engin publié sur NOLDEX Fleet.', tel:'', whatsapp:'', email:'technique@noldexfleet.com', location:'Conakry, Guinée', publicId:'', isPdg:false, ordre:1, enabled:true },
+  { id:'em3', nom:'Responsable Commercial', role:'Développement Commercial & Partenariats', dept:'Commercial & Partenariats', deptType:'commercial', bio:'Gestion du portefeuille clients B2B et partenaires propriétaires. Développement des contrats avec les sociétés minières, BTP et industrielles sur tout le territoire guinéen.', tel:'', whatsapp:'', email:'commercial@noldexfleet.com', location:'Conakry, Guinée', publicId:'', isPdg:false, ordre:2, enabled:true },
+  { id:'em4', nom:'Lead Développeur', role:'Développement Plateforme & Mobile', dept:'Développement', deptType:'tech', bio:'Développement et maintenance de la plateforme NOLDEX Fleet, de l\'application Android et des intégrations GPS/Supabase/Firebase. Stack : JavaScript, Firebase, Supabase, PWA.', tel:'', whatsapp:'', email:'tech@noldexfleet.com', location:'Conakry, Guinée', publicId:'', isPdg:false, ordre:3, enabled:true },
+  { id:'em5', nom:'Responsable GPS & Data', role:'Suivi GPS · Traccar · Analyse de données', dept:'GPS & Data', deptType:'tech', bio:'Installation et gestion des trackers GPS Traccar sur les engins partenaires. Analyse des données de déplacement, alertes de zone et reporting mensuel de performance.', tel:'', whatsapp:'', email:'gps@noldexfleet.com', location:'Conakry, Guinée', publicId:'', isPdg:false, ordre:4, enabled:true },
+  { id:'em6', nom:'Responsable Opérations', role:'Coordination · Contrats · Paiements', dept:'Opérations', deptType:'ops', bio:'Coordination des opérations de location, gestion des contrats CCL, suivi des paiements Orange Money / MTN MoMo et interface entre partenaires et clients B2B.', tel:'', whatsapp:'', email:'ops@noldexfleet.com', location:'Siguiri, Guinée', publicId:'', isPdg:false, ordre:5, enabled:true },
+];
+
+const VALEURS_DEFAULTS = [
+  { id:'v1', icon:'🇬🇳', titre:'Guinée d\'abord', desc:'Une plateforme conçue par des Guinéens pour les acteurs économiques guinéens. Nous comprenons les réalités du terrain.' },
+  { id:'v2', icon:'🔒', titre:'Confiance', desc:'Chaque engin est inspecté. Chaque contrat est tracé. Chaque paiement est garanti. La confiance est notre principal actif.' },
+  { id:'v3', icon:'⚡', titre:'Innovation', desc:'GPS temps réel, contrats digitaux, paiements mobiles — nous apportons la technologie là où elle manque le plus.' },
+  { id:'v4', icon:'🤝', titre:'Partenariat', desc:'Nous grandissons avec vous. Le succès de nos partenaires et clients est notre succès. Commission uniquement sur les locations réalisées.' },
+];
+
+const equipeDB = {
+  getMembers() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(EQUIPE_KEY) || '[]');
+      if (!saved.length) return EQUIPE_DEFAULTS.map(d=>({...d}));
+      return saved;
+    } catch { return EQUIPE_DEFAULTS.map(d=>({...d})); }
+  },
+  saveMembers(arr) { localStorage.setItem(EQUIPE_KEY, JSON.stringify(arr)); },
+  addMember(m)     { const a=this.getMembers(); a.push({...m, id:'em_'+Date.now()}); this.saveMembers(a); },
+  updateMember(id,data){ this.saveMembers(this.getMembers().map(x=>x.id===id?{...x,...data}:x)); },
+  removeMember(id) { this.saveMembers(this.getMembers().filter(x=>x.id!==id)); },
+  getValeurs() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(VALEURS_KEY) || '[]');
+      return saved.length ? saved : VALEURS_DEFAULTS.map(d=>({...d}));
+    } catch { return VALEURS_DEFAULTS.map(d=>({...d})); }
+  },
+  saveValeurs(arr) { localStorage.setItem(VALEURS_KEY, JSON.stringify(arr)); },
+};
+
+const DEPT_ICONS = { direction:'👑', commercial:'💼', tech:'💻', ops:'⚙️', finance:'💰', rh:'👥', autre:'🏢' };
+
+function renderEquipe() {
+  const membersEl = document.getElementById('equipeMembers');
+  const valeursEl = document.getElementById('equipeValeurs');
+  if (!membersEl) return;
+
+  const cfg = _cloudCfg();
+  const cn  = cfg.cloudName || 'dpyboca4x';
+  const members = equipeDB.getMembers().filter(m=>m.enabled).sort((a,b)=>(a.ordre||0)-(b.ordre||0));
+
+  // Grouper par deptType
+  const groups = {};
+  members.forEach(m => {
+    const g = m.deptType || 'autre';
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(m);
+  });
+
+  const groupLabels = { direction:'Direction', commercial:'Commercial & Partenariats', tech:'Équipe Technologie', ops:'Opérations', finance:'Finance', rh:'Ressources Humaines', autre:'Équipe' };
+
+  let html = '';
+  Object.entries(groups).forEach(([type, grpMembers]) => {
+    const icon = DEPT_ICONS[type] || '👥';
+    html += `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+      <span style="font-size:20px;">${icon}</span>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;text-transform:uppercase;">${groupLabels[type]||type}</div>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
+    <div class="equipe-grid" style="margin-bottom:48px;">`;
+
+    grpMembers.forEach(m => {
+      const photoUrl = m.publicId
+        ? `https://res.cloudinary.com/${cn}/image/upload/c_fill,w_300,h_300,f_auto,q_auto,g_face/${m.publicId}`
+        : '';
+      const pdgStyle = m.isPdg ? 'style="background:rgba(201,168,76,.12);border-color:rgba(201,168,76,.3);"' : '';
+      const photoHtml = photoUrl
+        ? `<img src="${photoUrl}" alt="${m.nom}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'">`
+        : `<div class="equipe-card-photo-placeholder" ${pdgStyle}>👤</div>`;
+
+      html += `
+      <div class="equipe-card ${m.isPdg?'pdg':''}">
+        <div class="equipe-card-photo">
+          ${photoHtml}
+          <div class="equipe-card-dept ${m.deptType||'autre'}">${m.dept}</div>
+        </div>
+        <div class="equipe-card-body">
+          <div class="equipe-card-name">${m.nom}</div>
+          <div class="equipe-card-role">${m.role}</div>
+          <div class="equipe-card-bio">${m.bio}</div>
+          <div class="equipe-card-foot">
+            ${m.tel ? `<a href="tel:${m.tel}" class="equipe-social-btn" title="Appeler">📞</a>` : ''}
+            ${m.whatsapp ? `<a href="https://wa.me/${m.whatsapp.replace(/\D/g,'')}" target="_blank" class="equipe-social-btn" title="WhatsApp">💬</a>` : ''}
+            ${m.email ? `<a href="mailto:${m.email}" class="equipe-social-btn" title="Email">✉️</a>` : ''}
+            ${m.linkedin ? `<a href="${m.linkedin}" target="_blank" class="equipe-social-btn" title="LinkedIn">🔗</a>` : ''}
+            <div class="equipe-location">📍 ${m.location||'Guinée'}</div>
+          </div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  membersEl.innerHTML = html;
+
+  // Valeurs
+  if (valeursEl) {
+    const valeurs = equipeDB.getValeurs();
+    valeursEl.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;margin-top:8px;">
+      <span style="font-size:20px;">⭐</span>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;text-transform:uppercase;">Nos valeurs</div>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
+    <div class="equipe-valeurs" style="margin-bottom:48px;">
+      ${valeurs.map(v=>`
+      <div class="equipe-valeur">
+        <div class="equipe-valeur-icon">${v.icon}</div>
+        <div class="equipe-valeur-title">${v.titre}</div>
+        <div class="equipe-valeur-desc">${v.desc}</div>
+      </div>`).join('')}
+    </div>`;
+  }
+}
+document.addEventListener('DOMContentLoaded', renderEquipe);
 // ══════════════════════════════════════════════════════════════════
 
 const ANIM_KEY = 'nxanim_layers';
@@ -13226,6 +13205,131 @@ function renderVideos() {
 }
 
 document.addEventListener('DOMContentLoaded', renderVideos);
+
+// ── ADMIN — NOTRE ÉQUIPE ──────────────────────────────────────────
+function abRenderEquipeAdmin() {
+  const cfg = _cloudCfg(), cn = cfg.cloudName||'dpyboca4x';
+  const members = equipeDB.getMembers().sort((a,b)=>(a.ordre||0)-(b.ordre||0));
+  const list = document.getElementById('abEqList');
+  if (list) {
+    list.innerHTML = members.map(m => {
+      const thumb = m.publicId ? `https://res.cloudinary.com/${cn}/image/upload/c_fill,w_60,h_60,f_auto,q_auto,g_face/${m.publicId}` : '';
+      return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;">
+        <div style="width:44px;height:44px;border-radius:50%;overflow:hidden;background:var(--steel);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid var(--border);">
+          ${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.textContent='👤'">` : '👤'}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="font-weight:700;font-size:14px;color:var(--text);">${m.nom}</span>
+            ${m.isPdg?'<span style="background:rgba(201,168,76,.15);color:#C9A84C;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;">PDG</span>':''}
+            ${!m.enabled?'<span style="background:rgba(150,150,150,.1);color:#888;font-size:10px;padding:2px 7px;border-radius:10px;">Masqué</span>':''}
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${m.role} · ${m.dept}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          <button class="ab-btn ab-btn-ghost ab-btn-sm" onclick="abEqEdit('${m.id}')">✏️</button>
+          <button class="ab-btn ab-btn-ghost ab-btn-sm c-red" onclick="abEqDelete('${m.id}')">🗑</button>
+        </div>
+      </div>`;
+    }).join('') || '<div style="color:var(--text-dim);font-size:13px;padding:20px 0;">Aucun membre. Cliquez sur ＋ pour ajouter.</div>';
+  }
+
+  // Valeurs
+  const valeursEl = document.getElementById('abEqValeurs');
+  if (valeursEl) {
+    const valeurs = equipeDB.getValeurs();
+    valeursEl.innerHTML = valeurs.map((v,i) => `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input class="ab-fctrl" value="${v.icon}" style="width:44px;text-align:center;font-size:20px;padding:4px;" onchange="abEqUpdateValeur(${i},'icon',this.value)">
+          <input class="ab-fctrl" value="${v.titre}" style="flex:1;font-weight:700;" onchange="abEqUpdateValeur(${i},'titre',this.value)">
+        </div>
+        <button class="ab-btn ab-btn-ghost ab-btn-sm c-red" onclick="abEqDeleteValeur(${i})" style="margin-left:8px;">🗑</button>
+      </div>
+      <textarea class="ab-fctrl" rows="2" style="resize:vertical;font-size:12px;" onchange="abEqUpdateValeur(${i},'desc',this.value)">${v.desc}</textarea>
+    </div>`).join('');
+  }
+}
+
+function abEqOpenModal(id) {
+  document.getElementById('eqEditId').value = id||'';
+  document.getElementById('abEqModalTitle').textContent = id?'Modifier le membre':'Ajouter un membre';
+  ['eqPublicId','eqNom','eqRole','eqDept','eqBio','eqTel','eqWa','eqEmail','eqLinkedin','eqLoc'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
+  document.getElementById('eqDeptType').value='direction';
+  document.getElementById('eqOrdre').value='0';
+  document.getElementById('eqIsPdg').checked=false;
+  document.getElementById('eqEnabled').checked=true;
+  document.getElementById('eqThumb').innerHTML='👤';
+  if(id){
+    const m=equipeDB.getMembers().find(x=>x.id===id);
+    if(m){
+      document.getElementById('eqPublicId').value=m.publicId||'';
+      document.getElementById('eqNom').value=m.nom||'';
+      document.getElementById('eqRole').value=m.role||'';
+      document.getElementById('eqDept').value=m.dept||'';
+      document.getElementById('eqDeptType').value=m.deptType||'direction';
+      document.getElementById('eqBio').value=m.bio||'';
+      document.getElementById('eqTel').value=m.tel||'';
+      document.getElementById('eqWa').value=m.whatsapp||'';
+      document.getElementById('eqEmail').value=m.email||'';
+      document.getElementById('eqLinkedin').value=m.linkedin||'';
+      document.getElementById('eqLoc').value=m.location||'';
+      document.getElementById('eqOrdre').value=m.ordre||0;
+      document.getElementById('eqIsPdg').checked=!!m.isPdg;
+      document.getElementById('eqEnabled').checked=m.enabled!==false;
+      if(m.publicId) abEqPreview();
+    }
+  }
+  document.getElementById('abEqModal').style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function abEqCloseModal(){document.getElementById('abEqModal').style.display='none';document.body.style.overflow='';}
+function abEqEdit(id){abEqOpenModal(id);}
+function abEqDelete(id){if(!confirm('Supprimer ce membre ?'))return;equipeDB.removeMember(id);abRenderEquipeAdmin();renderEquipe();abToast('Membre supprimé.','s');}
+function abEqPreview(){
+  const pid=document.getElementById('eqPublicId').value.trim();
+  const thumb=document.getElementById('eqThumb');
+  if(!pid){thumb.innerHTML='👤';return;}
+  const cfg=_cloudCfg(),cn=cfg.cloudName||'dpyboca4x';
+  const url=`https://res.cloudinary.com/${cn}/image/upload/c_fill,w_60,h_60,f_auto,q_auto,g_face/${pid}`;
+  thumb.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='👤'">`;
+}
+function abEqSave(){
+  const nom=document.getElementById('eqNom').value.trim();
+  if(!nom){abToast('Le nom est requis.','e');return;}
+  const m={
+    publicId:document.getElementById('eqPublicId').value.trim(),
+    nom, role:document.getElementById('eqRole').value.trim(),
+    dept:document.getElementById('eqDept').value.trim(),
+    deptType:document.getElementById('eqDeptType').value,
+    bio:document.getElementById('eqBio').value.trim(),
+    tel:document.getElementById('eqTel').value.trim(),
+    whatsapp:document.getElementById('eqWa').value.trim(),
+    email:document.getElementById('eqEmail').value.trim(),
+    linkedin:document.getElementById('eqLinkedin').value.trim(),
+    location:document.getElementById('eqLoc').value.trim(),
+    ordre:parseInt(document.getElementById('eqOrdre').value)||0,
+    isPdg:document.getElementById('eqIsPdg').checked,
+    enabled:document.getElementById('eqEnabled').checked,
+  };
+  const editId=document.getElementById('eqEditId').value;
+  if(editId){equipeDB.updateMember(editId,m);abToast('Membre mis à jour.','s');}
+  else{equipeDB.addMember(m);abToast('Membre ajouté.','s');}
+  abEqCloseModal();abRenderEquipeAdmin();renderEquipe();
+}
+function abEqUpdateValeur(i,field,val){
+  const v=equipeDB.getValeurs();v[i][field]=val;equipeDB.saveValeurs(v);renderEquipe();
+}
+function abEqDeleteValeur(i){
+  if(!confirm('Supprimer cette valeur ?'))return;
+  const v=equipeDB.getValeurs();v.splice(i,1);equipeDB.saveValeurs(v);abRenderEquipeAdmin();renderEquipe();
+}
+function abEqAddValeur(){
+  const v=equipeDB.getValeurs();
+  v.push({id:'v_'+Date.now(),icon:'⭐',titre:'Nouvelle valeur',desc:'Description de la valeur.'});
+  equipeDB.saveValeurs(v);abRenderEquipeAdmin();renderEquipe();
+}
 
 // ── ADMIN — ANIMATIONS HERO ───────────────────────────────────────
 function abRenderAnimationsAdmin() {
@@ -16983,6 +17087,7 @@ function generateCataloguePDF() {
       <div class="ab-nav-item" onclick="window.open(location.pathname+'?abpage=gallery','_blank')"><span class="ab-ni">🖼️</span> Galerie Médias ↗</div>
       <div class="ab-nav-item" onclick="window.open(location.pathname+'?abpage=videos','_blank')"><span class="ab-ni">🎬</span> Vidéos ↗</div>
       <div class="ab-nav-item" onclick="abGoPage('animations')"><span class="ab-ni">✨</span> Animations Hero</div>
+      <div class="ab-nav-item" onclick="window.open(location.pathname+'?abpage=equipe','_blank')"><span class="ab-ni">👥</span> Notre Équipe ↗</div>
 
       <!-- ⑨ RÉFÉRENCES -->
       <div class="ab-nav-sec">Références</div>
@@ -17848,6 +17953,103 @@ create policy "public_all" on platform_params for all using (true) with check (t
       <!-- ══════════════════════════════════════════════════
            PAGE VITRINE — CMS WORDPRESS-LIKE
            ══════════════════════════════════════════════════ -->
+      <div class="ab-page" id="abp-equipe">
+        <div class="ab-ph">
+          <div class="ab-ph-left">
+            <div class="ab-ph-title">👥 Notre Équipe</div>
+            <div class="ab-ph-sub">Gérez les membres et les valeurs affichés sur la page Équipe</div>
+          </div>
+          <div class="ab-ph-actions">
+            <button class="ab-btn ab-btn-primary ab-btn-sm" onclick="abEqOpenModal()">＋ Ajouter un membre</button>
+          </div>
+        </div>
+
+        <!-- Membres -->
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-bottom:12px;">Membres</div>
+        <div id="abEqList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:32px;"></div>
+
+        <!-- Valeurs -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);">Valeurs</div>
+          <button class="ab-btn ab-btn-ghost ab-btn-sm" onclick="abEqAddValeur()">＋ Valeur</button>
+        </div>
+        <div id="abEqValeurs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;"></div>
+      </div>
+
+      <!-- Modal Membre -->
+      <div id="abEqModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;">
+          <div style="padding:18px 24px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:16px;font-weight:700;" id="abEqModalTitle">Ajouter un membre</div>
+            <button onclick="abEqCloseModal()" style="background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;">✕</button>
+          </div>
+          <div style="padding:18px 24px;display:flex;flex-direction:column;gap:12px;">
+
+            <!-- Photo Public ID -->
+            <div class="ab-fg full">
+              <label class="ab-flbl">Photo — Public ID Cloudinary <span style="color:var(--text-muted);font-weight:400;font-size:10px;text-transform:none;">(portrait, carré)</span></label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input class="ab-fctrl" id="eqPublicId" placeholder="noldex/equipe/keita-kama" style="flex:1;font-family:monospace;font-size:12px;" oninput="abEqPreview()">
+                <div id="eqThumb" style="width:52px;height:52px;border-radius:50%;overflow:hidden;background:var(--steel);border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;">👤</div>
+              </div>
+            </div>
+
+            <!-- Nom + Rôle -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div class="ab-fg"><label class="ab-flbl">Nom complet</label><input class="ab-fctrl" id="eqNom" placeholder="KEITA KAMA"></div>
+              <div class="ab-fg"><label class="ab-flbl">Titre / Rôle</label><input class="ab-fctrl" id="eqRole" placeholder="PDG — Fondateur"></div>
+            </div>
+
+            <!-- Département -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div class="ab-fg"><label class="ab-flbl">Département (affiché)</label><input class="ab-fctrl" id="eqDept" placeholder="Direction Générale"></div>
+              <div class="ab-fg">
+                <label class="ab-flbl">Type département (couleur)</label>
+                <select class="ab-fctrl" id="eqDeptType">
+                  <option value="direction">👑 Direction</option>
+                  <option value="commercial">💼 Commercial</option>
+                  <option value="tech">💻 Technologie</option>
+                  <option value="ops">⚙️ Opérations</option>
+                  <option value="finance">💰 Finance</option>
+                  <option value="rh">👥 RH</option>
+                  <option value="autre">🏢 Autre</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Bio -->
+            <div class="ab-fg full"><label class="ab-flbl">Biographie</label><textarea class="ab-fctrl" id="eqBio" rows="3" style="resize:vertical;" placeholder="Description du rôle et expertises…"></textarea></div>
+
+            <!-- Contacts -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div class="ab-fg"><label class="ab-flbl">📞 Téléphone</label><input class="ab-fctrl" id="eqTel" placeholder="+224621785252"></div>
+              <div class="ab-fg"><label class="ab-flbl">💬 WhatsApp</label><input class="ab-fctrl" id="eqWa" placeholder="+224621785252"></div>
+              <div class="ab-fg"><label class="ab-flbl">✉️ Email</label><input class="ab-fctrl" id="eqEmail" placeholder="pdg@noldexfleet.com"></div>
+              <div class="ab-fg"><label class="ab-flbl">🔗 LinkedIn (URL)</label><input class="ab-fctrl" id="eqLinkedin" placeholder="https://linkedin.com/in/..."></div>
+            </div>
+
+            <!-- Localisation + Ordre + Options -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+              <div class="ab-fg"><label class="ab-flbl">📍 Localisation</label><input class="ab-fctrl" id="eqLoc" placeholder="Conakry, Guinée"></div>
+              <div class="ab-fg"><label class="ab-flbl">Ordre</label><input class="ab-fctrl" id="eqOrdre" type="number" value="0" min="0"></div>
+              <div class="ab-fg">
+                <label class="ab-flbl">Options</label>
+                <div style="display:flex;gap:12px;margin-top:8px;">
+                  <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" id="eqIsPdg" style="accent-color:var(--orange);"> PDG</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" id="eqEnabled" checked style="accent-color:var(--orange);"> Visible</label>
+                </div>
+              </div>
+            </div>
+
+            <input type="hidden" id="eqEditId">
+          </div>
+          <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;">
+            <button class="ab-btn ab-btn-ghost" onclick="abEqCloseModal()">Annuler</button>
+            <button class="ab-btn ab-btn-primary" onclick="abEqSave()">💾 Sauvegarder</button>
+          </div>
+        </div>
+      </div>
+
       <div class="ab-page" id="abp-animations">
         <div class="ab-ph">
           <div class="ab-ph-left">
@@ -19137,7 +19339,8 @@ const abPageTitles = {
   vitrine:   'Éditeur Vitrine — Textes',
   gallery:   'Galerie Médias',
   videos:    'Vidéos',
-  animations:'Animations Hero'
+  animations:'Animations Hero',
+  equipe:    'Notre Équipe'
 };
 function abGoPage(id) {
   document.querySelectorAll('.ab-page').forEach(function(p){
@@ -19166,6 +19369,7 @@ function abRenderPage(id) {
     gallery:abRenderGalleryAdmin,
     videos:abRenderVideosAdmin,
     animations:abRenderAnimationsAdmin,
+    equipe:abRenderEquipeAdmin,
     vitrine:abRenderVitrine
   };
   if(map[id]) map[id]();
@@ -22513,7 +22717,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // ── ACCÈS ADMIN CACHÉ — 3 méthodes ───────────────────────
   // ── ACCÈS PAGES ADMIN STANDALONE via ?abpage=xxx ──────────────────
   const _abPageParam = new URLSearchParams(location.search).get('abpage');
-  if (_abPageParam && ['gallery','videos'].includes(_abPageParam)) {
+  if (_abPageParam && ['gallery','videos','equipe'].includes(_abPageParam)) {
     // Nettoyer l'URL sans recharger
     history.replaceState(null, '', location.pathname);
     // Attendre que Supabase init puis ouvrir l'admin sur la bonne page
