@@ -307,13 +307,16 @@ const FIREBASE_CONFIG = {
 };
 const CLOUDINARY_QUALITY       = 'auto';
 
-/** Retourne la config Cloudinary active (constantes > localStorage) */
+/** Retourne la config Cloudinary active (localStorage > constantes hardcodées) */
 function _cloudCfg() {
+  // Priorité : config admin sauvegardée > constantes du fichier
+  const saved = JSON.parse(localStorage.getItem('ab_cloudinary') || '{}');
+  if (saved.cloudName && saved.uploadPreset) return saved;
   if (CLOUDINARY_CLOUD_NAME && CLOUDINARY_UPLOAD_PRESET) {
     return { cloudName: CLOUDINARY_CLOUD_NAME, uploadPreset: CLOUDINARY_UPLOAD_PRESET,
              folder: CLOUDINARY_FOLDER, quality: CLOUDINARY_QUALITY };
   }
-  return JSON.parse(localStorage.getItem('ab_cloudinary') || '{}');
+  return {};
 }
 /** Indique si Cloudinary est opérationnel */
 function cloudIsReady() { const c = _cloudCfg(); return !!(c.cloudName && c.uploadPreset); }
@@ -617,6 +620,23 @@ function _nxBrandUrl(asset) {
   const cfg = _cloudCfg();
   if (!cfg.cloudName) return '';
   return `https://res.cloudinary.com/${cfg.cloudName}/image/upload/q_auto,f_auto/noldex/brand/${asset}`;
+}
+
+/**
+ * Normalise une URL Cloudinary :
+ * - Supprime le numéro de version (v1234...) pour toujours servir la dernière photo
+ * - Ajoute f_auto,q_auto si absents
+ * Utiliser partout pour afficher des photos Cloudinary sur la vitrine.
+ */
+function cldUrl(url) {
+  if (!url || !url.includes('cloudinary.com')) return url;
+  // Supprimer /vNNNNNNNNN/ (numéro de version)
+  let u = url.replace(/\/v\d+\//, '/');
+  // Ajouter f_auto,q_auto si pas de transformations
+  if (!u.includes('f_auto') && !u.includes('q_auto')) {
+    u = u.replace('/image/upload/', '/image/upload/f_auto,q_auto/');
+  }
+  return u;
 }
 document.addEventListener('DOMContentLoaded', () => {
   const logo = _nxLogoUrl();
@@ -10747,7 +10767,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="d-db-status d-db-local" id="dDbStatus" title="Statut de la base de données">💾 Local</div>
         <div class="d-icon-btn" onclick="dShowNotif()" title="Alertes &amp; notifications">🔔<div class="notif-dot" id="dNotifDot"></div></div>
         <div class="d-icon-btn" onclick="dSupaSync()" title="Synchroniser avec Supabase">🔄</div>
-        <button class="d-tbtn d-tbtn-orange" onclick="_dCurrentPhotos=[];document.getElementById('dEPhotoPrev')&&(document.getElementById('dEPhotoPrev').innerHTML='');document.getElementById('dEditId').value='';document.getElementById('dModalEnginTitle').textContent='Ajouter un engin';dOpenModal('dModalEngin')">＋ Engin</button>
+        <button class="d-tbtn d-tbtn-orange" onclick="dClearEnginPhoto();document.getElementById('dEditId').value='';document.getElementById('dModalEnginTitle').textContent='Ajouter un engin';dOpenModal('dModalEngin')">＋ Engin</button>
       </div>
     </header>
 
@@ -10817,7 +10837,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <option value="">Tous les statuts</option>
               <option>Disponible</option><option>En location</option><option>En entretien</option>
             </select>
-            <button class="d-btn d-btn-main" onclick="_dCurrentPhotos=[];document.getElementById('dEPhotoPrev')&&(document.getElementById('dEPhotoPrev').innerHTML='');document.getElementById('dEditId').value='';document.getElementById('dModalEnginTitle').textContent='Ajouter un engin';dOpenModal('dModalEngin')">+ Ajouter un engin</button>
+            <button class="d-btn d-btn-main" onclick="dClearEnginPhoto();document.getElementById('dEditId').value='';document.getElementById('dModalEnginTitle').textContent='Ajouter un engin';dOpenModal('dModalEngin')">+ Ajouter un engin</button>
           </div>
         </div>
         <div class="d-g3" id="dEnginsGrid"></div>
@@ -11184,23 +11204,22 @@ service cloud.firestore {
         <div class="d-fg"><label class="d-flbl">Icône</label><select class="d-fctrl" id="dEEmoji"><option value="🚛">🚛 Camion benne</option><option value="🚜">🚜 Chargeuse</option><option value="⛏️">⛏️ Pelle</option><option value="🏗️">🏗️ Grue</option><option value="🚰">🚰 Citerne</option><option value="🚧">🚧 Compacteur</option><option value="⚙️">⚙️ Autre</option></select></div>
         <div class="d-fg"><label class="d-flbl">GPS actif</label><select class="d-fctrl" id="dEGps"><option value="1">Oui — GPS actif</option><option value="0">Non</option></select></div>
         <div class="d-fg full">
-          <label class="d-flbl">📷 Photos de l'engin</label>
-          <div class="nx-drop-zone" id="dEDropZone" onclick="document.getElementById('dEPhotoInput').click()" ondragover="nxDzDragOver(event,'dEDropZone')" ondragleave="nxDzDragLeave('dEDropZone')" ondrop="nxDzDrop(event,'dEPhotoInput')">
-            <div class="nx-dz-placeholder" id="dEDzPlaceholder">
-              <div class="nx-dz-icon">🖼️</div>
-              <div class="nx-dz-text"><strong>Glisser une photo ici</strong>ou cliquer pour parcourir<br><span style="font-size:10px;opacity:.6;">JPG · PNG · WEBP · max 5 Mo</span></div>
-            </div>
-            <div class="nx-dz-grid d-none" id="dEPhotoPrev"></div>
-            <div class="nx-dz-uploading d-none" id="dEDzUploading">
-              <span>⏳ Upload en cours…</span>
-              <div class="nx-dz-bar"><div class="nx-dz-bar-fill" id="dEDzBar" style="width:0%"></div></div>
-            </div>
+          <label class="d-flbl">📷 Photo de l'engin — Public ID Cloudinary</label>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+            <input class="d-fctrl" id="dEPublicId" placeholder="noldex/engins/camion-howo-40t" oninput="dPreviewFromPublicId()" style="flex:1;font-family:monospace;font-size:12px;">
+            <button type="button" class="d-btn d-btn-ghost" onclick="dPreviewFromPublicId()" style="white-space:nowrap;padding:8px 12px;">👁 Aperçu</button>
           </div>
-          <input type="file" id="dEPhotoInput" accept="image/*" multiple style="display:none" onchange="dUploadEnginPhoto(this)">
+          <div style="font-size:10px;opacity:.6;margin-bottom:8px;">Colle le Public ID depuis Cloudinary → Media Library → clique sur la photo → panneau droite</div>
+          <div id="dEPhotoPreviewBox" style="display:none;">
+            <img id="dEPhotoImg" src="" alt="Aperçu" style="max-width:100%;max-height:160px;border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,.1);">
+            <div style="margin-top:4px;font-size:10px;opacity:.5;word-break:break-all;" id="dEPhotoUrlPreview"></div>
+            <button type="button" class="d-btn d-btn-ghost" onclick="dClearEnginPhoto()" style="margin-top:6px;font-size:11px;">🗑 Effacer</button>
+          </div>
+          <input type="hidden" id="dEPhotoUrl">
         </div>
       </div>
     </div>
-    <div class="d-modal-f"><button class="d-btn d-btn-ghost" onclick="dCloseModal('dModalEngin');_dCurrentPhotos=[];document.getElementById('dEPhotoPrev').innerHTML=''">Annuler</button><button class="d-btn d-btn-main" onclick="dSaveEngin()">Enregistrer</button></div>
+    <div class="d-modal-f"><button class="d-btn d-btn-ghost" onclick="dCloseModal('dModalEngin');dClearEnginPhoto()">Annuler</button><button class="d-btn d-btn-main" onclick="dSaveEngin()">Enregistrer</button></div>
   </div>
 </div>
 
@@ -12956,72 +12975,37 @@ function dGenerateContrat(demandeId) {
 // ══════════════════════════════════════════════════════════════════
 // CLOUDINARY — Upload photo engin (dashboard partenaire)
 // ══════════════════════════════════════════════════════════════════
-let _dCurrentPhotos = []; // photos de l'engin en cours d'édition
-
-async function dUploadEnginPhoto(input) {
-  const files = Array.from(input.files || []);
-  if (!files.length) return;
-  if (!cloudIsReady()) {
-    dToast('Cloudinary non configuré. Renseignez Cloud Name & Preset dans Paramètres.','e');
-    return;
+// ── PARTENAIRE — Photo engin via Public ID ────────────────
+function dPreviewFromPublicId() {
+  const pid = (document.getElementById('dEPublicId')?.value || '').trim();
+  const box  = document.getElementById('dEPhotoPreviewBox');
+  const img  = document.getElementById('dEPhotoImg');
+  const lbl  = document.getElementById('dEPhotoUrlPreview');
+  const hid  = document.getElementById('dEPhotoUrl');
+  if (!pid) { if(box) box.style.display='none'; if(hid) hid.value=''; return; }
+  const cfg = _cloudCfg();
+  const cn  = cfg.cloudName || 'dpyboca4x';
+  const url = `https://res.cloudinary.com/${cn}/image/upload/f_auto,q_auto/${pid}`;
+  if(img) {
+    img.src = url;
+    img.onerror = () => { dToast('Public ID introuvable sur Cloudinary.','e'); if(box) box.style.display='none'; if(hid) hid.value=''; };
+    img.onload  = () => { if(box) box.style.display='block'; };
   }
-  // Show uploading state
-  const zone = document.getElementById('dEDropZone');
-  const placeholder = document.getElementById('dEDzPlaceholder');
-  const uploading = document.getElementById('dEDzUploading');
-  const prev = document.getElementById('dEPhotoPrev');
-  const bar = document.getElementById('dEDzBar');
-  if (zone) zone.classList.add('uploading');
-  if (placeholder) placeholder.classList.add('d-none');
-  if (uploading) uploading.classList.remove('d-none');
-
-  try {
-    const cfg = _cloudCfg();
-    for (let i = 0; i < files.length; i++) {
-      if (bar) bar.style.width = Math.round((i / files.length) * 80) + '%';
-      const fd = new FormData();
-      fd.append('file', files[i]);
-      fd.append('upload_preset', cfg.uploadPreset);
-      fd.append('folder', cfg.folder || 'noldex/engins');
-      fd.append('quality', cfg.quality || 'auto');
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${cfg.cloudName}/image/upload`, {method:'POST',body:fd});
-      if (!res.ok) throw new Error((await res.json()).error?.message || 'Erreur upload');
-      const data = await res.json();
-      _dCurrentPhotos.push(data.secure_url);
-    }
-    if (bar) bar.style.width = '100%';
-    dRefreshPhotoPrev();
-    dToast(`📸 ${files.length > 1 ? files.length + ' photos ajoutées' : 'Photo ajoutée'}.`, 's');
-  } catch(e) {
-    dToast('Erreur upload : ' + e.message, 'e');
-    if (placeholder) placeholder.classList.remove('d-none');
-  } finally {
-    if (zone) zone.classList.remove('uploading');
-    if (uploading) uploading.classList.add('d-none');
-    if (bar) bar.style.width = '0%';
-    input.value = '';
-  }
+  if(lbl) lbl.textContent = url;
+  if(hid) hid.value = url;
+}
+function dClearEnginPhoto() {
+  const pid = document.getElementById('dEPublicId');
+  const hid = document.getElementById('dEPhotoUrl');
+  const box = document.getElementById('dEPhotoPreviewBox');
+  if(pid) pid.value = '';
+  if(hid) hid.value = '';
+  if(box) box.style.display = 'none';
 }
 
-function dRefreshPhotoPrev() {
-  const prev = document.getElementById('dEPhotoPrev');
-  const placeholder = document.getElementById('dEDzPlaceholder');
-  if (!prev) return;
-  if (_dCurrentPhotos.length === 0) {
-    prev.classList.add('d-none');
-    prev.innerHTML = '';
-    if (placeholder) placeholder.classList.remove('d-none');
-    return;
-  }
-  if (placeholder) placeholder.classList.add('d-none');
-  prev.classList.remove('d-none');
-  prev.innerHTML = _dCurrentPhotos.map((u, i) => `
-    <div class="nx-dz-thumb">
-      <img src="${u}" alt="photo ${i+1}">
-      <button class="nx-dz-thumb-del" onclick="event.stopPropagation();_dCurrentPhotos.splice(${i},1);dRefreshPhotoPrev()">✕</button>
-    </div>`).join('') +
-    `<div class="nx-dz-add" onclick="event.stopPropagation();document.getElementById('dEPhotoInput').click()" title="Ajouter une photo">＋</div>`;
-}
+
+
+
 
 // ══════════════════════════════════════════════════════════════════
 // MODULE PAIEMENTS — Enregistrement + Preuve Cloudinary
@@ -13060,10 +13044,11 @@ async function dUploadPreuvePaiement(input) {
     fd.append('file', file);
     fd.append('upload_preset', cfg.uploadPreset);
     fd.append('folder', (cfg.folder||'noldex')+'/preuves');
+    fd.append('invalidate', 'true');
     const res = await fetch(`https://api.cloudinary.com/v1_1/${cfg.cloudName}/image/upload`,{method:'POST',body:fd});
     if (!res.ok) throw new Error((await res.json()).error?.message||'Erreur');
     const data = await res.json();
-    _dPaiPreuveUrl = data.secure_url;
+    _dPaiPreuveUrl = cldUrl(data.secure_url);
     if (previewEl) {
       previewEl.classList.remove('d-none');
       previewEl.innerHTML = `✅ ${file.name} <a href="${_dPaiPreuveUrl}" target="_blank" style="color:#4f8ef0;text-decoration:none;font-size:10px;margin-left:6px;">Voir →</a>`;
@@ -13396,9 +13381,22 @@ function dEditEngin(id) {
   document.getElementById('dEDesc').value=e.desc||'';
   document.getElementById('dEEmoji').value=e.emoji;
   document.getElementById('dEGps').value=e.gps?'1':'0';
-  // Charger les photos existantes
-  _dCurrentPhotos = [...(e.photos||[])];
-  dRefreshPhotoPrev();
+  // Charger la photo existante
+  const photoUrl = (e.photos && e.photos[0]) || e.image || '';
+  const pidEl = document.getElementById('dEPublicId');
+  const hidEl = document.getElementById('dEPhotoUrl');
+  if (photoUrl && pidEl) {
+    const match = photoUrl.match(/\/upload\/(?:[^/]+\/)?(.+)$/);
+    const pid = match ? match[1].replace(/\.\w+$/, '') : '';
+    pidEl.value = pid;
+    if(hidEl) hidEl.value = photoUrl;
+    dPreviewFromPublicId();
+  } else {
+    if(pidEl) pidEl.value = '';
+    if(hidEl) hidEl.value = '';
+    const box = document.getElementById('dEPhotoPreviewBox');
+    if(box) box.style.display = 'none';
+  }
   document.getElementById('dModalEnginTitle').textContent='Modifier l\'engin';
   dOpenModal('dModalEngin');
 }
@@ -13426,7 +13424,7 @@ function dSaveEngin() {
     desc:document.getElementById('dEDesc').value.trim(),
     emoji:document.getElementById('dEEmoji').value,
     gps:document.getElementById('dEGps').value==='1',
-    photos: [..._dCurrentPhotos],
+    photos: [document.getElementById('dEPhotoUrl').value].filter(Boolean),
   };
   if (!e.nom)    { dToast('Nom requis.','e'); return; }
   if (!e.tarifJ) { dToast('Tarif requis.','e'); return; }
@@ -13434,7 +13432,7 @@ function dSaveEngin() {
   if (id) eng = eng.map(x=>x.id===id?e:x); else eng.push(e);
   dDB.set('engins',eng);
   dSaveEnginToSupa(e); // sync Supabase (async, non bloquant)
-  _dCurrentPhotos = [];
+
   document.getElementById('dEditId').value='';
   document.getElementById('dModalEnginTitle').textContent='Ajouter un engin';
   dCloseModal('dModalEngin');
@@ -17600,26 +17598,21 @@ create policy "public_all" on platform_params for all using (true) with check (t
         <div class="ab-fg full"><label class="ab-flbl">Statut</label>
           <select class="ab-fctrl" id="abEStatut"><option>Disponible</option><option>En location</option><option>Maintenance</option></select>
         </div>
-        <!-- Photo Cloudinary -->
+        <!-- Photo Cloudinary — Public ID -->
         <div class="ab-fg full">
-          <label class="ab-flbl">Photo de l'engin <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;">— via Cloudinary</span></label>
-          <div class="ab-photo-zone" id="abEPhotoZone">
-            <div class="ab-photo-placeholder" id="abEPhotoPlaceholder" onclick="document.getElementById('abEPhotoFile').click()">
-              <span style="font-size:28px;">📷</span>
-              <span>Cliquer pour uploader une photo</span>
-              <span style="font-size:10px;">JPG, PNG, WEBP — max 10 Mo</span>
-            </div>
-            <img id="abEPhotoImg" class="ab-photo-preview d-none" src="" alt="Photo engin">
-            <div class="ab-photo-uploading d-none" id="abEPhotoUploading">
-              <span>Upload en cours…</span>
-              <div class="ab-progress"><div class="ab-progress-bar" id="abEProgressBar" style="width:0%"></div></div>
-            </div>
+          <label class="ab-flbl">Photo de l'engin <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;">— Public ID Cloudinary</span></label>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+            <input class="ab-fctrl" id="abEPublicId" placeholder="noldex/engins/camion-howo-40t" oninput="abPreviewFromPublicId()" style="flex:1;font-family:monospace;font-size:12px;">
+            <button type="button" class="ab-btn ab-btn-ghost ab-btn-sm" onclick="abPreviewFromPublicId()" style="white-space:nowrap;">👁 Aperçu</button>
           </div>
-          <div class="ab-photo-actions d-none" id="abEPhotoActions">
-            <button class="ab-btn ab-btn-ghost ab-btn-sm" onclick="document.getElementById('abEPhotoFile').click()">🔄 Changer</button>
-            <button class="ab-btn ab-btn-ghost ab-btn-sm c-red" onclick="abClearEnginPhoto()">🗑 Supprimer</button>
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">
+            Trouve le Public ID dans Cloudinary → Media Library → clique sur la photo → panneau de droite
           </div>
-          <input type="file" id="abEPhotoFile" accept="image/*" class="d-none" onchange="abUploadEnginPhoto(this.files[0])">
+          <div id="abEPhotoPreviewBox" style="display:none;margin-top:8px;">
+            <img id="abEPhotoImg" src="" alt="Aperçu" style="max-width:100%;max-height:180px;border-radius:8px;border:1px solid var(--border-color);object-fit:cover;">
+            <div style="margin-top:4px;font-size:10px;color:var(--text-muted);word-break:break-all;" id="abEPhotoUrlPreview"></div>
+            <button type="button" class="ab-btn ab-btn-ghost ab-btn-sm c-red" onclick="abClearEnginPhoto()" style="margin-top:6px;">🗑 Effacer</button>
+          </div>
           <input type="hidden" id="abEPhotoUrl">
         </div>
       </div>
@@ -21324,13 +21317,6 @@ function abLoadCloudConfig() {
   if(cfg.uploadPreset) document.getElementById('abCloudPreset').value  = cfg.uploadPreset;
   if(cfg.folder)       document.getElementById('abCloudFolder').value  = cfg.folder;
   if(cfg.quality)      document.getElementById('abCloudQuality').value = cfg.quality;
-  // Si constantes hardcodées → champs en lecture seule
-  if(CLOUDINARY_CLOUD_NAME && CLOUDINARY_UPLOAD_PRESET) {
-    ['abCloudName','abCloudPreset'].forEach(id => {
-      const el = document.getElementById(id);
-      if(el) { el.readOnly = true; el.style.opacity = '.6'; el.title = 'Défini dans la configuration du fichier'; }
-    });
-  }
   abUpdateCloudBadge(cloudIsReady());
 }
 function abSaveCloudConfig() {
@@ -21388,53 +21374,46 @@ async function abUploadToCloudinary(file) {
   fd.append('upload_preset', cfg.uploadPreset);
   if(cfg.folder) fd.append('folder', cfg.folder);
   if(cfg.quality) { fd.append('quality', cfg.quality); fd.append('fetch_format', 'auto'); }
+  fd.append('invalidate', 'true'); // purge CDN automatiquement
   const res = await fetch(`https://api.cloudinary.com/v1_1/${cfg.cloudName}/image/upload`, {method:'POST', body:fd});
   if(!res.ok) { const err=await res.json(); throw new Error(err.error?.message||'Erreur upload'); }
   const data = await res.json();
-  return data.secure_url;
+  return cldUrl(data.secure_url); // URL sans version → toujours la dernière photo
 }
-async function abUploadEnginPhoto(file) {
-  if(!file) return;
-  // Vérif taille max 10Mo
-  if(file.size > 10*1024*1024) { abToast('Image trop lourde (max 10 Mo).','e'); return; }
-  const uploading = document.getElementById('abEPhotoUploading');
-  const progress  = document.getElementById('abEProgressBar');
-  uploading.style.display='flex';
-  // Fake progress animation
-  let pct=0;
-  const timer = setInterval(()=>{ pct=Math.min(pct+8,85); progress.style.width=pct+'%'; },150);
-  try {
-    const url = await abUploadToCloudinary(file);
-    clearInterval(timer); progress.style.width='100%';
-    setTimeout(()=>{ uploading.style.display='none'; abSetEnginPhotoPreview(url); },400);
-    abToast('Photo uploadée avec succès ✅','s');
-  } catch(e) {
-    clearInterval(timer); uploading.style.display='none';
-    abToast('Erreur upload : '+e.message,'e');
-  }
-}
-function abSetEnginPhotoPreview(url) {
-  document.getElementById('abEPhotoUrl').value = url;
-  const img = document.getElementById('abEPhotoImg');
-  const placeholder = document.getElementById('abEPhotoPlaceholder');
-  const actions = document.getElementById('abEPhotoActions');
-  const zone = document.getElementById('abEPhotoZone');
-  img.src=url; img.style.display='block';
-  placeholder.style.display='none';
-  actions.style.display='flex';
-  zone.classList.add('has-photo');
+// ── ADMIN — Photo engin via Public ID ────────────────────
+function abPreviewFromPublicId() {
+  const pid = document.getElementById('abEPublicId').value.trim();
+  const box  = document.getElementById('abEPhotoPreviewBox');
+  const img  = document.getElementById('abEPhotoImg');
+  const lbl  = document.getElementById('abEPhotoUrlPreview');
+  const hid  = document.getElementById('abEPhotoUrl');
+  if (!pid) { box.style.display = 'none'; hid.value = ''; return; }
+  const cfg = _cloudCfg();
+  const cn  = cfg.cloudName || 'dpyboca4x';
+  const url = `https://res.cloudinary.com/${cn}/image/upload/f_auto,q_auto/${pid}`;
+  img.src = url;
+  img.onerror = () => { abToast('Public ID introuvable sur Cloudinary.','e'); box.style.display='none'; hid.value=''; };
+  img.onload  = () => { box.style.display='block'; };
+  lbl.textContent = url;
+  hid.value = url;
 }
 function abClearEnginPhoto() {
-  document.getElementById('abEPhotoUrl').value='';
-  document.getElementById('abEPhotoFile').value='';
-  const img=document.getElementById('abEPhotoImg');
-  if(img){ img.src=''; img.style.display='none'; }
-  const pl=document.getElementById('abEPhotoPlaceholder');
-  if(pl) pl.style.display='flex';
-  const ac=document.getElementById('abEPhotoActions');
-  if(ac) ac.style.display='none';
-  const zo=document.getElementById('abEPhotoZone');
-  if(zo) zo.classList.remove('has-photo');
+  document.getElementById('abEPublicId').value = '';
+  document.getElementById('abEPhotoUrl').value = '';
+  document.getElementById('abEPhotoPreviewBox').style.display = 'none';
+}
+// Pré-remplir le champ Public ID lors de l'édition d'un engin existant
+function abSetEnginPhotoPreview(url) {
+  if (!url) return;
+  // Extraire le Public ID depuis l'URL Cloudinary
+  const match = url.match(/\/upload\/(?:f_auto,q_auto\/)?(.+)$/);
+  const pid = match ? match[1].replace(/\.\w+$/, '') : '';
+  if (pid) document.getElementById('abEPublicId').value = pid;
+  document.getElementById('abEPhotoUrl').value = url;
+  const box = document.getElementById('abEPhotoPreviewBox');
+  const img = document.getElementById('abEPhotoImg');
+  const lbl = document.getElementById('abEPhotoUrlPreview');
+  img.src = url; box.style.display = 'block'; lbl.textContent = url;
 }
 
 // GPS TRACCAR — CONFIG, TEST & POLLING
@@ -22703,12 +22682,13 @@ window.cmsUploadImg = async function(input, cfgKey, zoneId, placeholderId, previ
     fd.append('file', file);
     fd.append('upload_preset', cfg.uploadPreset);
     fd.append('folder', (cfg.folder || 'noldex') + '/vitrine');
+    fd.append('invalidate', 'true');
     const res = await fetch(`https://api.cloudinary.com/v1_1/${cfg.cloudName}/image/upload`, { method:'POST', body:fd });
     if (!res.ok) throw new Error((await res.json()).error?.message || 'Erreur');
     const data = await res.json();
-    _cfg[cfgKey] = data.secure_url;
+    _cfg[cfgKey] = cldUrl(data.secure_url);
     const urlInput = document.getElementById('cms_' + cfgKey);
-    if (urlInput) urlInput.value = data.secure_url;
+    if (urlInput) urlInput.value = cldUrl(data.secure_url);
     if (preview) { preview.src = data.secure_url; preview.style.display = 'block'; }
     cmsMark();
     if (window.abToast) abToast('📸 Image uploadée.', 's');
