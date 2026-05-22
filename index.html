@@ -3488,7 +3488,7 @@ textarea.d-fctrl { resize: vertical; min-height: 80px; }
 /* ===== ADMIN TOPBAR — bouton QR ===== */
 #dashAdminOverlay {
   display:none; position:fixed; inset:0; z-index:7000;
-  background:#0d1117; flex-direction:row; overflow:hidden;
+  background:var(--steel); flex-direction:row; overflow:hidden;
 }
 #dashAdminOverlay.open { display:flex; }
 
@@ -3499,8 +3499,8 @@ textarea.d-fctrl { resize: vertical; min-height: 80px; }
 /* ── SIDEBAR ─────────────────────────────────────────── */
 .ab-sidebar {
   width:248px; flex-shrink:0;
-  background:linear-gradient(180deg,#060c18 0%,#04080f 100%);
-  border-right:1px solid rgba(99,179,255,.08);
+  background:linear-gradient(180deg,#08090d 0%,#060709 100%);
+  border-right:1px solid rgba(255,255,255,.06);
   display:flex; flex-direction:column;
   transition:transform 0.28s cubic-bezier(.4,0,.2,1);
   overflow:hidden;
@@ -12991,13 +12991,34 @@ const galDB = {
 
 let _galData = [];
 
-function galleryRender() {
-  _galData = galDB.get();
+async function galleryRender() {
+  // 1) Charger depuis Cloudinary (tag noldex_galerie) — source principale
+  const cloudItems = await cldFetchList('image', 'noldex_galerie');
+  if (cloudItems && cloudItems.length) {
+    _galData = cloudItems.map(r => {
+      const ctx = (r.context && r.context.custom) || {};
+      return {
+        publicId: r.public_id,
+        nom:    ctx.nom    || ctx.caption || r.public_id.split('/').pop(),
+        type:   ctx.type   || 'Engin',
+        ville:  ctx.ville  || '',
+        statut: ctx.statut || 'Disponible',
+        cap:    ctx.cap    || ctx.capacite || '',
+        annee:  ctx.annee  || '',
+        marque: ctx.marque || '',
+        modele: ctx.modele || '',
+        prix:   parseInt(ctx.prix) || 0,
+        gps:    ctx.gps === 'true' || ctx.gps === '1',
+        desc:   ctx.desc   || ctx.description || '',
+      };
+    });
+  } else {
+    // 2) Fallback : données locales (back-office médias)
+    _galData = galDB.get();
+  }
 
-  // Remplir les selects de filtres
   const types  = [...new Set(_galData.map(e => e.type).filter(Boolean))].sort();
   const villes = [...new Set(_galData.map(e => e.ville).filter(Boolean))].sort();
-
   const selType  = document.getElementById('galType');
   const selVille = document.getElementById('galVille');
   if (selType) {
@@ -13010,8 +13031,26 @@ function galleryRender() {
     selVille.innerHTML = '<option value="">Toutes les villes</option>' +
       villes.map(v => `<option value="${v}"${v===cur?' selected':''}>${v}</option>`).join('');
   }
-
   galleryFilter();
+}
+
+/**
+ * Récupère la liste des médias Cloudinary par tag (client-side resource list).
+ * Nécessite que "Resource list" soit activé dans Cloudinary (Settings → Security).
+ * @param {string} type - 'image' ou 'video'
+ * @param {string} tag  - le tag à lister
+ */
+async function cldFetchList(type, tag) {
+  const cfg = _cloudCfg();
+  const cn  = cfg.cloudName || 'dpyboca4x';
+  try {
+    const res = await fetch(`https://res.cloudinary.com/${cn}/${type}/list/${tag}.json`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data && data.resources) ? data.resources : null;
+  } catch (e) {
+    return null; // Cloudinary list non activé ou réseau → fallback
+  }
 }
 
 function galleryFilter() {
@@ -13151,17 +13190,36 @@ function _vidPlayer(v, featured) {
           </div>`;
 }
 
-function renderVideos() {
+async function renderVideos() {
   const container = document.getElementById('nxVideosContainer');
   if (!container) return;
-  const items = vidDB.get();
+
+  // 1) Charger depuis Cloudinary (tag noldex_videos)
+  let items = [];
+  const cloudVids = await cldFetchList('video', 'noldex_videos');
+  if (cloudVids && cloudVids.length) {
+    items = cloudVids.map((r, i) => {
+      const ctx = (r.context && r.context.custom) || {};
+      return {
+        id: r.public_id, source:'cloudinary', publicId:r.public_id, youtubeId:'',
+        title: ctx.title || ctx.titre || r.public_id.split('/').pop(),
+        type:  ctx.type  || '🎬 Vidéo',
+        desc:  ctx.desc  || ctx.description || '',
+        featured: ctx.featured === 'true' || ctx.featured === '1' || i === 0,
+        ordre: parseInt(ctx.ordre) || i,
+        leadText: ctx.lead || ctx.leadText || '',
+      };
+    }).sort((a,b) => (a.ordre||0)-(b.ordre||0));
+  } else {
+    items = vidDB.get(); // fallback localStorage
+  }
 
   if (!items.length) {
     container.innerHTML = `
       <div style="text-align:center;padding:60px 20px;color:var(--text-dim);">
         <div style="font-size:40px;margin-bottom:12px;">🎬</div>
         <div style="font-size:16px;font-weight:600;color:var(--text);">Aucune vidéo configurée</div>
-        <div style="font-size:13px;margin-top:6px;">Ajoutez des vidéos depuis le Back-Office → Vidéos</div>
+        <div style="font-size:13px;margin-top:6px;">Taguez vos vidéos « noldex_videos » sur Cloudinary</div>
       </div>`;
     return;
   }
@@ -13207,430 +13265,6 @@ function renderVideos() {
 }
 
 document.addEventListener('DOMContentLoaded', renderVideos);
-
-// ── ADMIN — NOTRE ÉQUIPE ──────────────────────────────────────────
-function abRenderEquipeAdmin() {
-  const cfg = _cloudCfg(), cn = cfg.cloudName||'dpyboca4x';
-  const members = equipeDB.getMembers().sort((a,b)=>(a.ordre||0)-(b.ordre||0));
-  const list = document.getElementById('abEqList');
-  if (list) {
-    list.innerHTML = members.map(m => {
-      const thumb = m.publicId ? `https://res.cloudinary.com/${cn}/image/upload/c_fill,w_60,h_60,f_auto,q_auto,g_face/${m.publicId}` : '';
-      return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;">
-        <div style="width:44px;height:44px;border-radius:50%;overflow:hidden;background:var(--steel);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid var(--border);">
-          ${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.textContent='👤'">` : '👤'}
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <span style="font-weight:700;font-size:14px;color:var(--text);">${m.nom}</span>
-            ${m.isPdg?'<span style="background:rgba(201,168,76,.15);color:#C9A84C;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;">PDG</span>':''}
-            ${!m.enabled?'<span style="background:rgba(150,150,150,.1);color:#888;font-size:10px;padding:2px 7px;border-radius:10px;">Masqué</span>':''}
-          </div>
-          <div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${m.role} · ${m.dept}</div>
-        </div>
-        <div style="display:flex;gap:6px;flex-shrink:0;">
-          <button class="ab-btn ab-btn-ghost ab-btn-sm" onclick="abEqEdit('${m.id}')">✏️</button>
-          <button class="ab-btn ab-btn-ghost ab-btn-sm c-red" onclick="abEqDelete('${m.id}')">🗑</button>
-        </div>
-      </div>`;
-    }).join('') || '<div style="color:var(--text-dim);font-size:13px;padding:20px 0;">Aucun membre. Cliquez sur ＋ pour ajouter.</div>';
-  }
-
-  // Valeurs
-  const valeursEl = document.getElementById('abEqValeurs');
-  if (valeursEl) {
-    const valeurs = equipeDB.getValeurs();
-    valeursEl.innerHTML = valeurs.map((v,i) => `
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <input class="ab-fctrl" value="${v.icon}" style="width:44px;text-align:center;font-size:20px;padding:4px;" onchange="abEqUpdateValeur(${i},'icon',this.value)">
-          <input class="ab-fctrl" value="${v.titre}" style="flex:1;font-weight:700;" onchange="abEqUpdateValeur(${i},'titre',this.value)">
-        </div>
-        <button class="ab-btn ab-btn-ghost ab-btn-sm c-red" onclick="abEqDeleteValeur(${i})" style="margin-left:8px;">🗑</button>
-      </div>
-      <textarea class="ab-fctrl" rows="2" style="resize:vertical;font-size:12px;" onchange="abEqUpdateValeur(${i},'desc',this.value)">${v.desc}</textarea>
-    </div>`).join('');
-  }
-}
-
-function abEqOpenModal(id) {
-  document.getElementById('eqEditId').value = id||'';
-  document.getElementById('abEqModalTitle').textContent = id?'Modifier le membre':'Ajouter un membre';
-  ['eqPublicId','eqNom','eqRole','eqDept','eqBio','eqTel','eqWa','eqEmail','eqLinkedin','eqLoc'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
-  document.getElementById('eqDeptType').value='direction';
-  document.getElementById('eqOrdre').value='0';
-  document.getElementById('eqIsPdg').checked=false;
-  document.getElementById('eqEnabled').checked=true;
-  document.getElementById('eqThumb').innerHTML='👤';
-  if(id){
-    const m=equipeDB.getMembers().find(x=>x.id===id);
-    if(m){
-      document.getElementById('eqPublicId').value=m.publicId||'';
-      document.getElementById('eqNom').value=m.nom||'';
-      document.getElementById('eqRole').value=m.role||'';
-      document.getElementById('eqDept').value=m.dept||'';
-      document.getElementById('eqDeptType').value=m.deptType||'direction';
-      document.getElementById('eqBio').value=m.bio||'';
-      document.getElementById('eqTel').value=m.tel||'';
-      document.getElementById('eqWa').value=m.whatsapp||'';
-      document.getElementById('eqEmail').value=m.email||'';
-      document.getElementById('eqLinkedin').value=m.linkedin||'';
-      document.getElementById('eqLoc').value=m.location||'';
-      document.getElementById('eqOrdre').value=m.ordre||0;
-      document.getElementById('eqIsPdg').checked=!!m.isPdg;
-      document.getElementById('eqEnabled').checked=m.enabled!==false;
-      if(m.publicId) abEqPreview();
-    }
-  }
-  document.getElementById('abEqModal').style.display='flex';
-  document.body.style.overflow='hidden';
-}
-function abEqCloseModal(){document.getElementById('abEqModal').style.display='none';document.body.style.overflow='';}
-function abEqEdit(id){abEqOpenModal(id);}
-function abEqDelete(id){if(!confirm('Supprimer ce membre ?'))return;equipeDB.removeMember(id);abRenderEquipeAdmin();renderEquipe();abToast('Membre supprimé.','s');}
-function abEqPreview(){
-  const pid=document.getElementById('eqPublicId').value.trim();
-  const thumb=document.getElementById('eqThumb');
-  if(!pid){thumb.innerHTML='👤';return;}
-  const cfg=_cloudCfg(),cn=cfg.cloudName||'dpyboca4x';
-  const url=`https://res.cloudinary.com/${cn}/image/upload/c_fill,w_60,h_60,f_auto,q_auto,g_face/${pid}`;
-  thumb.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='👤'">`;
-}
-function abEqSave(){
-  const nom=document.getElementById('eqNom').value.trim();
-  if(!nom){abToast('Le nom est requis.','e');return;}
-  const m={
-    publicId:document.getElementById('eqPublicId').value.trim(),
-    nom, role:document.getElementById('eqRole').value.trim(),
-    dept:document.getElementById('eqDept').value.trim(),
-    deptType:document.getElementById('eqDeptType').value,
-    bio:document.getElementById('eqBio').value.trim(),
-    tel:document.getElementById('eqTel').value.trim(),
-    whatsapp:document.getElementById('eqWa').value.trim(),
-    email:document.getElementById('eqEmail').value.trim(),
-    linkedin:document.getElementById('eqLinkedin').value.trim(),
-    location:document.getElementById('eqLoc').value.trim(),
-    ordre:parseInt(document.getElementById('eqOrdre').value)||0,
-    isPdg:document.getElementById('eqIsPdg').checked,
-    enabled:document.getElementById('eqEnabled').checked,
-  };
-  const editId=document.getElementById('eqEditId').value;
-  if(editId){equipeDB.updateMember(editId,m);abToast('Membre mis à jour.','s');}
-  else{equipeDB.addMember(m);abToast('Membre ajouté.','s');}
-  abEqCloseModal();abRenderEquipeAdmin();renderEquipe();
-}
-function abEqUpdateValeur(i,field,val){
-  const v=equipeDB.getValeurs();v[i][field]=val;equipeDB.saveValeurs(v);renderEquipe();
-}
-function abEqDeleteValeur(i){
-  if(!confirm('Supprimer cette valeur ?'))return;
-  const v=equipeDB.getValeurs();v.splice(i,1);equipeDB.saveValeurs(v);abRenderEquipeAdmin();renderEquipe();
-}
-function abEqAddValeur(){
-  const v=equipeDB.getValeurs();
-  v.push({id:'v_'+Date.now(),icon:'⭐',titre:'Nouvelle valeur',desc:'Description de la valeur.'});
-  equipeDB.saveValeurs(v);abRenderEquipeAdmin();renderEquipe();
-}
-
-// ── ADMIN — ANIMATIONS HERO ───────────────────────────────────────
-function abRenderAnimationsAdmin() {
-  const list = document.getElementById('abAnimLayers');
-  if (!list) return;
-  const layers = animDB.get();
-  const cfg = _cloudCfg();
-  const cn  = cfg.cloudName || 'dpyboca4x';
-
-  list.innerHTML = layers.map((layer, idx) => {
-    const thumb = layer.publicId
-      ? `https://res.cloudinary.com/${cn}/image/upload/f_auto,q_auto,h_80/${layer.publicId}`
-      : '';
-    return `
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">
-
-      <!-- Aperçu SVG ou image -->
-      <div style="flex-shrink:0;width:160px;height:70px;background:#0a0c14;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);">
-        ${thumb
-          ? `<img src="${thumb}" style="max-height:64px;width:auto;filter:brightness(0) invert(1);opacity:.7;" onerror="this.style.display='none'">`
-          : `<div style="opacity:.5;transform:scale(.35);transform-origin:left center;">${layer.svg}</div>`}
-      </div>
-
-      <!-- Contrôles -->
-      <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:10px;">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <div style="font-weight:700;font-size:14px;color:var(--text);">${idx+1}. ${layer.label}</div>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;margin-left:auto;">
-            <input type="checkbox" ${layer.enabled?'checked':''} onchange="animDB.updateLayer('${layer.id}',{enabled:this.checked});renderHeroAnimations();abRenderAnimationsAdmin();" style="accent-color:var(--orange);">
-            Activer
-          </label>
-        </div>
-
-        <!-- Public ID -->
-        <div>
-          <label style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;">Public ID Cloudinary <span style="color:var(--text-muted);">(laisser vide = SVG par défaut)</span></label>
-          <div style="display:flex;gap:8px;">
-            <input class="ab-fctrl" value="${layer.publicId||''}"
-              placeholder="noldex/animations/camion-benne"
-              style="flex:1;font-family:monospace;font-size:12px;"
-              onchange="animDB.updateLayer('${layer.id}',{publicId:this.value.trim()});renderHeroAnimations();abRenderAnimationsAdmin();">
-            ${layer.publicId ? `<button class="ab-btn ab-btn-ghost ab-btn-sm c-red" onclick="animDB.updateLayer('${layer.id}',{publicId:''});renderHeroAnimations();abRenderAnimationsAdmin();">✕</button>` : ''}
-          </div>
-        </div>
-
-        <!-- Opacité + Vitesse -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          <div>
-            <label style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;">Opacité</label>
-            <input type="range" min="0.02" max="0.4" step="0.01" value="${layer.opacity}"
-              style="width:100%;accent-color:var(--orange);"
-              oninput="this.nextElementSibling.textContent=Math.round(this.value*100)+'%'"
-              onchange="animDB.updateLayer('${layer.id}',{opacity:parseFloat(this.value)});renderHeroAnimations();">
-            <span style="font-size:11px;color:var(--text-dim);">${Math.round(layer.opacity*100)}%</span>
-          </div>
-          <div>
-            <label style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;">Durée animation</label>
-            <input class="ab-fctrl" value="${layer.duration}" style="font-size:12px;"
-              onchange="animDB.updateLayer('${layer.id}',{duration:this.value});renderHeroAnimations();">
-          </div>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ── ADMIN — VIDÉOS ────────────────────────────────────────────────
-function abRenderVideosAdmin() {
-  const items = vidDB.get().sort((a,b) => (a.ordre||0)-(b.ordre||0));
-  const list  = document.getElementById('abVidList');
-  const empty = document.getElementById('abVidEmpty');
-  if (!list) return;
-  if (!items.length) { list.innerHTML=''; if(empty)empty.style.display='block'; return; }
-  if (empty) empty.style.display = 'none';
-  list.innerHTML = items.map(v => {
-    const srcBadge = v.source==='cloudinary'
-      ? `<span style="background:rgba(232,96,10,.15);color:var(--orange);border:1px solid rgba(232,96,10,.3);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">☁️ Cloudinary</span>`
-      : `<span style="background:rgba(255,0,0,.1);color:#f44;border:1px solid rgba(255,0,0,.2);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">▶️ YouTube</span>`;
-    const featBadge = v.featured ? `<span style="background:rgba(232,96,10,.15);color:var(--orange);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">⭐ Principale</span>` : '';
-    const ref = v.source==='cloudinary' ? (v.publicId||'—') : (v.youtubeId||'—');
-    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px;">
-      <div style="font-size:28px;flex-shrink:0;">🎬</div>
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">${srcBadge} ${featBadge}<span style="font-size:11px;color:var(--text-dim);">Ordre ${v.ordre||0}</span></div>
-        <div style="font-weight:700;font-size:14px;color:var(--text);">${v.title||'—'}</div>
-        <div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${v.type||''}</div>
-        <div style="font-family:monospace;font-size:10px;color:var(--text-dim);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ref}</div>
-      </div>
-      <div style="display:flex;gap:8px;flex-shrink:0;">
-        <button class="ab-btn ab-btn-ghost ab-btn-sm" onclick="abVidEdit('${v.id}')">✏️</button>
-        <button class="ab-btn ab-btn-ghost ab-btn-sm c-red" onclick="abVidDelete('${v.id}')">🗑</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-function abVidSeedDemo() {
-  if (!confirm('Charger 4 vidéos YouTube de démonstration ? Vous pourrez les remplacer par vos propres vidéos Cloudinary.')) return;
-  const demos = [
-    { source:'youtube', youtubeId:'UvW6LsK8ASE', title:'Flotte NOLDEX en action — Chantiers miniers & BTP Guinée', type:'🚛 Flotte complète', desc:'Camions benne, chargeuses et pelles au travail sur les chantiers guinéens.', featured:true, ordre:0, leadText:'Camions benne, chargeuses, pelles mécaniques et grues au travail sur les chantiers guinéens et miniers d\'Afrique de l\'Ouest.' },
-    { source:'youtube', youtubeId:'uPSdrYqYWeU', title:'Camion Benne HOWO 40T — Transport minerai', type:'🚛 Camion Benne', desc:'Transport de minerai · Siguiri · Haute Guinée', featured:false, ordre:1 },
-    { source:'youtube', youtubeId:'y-N83asG-K8', title:'Chargeuse Caterpillar 966H — Terrassement', type:'🚜 Chargeuse CAT', desc:'Terrassement & chargement · Zone industrielle Boké', featured:false, ordre:2 },
-    { source:'youtube', youtubeId:'iPG267idrrY', title:'Pelle Komatsu PC200 — Excavation BTP', type:'⛏️ Pelle hydraulique', desc:'Excavation fondations · Chantier BTP Conakry', featured:false, ordre:3 },
-  ];
-  demos.forEach(d => vidDB.add(d));
-  abToast('4 vidéos de démonstration ajoutées. Remplacez-les par vos vidéos Cloudinary.', 's');
-  abRenderVideosAdmin();
-  renderVideos();
-}
-
-function abVidToggleSource() {
-  const src = document.getElementById('avSource').value;
-  document.getElementById('avCldBlock').style.display = src==='cloudinary' ? '' : 'none';
-  document.getElementById('avYtBlock').style.display  = src==='youtube'    ? '' : 'none';
-}
-function abVidOpenModal(id) {
-  document.getElementById('avEditId').value = id || '';
-  document.getElementById('abVidModalTitle').textContent = id ? 'Modifier la vidéo' : 'Ajouter une vidéo';
-  ['avPublicId','avYoutubeId','avTitle','avType','avDesc','avLeadText'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
-  document.getElementById('avSource').value   = 'cloudinary';
-  document.getElementById('avFeatured').value = '0';
-  document.getElementById('avOrdre').value    = '0';
-  abVidToggleSource();
-  if (id) {
-    const v = vidDB.get().find(x=>x.id===id);
-    if (v) {
-      document.getElementById('avSource').value    = v.source    || 'cloudinary';
-      document.getElementById('avPublicId').value  = v.publicId  || '';
-      document.getElementById('avYoutubeId').value = v.youtubeId || '';
-      document.getElementById('avTitle').value     = v.title     || '';
-      document.getElementById('avType').value      = v.type      || '';
-      document.getElementById('avDesc').value      = v.desc      || '';
-      document.getElementById('avFeatured').value  = v.featured  ? '1' : '0';
-      document.getElementById('avOrdre').value     = v.ordre     || 0;
-      document.getElementById('avLeadText').value  = v.leadText  || '';
-      abVidToggleSource();
-    }
-  }
-  document.getElementById('abVidModal').style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-}
-function abVidCloseModal() { document.getElementById('abVidModal').style.display='none'; document.body.style.overflow=''; }
-function abVidEdit(id)   { abVidOpenModal(id); }
-function abVidDelete(id) {
-  if(!confirm('Supprimer ?')) return;
-  vidDB.remove(id); abRenderVideosAdmin(); renderVideos(); abToast('Vidéo supprimée.','s');
-}
-function abVidSave() {
-  const source = document.getElementById('avSource').value;
-  const pid    = document.getElementById('avPublicId').value.trim();
-  const ytId   = document.getElementById('avYoutubeId').value.trim();
-  if (source==='cloudinary' && !pid)  { abToast('Public ID Cloudinary requis.','e'); return; }
-  if (source==='youtube'    && !ytId) { abToast('ID YouTube requis.','e');            return; }
-  const isFeat = document.getElementById('avFeatured').value === '1';
-  if (isFeat) { vidDB.set(vidDB.get().map(x=>({...x,featured:false}))); }
-  const v = {
-    source, publicId: pid, youtubeId: ytId,
-    title:    document.getElementById('avTitle').value.trim(),
-    type:     document.getElementById('avType').value.trim(),
-    desc:     document.getElementById('avDesc').value.trim(),
-    featured: isFeat,
-    ordre:    parseInt(document.getElementById('avOrdre').value)||0,
-    leadText: document.getElementById('avLeadText').value.trim(),
-  };
-  const editId = document.getElementById('avEditId').value;
-  if (editId) { vidDB.update(editId, v); abToast('Mise à jour.','s'); }
-  else        { vidDB.add(v);            abToast('Vidéo ajoutée.','s'); }
-  abVidCloseModal(); abRenderVideosAdmin(); renderVideos();
-}
-
-function abRenderGalleryAdmin() {
-  const items = galDB.get();
-  const cfg   = _cloudCfg();
-  const cn    = cfg.cloudName || 'dpyboca4x';
-  const stats = document.getElementById('abGalStats');
-  if (stats) {
-    stats.innerHTML = [
-      ['📦 Total', items.length],
-      ['✅ Disponibles', items.filter(i=>i.statut==='Disponible').length],
-      ['🔄 En location', items.filter(i=>i.statut==='En location').length],
-      ['📡 GPS', items.filter(i=>i.gps).length],
-    ].map(([l,v])=>`<div class="ab-kpi"><div class="ab-kpi-val">${v}</div><div class="ab-kpi-lbl">${l}</div></div>`).join('');
-  }
-  const grid=document.getElementById('abGalGrid'), empty=document.getElementById('abGalEmpty');
-  if(!grid) return;
-  if(!items.length){grid.innerHTML='';if(empty)empty.style.display='block';return;}
-  if(empty) empty.style.display='none';
-  grid.innerHTML=items.map(item=>{
-    const thumb=item.publicId?`https://res.cloudinary.com/${cn}/image/upload/c_fill,w_300,h_180,f_auto,q_auto/${item.publicId}`:'';
-    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
-      <div style="height:140px;background:#0e1520;overflow:hidden;position:relative;">
-        ${thumb?`<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display='none'">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px;">🖼️</div>`}
-        <span style="position:absolute;top:8px;right:8px;background:${item.statut==='Disponible'?'rgba(45,185,95,.85)':'rgba(232,96,10,.85)'};color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;">${item.statut||'Disponible'}</span>
-      </div>
-      <div style="padding:12px;">
-        <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:2px;">${item.nom||'—'}</div>
-        <div style="font-size:11px;color:var(--text-dim);">${item.type||''} · ${item.ville||''}</div>
-        ${item.prix?`<div style="font-size:12px;color:var(--orange);font-weight:700;margin-top:4px;">${Number(item.prix).toLocaleString('fr-FR')} GNF/j</div>`:''}
-        <div style="display:flex;gap:8px;margin-top:10px;">
-          <button class="ab-btn ab-btn-ghost ab-btn-sm" style="flex:1;" onclick="abGalEdit('${item.id}')">✏️ Modifier</button>
-          <button class="ab-btn ab-btn-ghost ab-btn-sm c-red" onclick="abGalDelete('${item.id}')">🗑</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-function abGalImportFromMarketplace() {
-  const engins = abDB.get('engins').filter(e => e.validated !== false);
-  if (!engins.length) { abToast('Aucun engin dans le Marketplace. Ajoutez-en d\'abord.', 'e'); return; }
-  const existing = galDB.get();
-  const existingNoms = new Set(existing.map(x => x.nom));
-  let added = 0;
-  engins.forEach(e => {
-    if (existingNoms.has(e.nom)) return; // ne pas dupliquer
-    galDB.add({
-      publicId: e.photoUrl ? e.photoUrl.replace(/^.*\/upload\/(?:f_auto,q_auto\/)?/, '').replace(/\.\w+$/, '') : '',
-      nom:      e.nom      || '',
-      type:     e.type     || 'Camion benne',
-      ville:    e.ville    || '',
-      statut:   e.statut   || 'Disponible',
-      cap:      e.cap      || '',
-      annee:    e.annee    || '',
-      marque:   e.marque   || '',
-      modele:   e.modele   || '',
-      prix:     e.prix     || 0,
-      gps:      e.gps      || false,
-      desc:     e.desc     || '',
-    });
-    added++;
-  });
-  if (added > 0) {
-    abToast(`✅ ${added} engin${added>1?'s':''} importé${added>1?'s':''} dans la Galerie.`, 's');
-    abRenderGalleryAdmin();
-  } else {
-    abToast('Tous les engins du Marketplace sont déjà dans la Galerie.', 'i');
-  }
-}
-function abGalOpenModal(id) {
-  document.getElementById('agEditId').value='';
-  document.getElementById('abGalModalTitle').textContent=id?'Modifier l\'équipement':'Ajouter un équipement';
-  ['agPublicId','agNom','agVille','agCap','agAnnee','agMarque','agModele','agDesc','agPrix'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
-  document.getElementById('agType').value='Camion benne';
-  document.getElementById('agStatut').value='Disponible';
-  document.getElementById('agGps').value='0';
-  document.getElementById('agPreviewBox').style.display='none';
-  if(id){
-    const item=galDB.get().find(x=>x.id===id);
-    if(item){
-      document.getElementById('agEditId').value=id;
-      document.getElementById('agPublicId').value=item.publicId||'';
-      document.getElementById('agNom').value=item.nom||'';
-      document.getElementById('agType').value=item.type||'Camion benne';
-      document.getElementById('agVille').value=item.ville||'';
-      document.getElementById('agStatut').value=item.statut||'Disponible';
-      document.getElementById('agCap').value=item.cap||'';
-      document.getElementById('agAnnee').value=item.annee||'';
-      document.getElementById('agMarque').value=item.marque||'';
-      document.getElementById('agModele').value=item.modele||'';
-      document.getElementById('agPrix').value=item.prix||'';
-      document.getElementById('agGps').value=item.gps?'1':'0';
-      document.getElementById('agDesc').value=item.desc||'';
-      if(item.publicId) abGalPreview();
-    }
-  }
-  document.getElementById('abGalModal').style.display='flex';
-  document.body.style.overflow='hidden';
-}
-function abGalCloseModal(){document.getElementById('abGalModal').style.display='none';document.body.style.overflow='';}
-function abGalEdit(id){abGalOpenModal(id);}
-function abGalDelete(id){if(!confirm('Supprimer ?'))return;galDB.remove(id);abRenderGalleryAdmin();abToast('Supprimé.','s');}
-function abGalPreview(){
-  const pid=document.getElementById('agPublicId').value.trim();
-  const box=document.getElementById('agPreviewBox'),img=document.getElementById('agPreviewImg');
-  if(!pid){box.style.display='none';return;}
-  const cfg=_cloudCfg(),cn=cfg.cloudName||'dpyboca4x';
-  img.src=`https://res.cloudinary.com/${cn}/image/upload/f_auto,q_auto/${pid}`;
-  img.onerror=()=>{box.style.display='none';abToast('Public ID introuvable.','e');};
-  img.onload=()=>{box.style.display='block';};
-}
-function abGalSave(){
-  const nom=document.getElementById('agNom').value.trim();
-  if(!nom){abToast('Le nom est requis.','e');return;}
-  const item={
-    publicId:document.getElementById('agPublicId').value.trim(),
-    nom, type:document.getElementById('agType').value,
-    ville:document.getElementById('agVille').value.trim(),
-    statut:document.getElementById('agStatut').value,
-    cap:document.getElementById('agCap').value.trim(),
-    annee:document.getElementById('agAnnee').value.trim(),
-    marque:document.getElementById('agMarque').value.trim(),
-    modele:document.getElementById('agModele').value.trim(),
-    prix:parseInt(document.getElementById('agPrix').value)||0,
-    gps:document.getElementById('agGps').value==='1',
-    desc:document.getElementById('agDesc').value.trim(),
-  };
-  const editId=document.getElementById('agEditId').value;
-  if(editId){galDB.update(editId,item);abToast('Mis à jour.','s');}
-  else{galDB.add(item);abToast('Équipement ajouté.','s');}
-  abGalCloseModal();abRenderGalleryAdmin();
-}
 
 function dPreviewFromPublicId() {
   const pid = (document.getElementById('dEPublicId')?.value || '').trim();
@@ -17086,10 +16720,7 @@ function generateCataloguePDF() {
       <div class="ab-nav-sec">Système</div>
       <div class="ab-nav-item" onclick="abGoPage('parametres')"><span class="ab-ni">⚙️</span> Paramètres</div>
       <div class="ab-nav-item" onclick="abGoPage('vitrine')"><span class="ab-ni">✏️</span> Vitrine — Textes</div>
-      <div class="ab-nav-item" onclick="window.open(location.pathname+'?abpage=gallery','_blank')"><span class="ab-ni">🖼️</span> Galerie Médias ↗</div>
-      <div class="ab-nav-item" onclick="window.open(location.pathname+'?abpage=videos','_blank')"><span class="ab-ni">🎬</span> Vidéos ↗</div>
       <div class="ab-nav-item" onclick="abGoPage('animations')"><span class="ab-ni">✨</span> Animations Hero</div>
-      <div class="ab-nav-item" onclick="window.open(location.pathname+'?abpage=equipe','_blank')"><span class="ab-ni">👥</span> Notre Équipe ↗</div>
 
       <!-- ⑨ RÉFÉRENCES -->
       <div class="ab-nav-sec">Références</div>
@@ -17955,103 +17586,6 @@ create policy "public_all" on platform_params for all using (true) with check (t
       <!-- ══════════════════════════════════════════════════
            PAGE VITRINE — CMS WORDPRESS-LIKE
            ══════════════════════════════════════════════════ -->
-      <div class="ab-page" id="abp-equipe">
-        <div class="ab-ph">
-          <div class="ab-ph-left">
-            <div class="ab-ph-title">👥 Notre Équipe</div>
-            <div class="ab-ph-sub">Gérez les membres et les valeurs affichés sur la page Équipe</div>
-          </div>
-          <div class="ab-ph-actions">
-            <button class="ab-btn ab-btn-primary ab-btn-sm" onclick="abEqOpenModal()">＋ Ajouter un membre</button>
-          </div>
-        </div>
-
-        <!-- Membres -->
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-bottom:12px;">Membres</div>
-        <div id="abEqList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:32px;"></div>
-
-        <!-- Valeurs -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);">Valeurs</div>
-          <button class="ab-btn ab-btn-ghost ab-btn-sm" onclick="abEqAddValeur()">＋ Valeur</button>
-        </div>
-        <div id="abEqValeurs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;"></div>
-      </div>
-
-      <!-- Modal Membre -->
-      <div id="abEqModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;">
-          <div style="padding:18px 24px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-            <div style="font-size:16px;font-weight:700;" id="abEqModalTitle">Ajouter un membre</div>
-            <button onclick="abEqCloseModal()" style="background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;">✕</button>
-          </div>
-          <div style="padding:18px 24px;display:flex;flex-direction:column;gap:12px;">
-
-            <!-- Photo Public ID -->
-            <div class="ab-fg full">
-              <label class="ab-flbl">Photo — Public ID Cloudinary <span style="color:var(--text-muted);font-weight:400;font-size:10px;text-transform:none;">(portrait, carré)</span></label>
-              <div style="display:flex;gap:8px;align-items:center;">
-                <input class="ab-fctrl" id="eqPublicId" placeholder="noldex/equipe/keita-kama" style="flex:1;font-family:monospace;font-size:12px;" oninput="abEqPreview()">
-                <div id="eqThumb" style="width:52px;height:52px;border-radius:50%;overflow:hidden;background:var(--steel);border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;">👤</div>
-              </div>
-            </div>
-
-            <!-- Nom + Rôle -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <div class="ab-fg"><label class="ab-flbl">Nom complet</label><input class="ab-fctrl" id="eqNom" placeholder="KEITA KAMA"></div>
-              <div class="ab-fg"><label class="ab-flbl">Titre / Rôle</label><input class="ab-fctrl" id="eqRole" placeholder="PDG — Fondateur"></div>
-            </div>
-
-            <!-- Département -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <div class="ab-fg"><label class="ab-flbl">Département (affiché)</label><input class="ab-fctrl" id="eqDept" placeholder="Direction Générale"></div>
-              <div class="ab-fg">
-                <label class="ab-flbl">Type département (couleur)</label>
-                <select class="ab-fctrl" id="eqDeptType">
-                  <option value="direction">👑 Direction</option>
-                  <option value="commercial">💼 Commercial</option>
-                  <option value="tech">💻 Technologie</option>
-                  <option value="ops">⚙️ Opérations</option>
-                  <option value="finance">💰 Finance</option>
-                  <option value="rh">👥 RH</option>
-                  <option value="autre">🏢 Autre</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Bio -->
-            <div class="ab-fg full"><label class="ab-flbl">Biographie</label><textarea class="ab-fctrl" id="eqBio" rows="3" style="resize:vertical;" placeholder="Description du rôle et expertises…"></textarea></div>
-
-            <!-- Contacts -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <div class="ab-fg"><label class="ab-flbl">📞 Téléphone</label><input class="ab-fctrl" id="eqTel" placeholder="+224621785252"></div>
-              <div class="ab-fg"><label class="ab-flbl">💬 WhatsApp</label><input class="ab-fctrl" id="eqWa" placeholder="+224621785252"></div>
-              <div class="ab-fg"><label class="ab-flbl">✉️ Email</label><input class="ab-fctrl" id="eqEmail" placeholder="pdg@noldexfleet.com"></div>
-              <div class="ab-fg"><label class="ab-flbl">🔗 LinkedIn (URL)</label><input class="ab-fctrl" id="eqLinkedin" placeholder="https://linkedin.com/in/..."></div>
-            </div>
-
-            <!-- Localisation + Ordre + Options -->
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-              <div class="ab-fg"><label class="ab-flbl">📍 Localisation</label><input class="ab-fctrl" id="eqLoc" placeholder="Conakry, Guinée"></div>
-              <div class="ab-fg"><label class="ab-flbl">Ordre</label><input class="ab-fctrl" id="eqOrdre" type="number" value="0" min="0"></div>
-              <div class="ab-fg">
-                <label class="ab-flbl">Options</label>
-                <div style="display:flex;gap:12px;margin-top:8px;">
-                  <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" id="eqIsPdg" style="accent-color:var(--orange);"> PDG</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" id="eqEnabled" checked style="accent-color:var(--orange);"> Visible</label>
-                </div>
-              </div>
-            </div>
-
-            <input type="hidden" id="eqEditId">
-          </div>
-          <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;">
-            <button class="ab-btn ab-btn-ghost" onclick="abEqCloseModal()">Annuler</button>
-            <button class="ab-btn ab-btn-primary" onclick="abEqSave()">💾 Sauvegarder</button>
-          </div>
-        </div>
-      </div>
-
       <div class="ab-page" id="abp-animations">
         <div class="ab-ph">
           <div class="ab-ph-left">
@@ -18069,217 +17603,6 @@ create policy "public_all" on platform_params for all using (true) with check (t
         </div>
 
         <div id="abAnimLayers" style="display:flex;flex-direction:column;gap:16px;"></div>
-      </div>
-
-      <div class="ab-page" id="abp-videos">
-        <div class="ab-ph">
-          <div class="ab-ph-left">
-            <div class="ab-ph-title">🎬 Vidéos</div>
-            <div class="ab-ph-sub">Gérez les vidéos de la section "Nos équipements en action" — Cloudinary ou YouTube</div>
-          </div>
-          <div class="ab-ph-actions">
-            <button class="ab-btn ab-btn-primary ab-btn-sm" onclick="abVidOpenModal()">＋ Ajouter une vidéo</button>
-          </div>
-        </div>
-        <div style="background:rgba(232,96,10,.08);border:1px solid rgba(232,96,10,.2);border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:var(--text-dim);">
-          💡 <strong style="color:var(--orange);">Cloudinary :</strong> uploadez votre vidéo dans Media Library → copiez le Public ID (ex: <code>noldex/videos/camion-chantier</code>)<br>
-          💡 <strong style="color:var(--orange);">YouTube :</strong> copiez l'ID de la vidéo depuis l'URL (ex: <code>UvW6LsK8ASE</code> depuis youtube.com/watch?v=<strong>UvW6LsK8ASE</strong>)
-        </div>
-        <div id="abVidList" style="display:flex;flex-direction:column;gap:12px;"></div>
-        <div id="abVidEmpty" style="display:none;text-align:center;padding:60px 20px;color:var(--text-dim);">
-          <div style="font-size:40px;margin-bottom:10px;">🎬</div>
-          <div style="font-size:15px;font-weight:600;color:var(--text);">Aucune vidéo configurée</div>
-          <div style="font-size:12px;margin-top:6px;margin-bottom:20px;">Uploadez vos vidéos sur Cloudinary puis ajoutez leur Public ID ici</div>
-          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-            <button class="ab-btn ab-btn-primary" onclick="abVidOpenModal()">＋ Ajouter une vidéo Cloudinary</button>
-            <button class="ab-btn ab-btn-ghost" onclick="abVidSeedDemo()">🧪 Charger des exemples YouTube</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Modal Vidéo -->
-      <div id="abVidModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;">
-          <div style="padding:18px 24px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-            <div style="font-size:16px;font-weight:700;" id="abVidModalTitle">Ajouter une vidéo</div>
-            <button onclick="abVidCloseModal()" style="background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;">✕</button>
-          </div>
-          <div style="padding:18px 24px;display:flex;flex-direction:column;gap:14px;">
-
-            <!-- Source -->
-            <div class="ab-fg full">
-              <label class="ab-flbl">Source</label>
-              <select class="ab-fctrl" id="avSource" onchange="abVidToggleSource()">
-                <option value="cloudinary">☁️ Cloudinary (recommandé)</option>
-                <option value="youtube">▶️ YouTube</option>
-              </select>
-            </div>
-
-            <!-- Cloudinary Public ID -->
-            <div class="ab-fg full" id="avCldBlock">
-              <label class="ab-flbl">Public ID Cloudinary <span style="color:var(--text-muted);font-weight:400;font-size:10px;text-transform:none;">— vidéo uploadée dans Media Library</span></label>
-              <input class="ab-fctrl" id="avPublicId" placeholder="noldex/videos/camion-chantier-siguiri" style="font-family:monospace;font-size:12px;">
-            </div>
-
-            <!-- YouTube ID -->
-            <div class="ab-fg full" id="avYtBlock" style="display:none;">
-              <label class="ab-flbl">ID YouTube <span style="color:var(--text-muted);font-weight:400;font-size:10px;text-transform:none;">— la partie après ?v= dans l'URL</span></label>
-              <input class="ab-fctrl" id="avYoutubeId" placeholder="UvW6LsK8ASE" style="font-family:monospace;font-size:12px;">
-            </div>
-
-            <!-- Titre + Type -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <div class="ab-fg"><label class="ab-flbl">Titre</label><input class="ab-fctrl" id="avTitle" placeholder="Flotte NOLDEX en action"></div>
-              <div class="ab-fg"><label class="ab-flbl">Type / Engin</label><input class="ab-fctrl" id="avType" placeholder="🚛 Camion Benne HOWO 40T"></div>
-            </div>
-
-            <!-- Description -->
-            <div class="ab-fg full">
-              <label class="ab-flbl">Description</label>
-              <input class="ab-fctrl" id="avDesc" placeholder="Transport de minerai · Siguiri · Haute Guinée">
-            </div>
-
-            <!-- Vidéo principale + Texte intro -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center;">
-              <div class="ab-fg">
-                <label class="ab-flbl">Vidéo principale (featured)</label>
-                <select class="ab-fctrl" id="avFeatured">
-                  <option value="0">Non — dans la grille</option>
-                  <option value="1">Oui — mise en avant</option>
-                </select>
-              </div>
-              <div class="ab-fg">
-                <label class="ab-flbl">Ordre d'affichage</label>
-                <input class="ab-fctrl" id="avOrdre" type="number" value="0" min="0">
-              </div>
-            </div>
-
-            <!-- Texte lead (pour la featured uniquement) -->
-            <div class="ab-fg full" id="avLeadBlock">
-              <label class="ab-flbl">Texte d'introduction <span style="color:var(--text-muted);font-weight:400;font-size:10px;text-transform:none;">— visible si vidéo principale</span></label>
-              <textarea class="ab-fctrl" id="avLeadText" rows="2" placeholder="Camions benne, chargeuses, pelles mécaniques…" style="resize:vertical;"></textarea>
-            </div>
-
-            <input type="hidden" id="avEditId">
-          </div>
-          <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;">
-            <button class="ab-btn ab-btn-ghost" onclick="abVidCloseModal()">Annuler</button>
-            <button class="ab-btn ab-btn-primary" onclick="abVidSave()">💾 Sauvegarder</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="ab-page" id="abp-gallery">
-        <div class="ab-ph">
-          <div class="ab-ph-left">
-            <div class="ab-ph-title">🖼️ Galerie Médias</div>
-            <div class="ab-ph-sub">Gérez les équipements affichés sur la page Galerie — indépendant de Supabase</div>
-          </div>
-          <div class="ab-ph-actions">
-            <button class="ab-btn ab-btn-ghost ab-btn-sm" onclick="abGalImportFromMarketplace()">⬇️ Importer depuis Marketplace</button>
-            <button class="ab-btn ab-btn-primary ab-btn-sm" onclick="abGalOpenModal()">＋ Ajouter un équipement</button>
-          </div>
-        </div>
-
-        <!-- Stats rapides -->
-        <div class="ab-kpi-row" id="abGalStats" style="margin-bottom:20px;"></div>
-
-        <!-- Grille des items galerie -->
-        <div id="abGalGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;"></div>
-        <div id="abGalEmpty" style="display:none;text-align:center;padding:60px 20px;color:var(--text-dim);">
-          <div style="font-size:40px;margin-bottom:10px;">🖼️</div>
-          <div style="font-size:15px;font-weight:600;color:var(--text);">Aucun équipement dans la galerie</div>
-          <div style="font-size:12px;margin-top:6px;margin-bottom:20px;">Importez vos engins du Marketplace ou ajoutez-les manuellement</div>
-          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-            <button class="ab-btn ab-btn-primary" onclick="abGalImportFromMarketplace()">⬇️ Importer depuis Marketplace</button>
-            <button class="ab-btn ab-btn-ghost" onclick="abGalOpenModal()">＋ Ajouter manuellement</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Modal Galerie -->
-      <div class="ab-modal-overlay" id="abGalModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-        <div class="ab-modal" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;">
-          <div class="ab-modal-hdr" style="padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-            <div class="ab-modal-title" id="abGalModalTitle" style="font-size:16px;font-weight:700;">Ajouter un équipement</div>
-            <button onclick="abGalCloseModal()" style="background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;padding:0;">✕</button>
-          </div>
-          <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
-
-            <!-- Public ID -->
-            <div class="ab-fg full">
-              <label class="ab-flbl">Public ID Cloudinary <span style="color:var(--text-muted);font-weight:400;font-size:10px;text-transform:none;">— requis pour la photo</span></label>
-              <div style="display:flex;gap:8px;">
-                <input class="ab-fctrl" id="agPublicId" placeholder="noldex/engins/camion-howo-40t" style="flex:1;font-family:monospace;font-size:12px;" oninput="abGalPreview()">
-                <button type="button" class="ab-btn ab-btn-ghost ab-btn-sm" onclick="abGalPreview()">👁</button>
-              </div>
-              <div id="agPreviewBox" style="display:none;margin-top:8px;">
-                <img id="agPreviewImg" src="" style="width:100%;height:160px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">
-              </div>
-            </div>
-
-            <!-- Nom + Type -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <div class="ab-fg">
-                <label class="ab-flbl">Nom de l'équipement</label>
-                <input class="ab-fctrl" id="agNom" placeholder="HOWO T5G 40T">
-              </div>
-              <div class="ab-fg">
-                <label class="ab-flbl">Type</label>
-                <select class="ab-fctrl" id="agType">
-                  <option>Camion benne</option><option>Chargeuse</option>
-                  <option>Pelle hydraulique</option><option>Grue</option>
-                  <option>Compacteur</option><option>Citerne</option>
-                  <option>Bulldozer</option><option>Niveleuse</option>
-                  <option>Tracteur</option><option>Excavateur</option><option>Autre</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Ville + Statut -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <div class="ab-fg">
-                <label class="ab-flbl">Ville</label>
-                <input class="ab-fctrl" id="agVille" placeholder="Conakry">
-              </div>
-              <div class="ab-fg">
-                <label class="ab-flbl">Statut</label>
-                <select class="ab-fctrl" id="agStatut">
-                  <option>Disponible</option><option>En location</option><option>En maintenance</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Specs -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <div class="ab-fg"><label class="ab-flbl">Capacité</label><input class="ab-fctrl" id="agCap" placeholder="40 tonnes"></div>
-              <div class="ab-fg"><label class="ab-flbl">Année</label><input class="ab-fctrl" id="agAnnee" placeholder="2022"></div>
-              <div class="ab-fg"><label class="ab-flbl">Marque</label><input class="ab-fctrl" id="agMarque" placeholder="HOWO"></div>
-              <div class="ab-fg"><label class="ab-flbl">Modèle</label><input class="ab-fctrl" id="agModele" placeholder="T5G"></div>
-            </div>
-
-            <!-- Prix + GPS -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <div class="ab-fg"><label class="ab-flbl">Prix / jour (GNF)</label><input class="ab-fctrl" id="agPrix" type="number" placeholder="2500000"></div>
-              <div class="ab-fg">
-                <label class="ab-flbl">GPS</label>
-                <select class="ab-fctrl" id="agGps"><option value="0">Non</option><option value="1">Oui</option></select>
-              </div>
-            </div>
-
-            <!-- Description -->
-            <div class="ab-fg full">
-              <label class="ab-flbl">Description courte</label>
-              <textarea class="ab-fctrl" id="agDesc" rows="2" placeholder="Camion benne robuste adapté aux chantiers miniers…" style="resize:vertical;"></textarea>
-            </div>
-
-            <input type="hidden" id="agEditId">
-          </div>
-          <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;">
-            <button class="ab-btn ab-btn-ghost" onclick="abGalCloseModal()">Annuler</button>
-            <button class="ab-btn ab-btn-primary" onclick="abGalSave()">💾 Sauvegarder</button>
-          </div>
-        </div>
       </div>
 
       <div class="ab-page" id="abp-vitrine">
@@ -19368,10 +18691,7 @@ function abRenderPage(id) {
     commentaires:()=>abRenderCommentaires(_abComFilter),
     parametres:abRenderParametres,
     ressources:abRenderRessources,
-    gallery:abRenderGalleryAdmin,
-    videos:abRenderVideosAdmin,
     animations:abRenderAnimationsAdmin,
-    equipe:abRenderEquipeAdmin,
     vitrine:abRenderVitrine
   };
   if(map[id]) map[id]();
@@ -19577,7 +18897,6 @@ function abOpenEnginModal(id) {
     document.getElementById('abEGps').value = e.gps ? '1' : '0';
     document.getElementById('abETraccarId').value = e.traccarId||'';
     if(e.photoUrl) abSetEnginPhotoPreview(e.photoUrl);
-    if(e.publicId && !e.photoUrl) { document.getElementById('abEPublicId').value = e.publicId; abPreviewFromPublicId(); }
   } else {
     ['abENom','abEProp','abECap','abEPrix','abETraccarId'].forEach(i=>document.getElementById(i).value='');
     document.getElementById('abEGps').value = '0';
@@ -19605,7 +18924,6 @@ function abSaveEngin() {
     gps: document.getElementById('abEGps').value === '1',
     traccarId: traccarIdRaw ? parseInt(traccarIdRaw) : null,
     photoUrl: document.getElementById('abEPhotoUrl').value || null,
-    publicId: document.getElementById('abEPublicId').value.trim() || null,
     validated: true
   };
   if(abEditingEnginId) {
@@ -22719,42 +22037,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   pubRenderComments();
 
   // ── ACCÈS ADMIN CACHÉ — 3 méthodes ───────────────────────
-  // ── ACCÈS PAGES ADMIN STANDALONE via ?abpage=xxx ──────────────────
-  const _abPageParam = new URLSearchParams(location.search).get('abpage');
-  if (_abPageParam && ['gallery','videos','equipe'].includes(_abPageParam)) {
-    // Nettoyer l'URL sans recharger
-    history.replaceState(null, '', location.pathname);
-    // Attendre que Supabase init puis ouvrir l'admin sur la bonne page
-    const _openAdminPage = () => {
-      if (typeof openAdmin === 'function') {
-        openAdmin();
-        setTimeout(() => {
-          if (typeof abGoPage === 'function') abGoPage(_abPageParam);
-        }, 200);
-      } else {
-        setTimeout(_openAdminPage, 100);
-      }
-    };
-    // Déclencher après auth Supabase ou direct si déjà prêt
-    if (_supaReady && _supaSession) {
-      setTimeout(_openAdminPage, 300);
-    } else {
-      // Montrer le login admin direct
-      setTimeout(() => {
-        if (typeof adminDirectLogin === 'function') {
-          adminDirectLogin();
-          // Après login, intercepter pour aller sur la bonne page
-          const _origOpenAdmin = window.openAdmin;
-          window.openAdmin = function() {
-            _origOpenAdmin && _origOpenAdmin();
-            setTimeout(() => abGoPage(_abPageParam), 200);
-            window.openAdmin = _origOpenAdmin;
-          };
-        }
-      }, 400);
-    }
-  }
-
   // ── ACCÈS ADMIN CACHÉ — ?nxadmin ou #nxadmin ──────────────────────
   const _params = new URLSearchParams(location.search);
   if (_params.has('nxadmin') || location.hash === '#nxadmin') {
@@ -23821,258 +23103,3 @@ function nxDzReset(zoneId, placeholderId, prevId) {
 
 </body>
 </html>
-
-
-<!-- ══════════════════════════════════════════════════════════════
-     PAGE GALERIE — Photos & Spécifications via Cloudinary
-══════════════════════════════════════════════════════════════ -->
-<style>
-#page-gallery{background:var(--bg,#0d1117);min-height:100vh;}
-.glr-hero{background:linear-gradient(135deg,#0d1117 0%,#131c28 60%,#0d1117 100%);border-bottom:1px solid rgba(232,96,10,.2);padding:80px 20px 48px;text-align:center;position:relative;overflow:hidden;}
-.glr-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 0%,rgba(232,96,10,.08) 0%,transparent 70%);pointer-events:none;}
-.glr-hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(232,96,10,.12);border:1px solid rgba(232,96,10,.3);color:#E8600A;border-radius:20px;padding:4px 14px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;}
-.glr-hero h1{font-family:'Cinzel','Barlow Condensed',serif;font-size:clamp(28px,5vw,52px);font-weight:800;color:#fff;margin:0 0 12px;line-height:1.1;}
-.glr-hero h1 span{color:#E8600A;}
-.glr-hero-sub{color:rgba(255,255,255,.5);font-size:15px;max-width:520px;margin:0 auto 32px;}
-.glr-stats{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;margin-bottom:8px;}
-.glr-stat{text-align:center;}
-.glr-stat-n{font-size:28px;font-weight:800;color:#E8600A;font-family:'Barlow Condensed',sans-serif;}
-.glr-stat-l{font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;}
-.glr-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;max-width:1200px;margin:0 auto;padding:24px 20px 16px;}
-.glr-search{flex:1;min-width:200px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border-color .2s;}
-.glr-search:focus{border-color:#E8600A;}
-.glr-search::placeholder{color:rgba(255,255,255,.3);}
-.glr-filter-group{display:flex;gap:6px;flex-wrap:wrap;}
-.glr-filter{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:6px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;}
-.glr-filter:hover{border-color:#E8600A;color:#E8600A;}
-.glr-filter.active{background:#E8600A;border-color:#E8600A;color:#fff;}
-.glr-sort{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);border-radius:6px;padding:9px 12px;font-size:13px;cursor:pointer;outline:none;}
-.glr-count{font-size:12px;color:rgba(255,255,255,.35);white-space:nowrap;margin-left:auto;}
-.glr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;max-width:1200px;margin:0 auto;padding:0 20px 60px;}
-.glr-card{background:#131c28;border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden;transition:transform .25s,box-shadow .25s,border-color .25s;cursor:pointer;}
-.glr-card:hover{transform:translateY(-4px);box-shadow:0 20px 50px rgba(0,0,0,.5),0 0 0 1px rgba(232,96,10,.25);border-color:rgba(232,96,10,.3);}
-.glr-photo{position:relative;aspect-ratio:4/3;overflow:hidden;background:#0d1117;}
-.glr-photo img{width:100%;height:100%;object-fit:cover;transition:transform .4s ease;}
-.glr-card:hover .glr-photo img{transform:scale(1.06);}
-.glr-photo-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(255,255,255,.15);gap:8px;background:linear-gradient(135deg,#0d1117,#161f2e);}
-.glr-badges{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:5px;}
-.glr-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:.5px;backdrop-filter:blur(8px);}
-.glr-badge.dispo{background:rgba(74,222,128,.2);border:1px solid rgba(74,222,128,.5);color:#4ade80;}
-.glr-badge.loue{background:rgba(232,96,10,.25);border:1px solid rgba(232,96,10,.6);color:#E8600A;}
-.glr-badge.maint{background:rgba(251,191,36,.2);border:1px solid rgba(251,191,36,.5);color:#fbbf24;}
-.glr-badge.gps{background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.5);color:#60a5fa;}
-.glr-zoom-btn{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:6px 8px;font-size:13px;cursor:pointer;opacity:0;transition:opacity .2s;}
-.glr-card:hover .glr-zoom-btn{opacity:1;}
-.glr-body{padding:16px;}
-.glr-type{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#E8600A;margin-bottom:4px;}
-.glr-nom{font-size:17px;font-weight:800;color:#fff;font-family:'Barlow Condensed',sans-serif;margin-bottom:2px;line-height:1.2;}
-.glr-ville{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px;}
-.glr-specs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
-.glr-spec{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:8px 10px;}
-.glr-spec-label{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.3);margin-bottom:3px;}
-.glr-spec-val{font-size:13px;font-weight:700;color:#e8eaed;font-family:'Barlow Condensed',sans-serif;}
-.glr-spec-val.orange{color:#E8600A;}
-.glr-foot{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);}
-.glr-prix{font-size:18px;font-weight:900;color:#E8600A;font-family:'Barlow Condensed',sans-serif;}
-.glr-prix-unit{font-size:11px;color:rgba(255,255,255,.35);}
-.glr-cta-btn{background:rgba(232,96,10,.15);border:1px solid rgba(232,96,10,.4);color:#E8600A;border-radius:7px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;}
-.glr-cta-btn:hover{background:#E8600A;color:#fff;}
-.glr-empty{text-align:center;padding:80px 20px;color:rgba(255,255,255,.3);}
-.glr-empty-icon{font-size:48px;margin-bottom:16px;opacity:.4;}
-.glr-empty h3{font-size:18px;color:rgba(255,255,255,.5);margin-bottom:8px;}
-/* Lightbox */
-.glr-lightbox{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.92);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s;}
-.glr-lightbox.open{opacity:1;pointer-events:all;}
-.glr-lb-inner{position:relative;max-width:900px;width:100%;display:grid;grid-template-columns:1fr 340px;gap:0;background:#131c28;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.1);transform:scale(.94);transition:transform .25s;}
-.glr-lightbox.open .glr-lb-inner{transform:scale(1);}
-.glr-lb-photo{aspect-ratio:4/3;overflow:hidden;background:#0d1117;display:flex;align-items:center;justify-content:center;}
-.glr-lb-photo img{width:100%;height:100%;object-fit:cover;}
-.glr-lb-info{padding:28px 24px;overflow-y:auto;max-height:600px;}
-.glr-lb-close{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;z-index:2;transition:background .2s;}
-.glr-lb-close:hover{background:#E8600A;border-color:#E8600A;}
-.glr-lb-type{font-size:10px;font-weight:700;color:#E8600A;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
-.glr-lb-nom{font-size:24px;font-weight:900;color:#fff;font-family:'Barlow Condensed',sans-serif;margin-bottom:4px;}
-.glr-lb-ville{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:20px;}
-.glr-lb-specs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;}
-.glr-lb-spec{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:10px 12px;}
-.glr-lb-spec-label{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.3);margin-bottom:4px;}
-.glr-lb-spec-val{font-size:14px;font-weight:700;color:#e8eaed;}
-.glr-lb-spec-val.orange{color:#E8600A;}
-.glr-lb-desc{font-size:13px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:20px;border-top:1px solid rgba(255,255,255,.07);padding-top:16px;}
-.glr-lb-actions{display:flex;gap:8px;flex-direction:column;}
-.glr-lb-btn-primary{background:#E8600A;color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s;text-align:center;}
-.glr-lb-btn-primary:hover{background:#c95208;}
-.glr-lb-btn-ghost{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);border-radius:8px;padding:10px;font-size:13px;cursor:pointer;transition:all .2s;text-align:center;}
-.glr-lb-btn-ghost:hover{border-color:#E8600A;color:#E8600A;}
-@media(max-width:700px){.glr-lb-inner{grid-template-columns:1fr;}.glr-lb-photo{aspect-ratio:16/9;}.glr-lb-info{max-height:50vh;}.glr-grid{grid-template-columns:1fr 1fr;gap:12px;}.glr-body{padding:12px;}.glr-nom{font-size:14px;}}
-@media(max-width:480px){.glr-grid{grid-template-columns:1fr;}}
-</style>
-
-<section id="page-gallery" class="page">
-  <div class="glr-hero">
-    <div class="glr-hero-tag">🖼️ Galerie Officielle</div>
-    <h1>Nos Engins <span>Lourds</span></h1>
-    <p class="glr-hero-sub">Photos et spécifications techniques de toute notre flotte disponible en Guinée</p>
-    <div class="glr-stats">
-      <div class="glr-stat"><div class="glr-stat-n" id="glrStatTotal">—</div><div class="glr-stat-l">Engins</div></div>
-      <div class="glr-stat"><div class="glr-stat-n" id="glrStatDispo">—</div><div class="glr-stat-l">Disponibles</div></div>
-      <div class="glr-stat"><div class="glr-stat-n" id="glrStatTypes">—</div><div class="glr-stat-l">Types</div></div>
-      <div class="glr-stat"><div class="glr-stat-n" id="glrStatVilles">—</div><div class="glr-stat-l">Villes</div></div>
-    </div>
-  </div>
-  <div class="glr-toolbar">
-    <input class="glr-search" id="glrSearch" placeholder="Rechercher un engin, une ville..." oninput="galleryFilter()">
-    <div class="glr-filter-group" id="glrTypeFilters"></div>
-    <select class="glr-sort" id="glrSort" onchange="galleryFilter()">
-      <option value="">Trier par defaut</option>
-      <option value="dispo">Disponibles en premier</option>
-      <option value="prix_asc">Prix bas</option>
-      <option value="prix_desc">Prix haut</option>
-      <option value="alpha">A a Z</option>
-    </select>
-    <span class="glr-count" id="glrCount"></span>
-  </div>
-  <div class="glr-grid" id="glrGrid">
-    <div class="glr-empty"><div class="glr-empty-icon">loading</div><h3>Chargement...</h3></div>
-  </div>
-</section>
-
-<div class="glr-lightbox" id="glrLightbox" onclick="glrLbClose(event)">
-  <div class="glr-lb-inner">
-    <button class="glr-lb-close" onclick="document.getElementById('glrLightbox').classList.remove('open');document.body.style.overflow='';">X</button>
-    <div class="glr-lb-photo"><img id="glrLbImg" src="" alt=""></div>
-    <div class="glr-lb-info" id="glrLbInfo"></div>
-  </div>
-</div>
-
-<script>
-var _glrData=[],_glrFiltered=[],_glrTypeFilter='';
-async function galleryLoad(){
-  var engins=[];
-  if(typeof _supa!=='undefined'&&_supa&&typeof _supaReady!=='undefined'&&_supaReady){
-    try{var r=await _supa.from('engins').select('*').eq('validated',true);if(!r.error&&r.data&&r.data.length)engins=r.data;}catch(e){}
-  }
-  if(!engins.length&&typeof abDB!=='undefined')engins=(abDB.get('engins')||[]).filter(function(e){return e.validated!==false;});
-  if(!engins.length&&typeof _enginsPublics!=='undefined')engins=_enginsPublics;
-  _glrData=engins;
-  glrUpdateStats();glrBuildFilters();galleryFilter();
-}
-function glrUpdateStats(){
-  var e=_glrData;
-  var types=[...new Set(e.map(function(x){return x.type;}).filter(Boolean))];
-  var villes=[...new Set(e.map(function(x){return x.ville;}).filter(Boolean))];
-  document.getElementById('glrStatTotal').textContent=e.length;
-  document.getElementById('glrStatDispo').textContent=e.filter(function(x){return x.statut==='Disponible';}).length;
-  document.getElementById('glrStatTypes').textContent=types.length;
-  document.getElementById('glrStatVilles').textContent=villes.length;
-}
-function glrBuildFilters(){
-  var types=[...new Set(_glrData.map(function(e){return e.type;}).filter(Boolean))].sort();
-  document.getElementById('glrTypeFilters').innerHTML='<button class="glr-filter active" onclick="glrSetType(this,\'\')">Tous</button>'+
-    types.map(function(t){return '<button class="glr-filter" onclick="glrSetType(this,\''+t.replace(/'/g,"\\'")+'\')">' +t+'</button>';}).join('');
-}
-function glrSetType(btn,type){
-  _glrTypeFilter=type;
-  document.querySelectorAll('#glrTypeFilters .glr-filter').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');galleryFilter();
-}
-function galleryFilter(){
-  var q=(document.getElementById('glrSearch')&&document.getElementById('glrSearch').value||'').toLowerCase();
-  var sort=document.getElementById('glrSort')&&document.getElementById('glrSort').value||'';
-  var data=_glrData.filter(function(e){
-    var mt=!_glrTypeFilter||e.type===_glrTypeFilter;
-    var mq=!q||[e.nom,e.type,e.ville,e.cap,e.proprio,e.marque].filter(Boolean).some(function(v){return v.toLowerCase().indexOf(q)>=0;});
-    return mt&&mq;
-  });
-  if(sort==='dispo')data=[...data].sort(function(a,b){return a.statut==='Disponible'?-1:1;});
-  if(sort==='prix_asc')data=[...data].sort(function(a,b){return(a.prix||0)-(b.prix||0);});
-  if(sort==='prix_desc')data=[...data].sort(function(a,b){return(b.prix||0)-(a.prix||0);});
-  if(sort==='alpha')data=[...data].sort(function(a,b){return(a.nom||'').localeCompare(b.nom||'');});
-  _glrFiltered=data;
-  var cnt=document.getElementById('glrCount');
-  if(cnt)cnt.textContent=data.length+' engin'+(data.length>1?'s':'');
-  glrRenderGrid(data);
-}
-function glrPhotoUrl(e){
-  var raw=(Array.isArray(e.photos)&&e.photos[0])||e.photoUrl||e.image||'';
-  if(raw)return typeof cldUrl==='function'?cldUrl(raw):raw;
-  return '';
-}
-function glrFmt(n){
-  if(!n||isNaN(n))return'Sur devis';
-  return Number(n).toLocaleString('fr-FR')+' GNF';
-}
-function glrBadge(s){
-  if(s==='Disponible')return'<span class="glr-badge dispo">Disponible</span>';
-  if(s==='En location')return'<span class="glr-badge loue">En location</span>';
-  return'<span class="glr-badge maint">'+(s||'?')+'</span>';
-}
-function glrRenderGrid(data){
-  var grid=document.getElementById('glrGrid');if(!grid)return;
-  if(!data.length){grid.innerHTML='<div class="glr-empty"><div class="glr-empty-icon">_</div><h3>Aucun engin trouve</h3></div>';return;}
-  grid.innerHTML=data.map(function(e,idx){
-    var photo=glrPhotoUrl(e);
-    var photoHtml=photo
-      ?'<img src="'+photo+'" alt="'+(e.nom||'').replace(/"/g,'')+'" loading="lazy" onerror="this.parentElement.innerHTML=\'<div class=glr-photo-placeholder><span>'+( e.emoji||'?')+'</span><span>Photo non disponible</span></div>\'">'
-      :'<div class="glr-photo-placeholder"><span style="font-size:32px">'+(e.emoji||'?')+'</span><span>Photo a venir</span></div>';
-    return'<div class="glr-card" onclick="glrLbOpen('+idx+')">'+
-      '<div class="glr-photo">'+photoHtml+
-      '<div class="glr-badges">'+glrBadge(e.statut)+(e.gps?'<span class="glr-badge gps">GPS</span>':'')+'</div>'+
-      '<button class="glr-zoom-btn" onclick="event.stopPropagation();glrLbOpen('+idx+')">+</button></div>'+
-      '<div class="glr-body">'+
-      '<div class="glr-type">'+(e.type||'Engin lourd')+'</div>'+
-      '<div class="glr-nom">'+(e.nom||'?')+'</div>'+
-      '<div class="glr-ville">'+(e.ville||'Guinee')+(e.proprio?' - '+e.proprio:'')+'</div>'+
-      '<div class="glr-specs">'+
-      '<div class="glr-spec"><div class="glr-spec-label">Capacite</div><div class="glr-spec-val">'+(e.cap||e.capacite||'?')+'</div></div>'+
-      '<div class="glr-spec"><div class="glr-spec-label">Annee</div><div class="glr-spec-val">'+(e.annee||'?')+'</div></div>'+
-      '<div class="glr-spec"><div class="glr-spec-label">Marque</div><div class="glr-spec-val">'+(e.marque||'?')+'</div></div>'+
-      '<div class="glr-spec"><div class="glr-spec-label">Statut</div><div class="glr-spec-val '+(e.statut==='Disponible'?'orange':'')+'">'+(e.statut||'?')+'</div></div>'+
-      '</div>'+
-      '<div class="glr-foot">'+
-      '<div><div class="glr-prix">'+(e.prix?glrFmt(e.prix):'Sur devis')+'</div><div class="glr-prix-unit">/ jour HT</div></div>'+
-      '<button class="glr-cta-btn" onclick="event.stopPropagation();showPage(\'devis\')">Louer</button>'+
-      '</div></div></div>';
-  }).join('');
-}
-function glrLbOpen(idx){
-  var e=_glrFiltered[idx];if(!e)return;
-  var photo=glrPhotoUrl(e);
-  var img=document.getElementById('glrLbImg');
-  var info=document.getElementById('glrLbInfo');
-  img.src=photo||'';img.style.display=photo?'block':'none';
-  var specs=[
-    ['Capacite',e.cap||e.capacite],['Type',e.type],['Marque',e.marque],
-    ['Modele',e.modele],['Annee',e.annee],['Puissance',e.puissance],
-    ['Poids',e.poids],['Portee',e.portee]
-  ].filter(function(s){return s[1]&&s[1]!='?';});
-  info.innerHTML=
-    '<div class="glr-lb-type">'+(e.emoji||'')+(e.type||'Engin')+'</div>'+
-    '<div class="glr-lb-nom">'+(e.nom||'?')+'</div>'+
-    '<div class="glr-lb-ville">'+(e.ville||'Guinee')+(e.proprio?' · Partenaire: '+e.proprio:'')+'</div>'+
-    '<div style="margin-bottom:16px">'+glrBadge(e.statut)+(e.gps?'<span class="glr-badge gps" style="display:inline-flex">GPS Traccar</span>':'')+'</div>'+
-    '<div class="glr-lb-specs">'+
-    specs.map(function(s){return'<div class="glr-lb-spec"><div class="glr-lb-spec-label">'+s[0]+'</div><div class="glr-lb-spec-val">'+s[1]+'</div></div>';}).join('')+
-    '<div class="glr-lb-spec" style="grid-column:1/-1"><div class="glr-lb-spec-label">Tarif journalier</div><div class="glr-lb-spec-val orange">'+(e.prix?glrFmt(e.prix)+' / jour':'Sur devis')+'</div></div>'+
-    '</div>'+
-    (e.desc||e.description?'<div class="glr-lb-desc">'+(e.desc||e.description)+'</div>':'')+
-    '<div class="glr-lb-actions">'+
-    '<button class="glr-lb-btn-primary" onclick="document.getElementById(\'glrLightbox\').classList.remove(\'open\');document.body.style.overflow=\'\';showPage(\'devis\')">Demander un devis</button>'+
-    '<button class="glr-lb-btn-ghost" onclick="document.getElementById(\'glrLightbox\').classList.remove(\'open\');document.body.style.overflow=\'\';showPage(\'marketplace\')">Voir la Marketplace</button>'+
-    '</div>';
-  document.getElementById('glrLightbox').classList.add('open');
-  document.body.style.overflow='hidden';
-}
-function glrLbClose(event){
-  if(event&&event.target!==document.getElementById('glrLightbox'))return;
-  document.getElementById('glrLightbox').classList.remove('open');
-  document.body.style.overflow='';
-}
-function galleryRender(){
-  if(!_glrData.length)galleryLoad();else{glrUpdateStats();galleryFilter();}
-}
-document.addEventListener('DOMContentLoaded',function(){setTimeout(galleryLoad,2000);});
-document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){var lb=document.getElementById('glrLightbox');if(lb)lb.classList.remove('open');document.body.style.overflow='';}
-});
-</script>
