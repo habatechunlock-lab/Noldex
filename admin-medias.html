@@ -169,7 +169,7 @@ textarea.ctrl{resize:vertical;min-height:60px;}
 <body>
 
 <!-- ===== PIN LOGIN ===== -->
-<div id="pinScreen">
+<div id="pinScreen" style="display:flex;">
   <div class="pin-box">
     <div class="pin-logo"><div class="nl">NL</div><div class="nm">NOLDEX <em>MÉDIAS</em></div></div>
     <div class="pin-sub">Entrez le code d'accès</div>
@@ -195,11 +195,11 @@ textarea.ctrl{resize:vertical;min-height:60px;}
 </div>
 
 <!-- ===== APP ===== -->
-<div id="app">
+<div id="app" style="display:none;">
   <div class="topbar">
     <div class="tb-logo"><div class="nl">NL</div><div class="nm">NOLDEX <em>MÉDIAS</em></div></div>
     <div class="tb-spacer"></div>
-    <button class="tb-btn" onclick="window.open('https://www.noldexfleet.com/','_blank')">🔗 Voir le site</button>
+    <button class="tb-btn" onclick="window.open('/','_blank')">🔗 Voir le site</button>
     <button class="tb-btn" onclick="lock()">🔒 Verrouiller</button>
   </div>
 
@@ -443,7 +443,7 @@ function pinDraw(){
 }
 function pinCheck(){
   if(pinVal === ACCESS_PIN){
-    sessionStorage.setItem('nxmedia_ok','1');
+    try{ sessionStorage.setItem('nxmedia_ok','1'); }catch(e){}
     unlock();
   } else {
     document.querySelectorAll('#pinDots .pin-dot').forEach(d=>d.classList.add('err'));
@@ -456,7 +456,7 @@ function unlock(){
   renderAll();
 }
 function lock(){
-  sessionStorage.removeItem('nxmedia_ok');
+  try{ sessionStorage.removeItem('nxmedia_ok'); }catch(e){}
   location.reload();
 }
 
@@ -786,7 +786,7 @@ function eqValDel(i){ if(!confirm('Supprimer cette valeur ?'))return; const v=db
 function eqAddVal(){ const v=db(K_EQV); v.push({id:'v_'+Date.now(),icon:'⭐',titre:'Nouvelle valeur',desc:'Description.'}); dbSet(K_EQV,v); eqRender(); }
 
 // init
-if(sessionStorage.getItem('nxmedia_ok')==='1'){ unlock(); }
+try{ if(sessionStorage.getItem('nxmedia_ok')==='1'){ unlock(); } }catch(e){ console.warn('sessionStorage unavailable',e); }
 </script>
 
 </body>
