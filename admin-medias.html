@@ -381,7 +381,7 @@ const SUPA_URL     = 'https://bpzboyddninckwksgino.supabase.co';
 const SUPA_KEY     = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwemJveWRkbmluY2t3a3NnaW5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMTY1OTMsImV4cCI6MjA5NDg5MjU5M30.AU31lsgeaCpNH8ngfU46V0XdMyh84ekws0pdzwh-wkA';
 
 // LocalStorage keys (fallback)
-const K_GAL='nxgal_items', K_VID='nxvid_items', K_ANIM='nxanim_layers', K_EQM='nxequipe_members', K_EQV='nxequipe_valeurs';
+const K_GAL='nxgal_items', K_VID='nxvid_items', K_ANIM='nxanim_layers', K_EQM='nxequipe_members', K_VAL='nxequipe_valeurs';
 
 let _supa = null;
 let _online = false;
@@ -439,9 +439,9 @@ function updateDot(){
 }
 
 // ─── DB HELPERS (Supabase + localStorage fallback) ─
-async function dbGet(table, lsKey){
+async function dbGet(table, lsKey, orderBy='created_at'){
   if(_online){
-    const {data,error}=await _supa.from(table).select('*').order('created_at',{ascending:true});
+    const {data,error}=await _supa.from(table).select('*').order(orderBy,{ascending:true});
     if(!error&&data){ try{localStorage.setItem(lsKey,JSON.stringify(data));}catch(e){} return data; }
   }
   try{return JSON.parse(localStorage.getItem(lsKey)||'[]');}catch{return [];}
@@ -475,14 +475,14 @@ async function dbSyncLS(table,lsKey){
 }
 
 // ─── TABS ──────────────────────────────────────────
-function goTab(tab){
+async function goTab(tab){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===tab));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.getElementById('page-'+tab).classList.add('on');
-  if(tab==='galerie') galRender();
-  if(tab==='videos')  vidRender();
+  if(tab==='galerie') await galRender();
+  if(tab==='videos')  await vidRender();
   if(tab==='anim')    animRender();
-  if(tab==='equipe')  eqRender();
+  if(tab==='equipe')  await eqRender();
 }
 
 // ═══════════════════════════════════════════════════
@@ -574,7 +574,7 @@ async function galSave(){
 // VIDÉOS
 // ═══════════════════════════════════════════════════
 async function vidRender(){
-  const items=(await dbGet('nx_videos',K_VID)).sort((a,b)=>(a.ordre||0)-(b.ordre||0));
+  const items=(await dbGet('nx_videos',K_VID,'ordre')).sort((a,b)=>(a.ordre||0)-(b.ordre||0));
   const list=document.getElementById('vidList'),empty=document.getElementById('vidEmpty');
   if(!items.length){list.innerHTML='';empty.style.display='block';return;}
   empty.style.display='none';
@@ -708,15 +708,16 @@ async function eqRender(){
     </div>`;
   }).join('')||'<div style="color:var(--dim);padding:16px 0;font-size:13px;">Aucun membre.</div>';
 
-  const vals=JSON.parse(localStorage.getItem(K_EQV)||'[]');
+  const vals=await dbGet('nx_valeurs',K_VAL,'ordre');
+  vals.sort((a,b)=>(a.ordre||0)-(b.ordre||0));
   document.getElementById('eqVals').innerHTML=vals.map((v,i)=>`
     <div class="card" style="padding:14px;">
       <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
-        <input class="ctrl" value="${v.icon||'⭐'}" style="width:48px;text-align:center;font-size:20px;padding:4px;" onchange="eqValUpd(${i},'icon',this.value)">
-        <input class="ctrl" value="${(v.titre||'').replace(/"/g,'&quot;')}" style="flex:1;font-weight:700;" onchange="eqValUpd(${i},'titre',this.value)">
-        <button class="btn red sm" onclick="eqValDel(${i})">🗑</button>
+        <input class="ctrl" value="${v.icon||'⭐'}" style="width:48px;text-align:center;font-size:20px;padding:4px;" onchange="eqValUpd('${v.id}','icon',this.value)">
+        <input class="ctrl" value="${(v.titre||'').replace(/"/g,'&quot;')}" style="flex:1;font-weight:700;" onchange="eqValUpd('${v.id}','titre',this.value)">
+        <button class="btn red sm" onclick="eqValDel('${v.id}')">🗑</button>
       </div>
-      <textarea class="ctrl" style="font-size:12px;" onchange="eqValUpd(${i},'desc',this.value)">${v.desc||''}</textarea>
+      <textarea class="ctrl" style="font-size:12px;" onchange="eqValUpd('${v.id}','descr',this.value)">${v.descr||''}</textarea>
     </div>`).join('')||'<div style="color:var(--dim);font-size:13px;">Aucune valeur.</div>';
 }
 async function eqOpen(id){
@@ -773,9 +774,21 @@ async function eqSave(){
   };
   if(await dbUpsert('nx_equipe',K_EQM,m)){ovClose('eqModal');eqRender();toast('Enregistré.');}
 }
-function eqValUpd(i,f,v){const arr=JSON.parse(localStorage.getItem(K_EQV)||'[]');if(arr[i]){arr[i][f]=v;localStorage.setItem(K_EQV,JSON.stringify(arr));toast('Enregistré.');}}
-function eqValDel(i){if(!confirm('Supprimer ?'))return;const arr=JSON.parse(localStorage.getItem(K_EQV)||'[]');arr.splice(i,1);localStorage.setItem(K_EQV,JSON.stringify(arr));eqRender();toast('Supprimée.');}
-function eqAddVal(){const arr=JSON.parse(localStorage.getItem(K_EQV)||'[]');arr.push({id:'v_'+Date.now(),icon:'⭐',titre:'Nouvelle valeur',desc:'Description.'});localStorage.setItem(K_EQV,JSON.stringify(arr));eqRender();}
+async function eqValUpd(id,f,v){
+  const arr=await dbGet('nx_valeurs',K_VAL);
+  const item=arr.find(x=>x.id===id);
+  if(!item)return;
+  item[f]=v;
+  await dbUpsert('nx_valeurs',K_VAL,item);
+  toast('Enregistré.');
+}
+async function eqValDel(id){if(!confirm('Supprimer ?'))return;if(await dbDelete('nx_valeurs',K_VAL,id)){eqRender();toast('Supprimée.');}}
+async function eqAddVal(){
+  const arr=await dbGet('nx_valeurs',K_VAL);
+  const item={id:'v_'+Date.now(),icon:'⭐',titre:'Nouvelle valeur',descr:'Description.',ordre:arr.length};
+  await dbUpsert('nx_valeurs',K_VAL,item);
+  eqRender();
+}
 
 // ─── Init ─────────────────────────────────────────
 if(sessionStorage.getItem('nxmedia_ok')==='1') unlock();

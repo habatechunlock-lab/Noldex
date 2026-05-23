@@ -12901,9 +12901,16 @@ async function renderEquipe() {
   });
   membersEl.innerHTML = html;
 
-  // Valeurs
+  // Valeurs — Supabase (nx_valeurs) avec fallback localStorage
   if (valeursEl) {
-    const valeurs = equipeDB.getValeurs();
+    let valeurs = [];
+    if (_supa) {
+      try {
+        const { data } = await _supa.from('nx_valeurs').select('*').order('ordre');
+        if (data && data.length) valeurs = data;
+      } catch {}
+    }
+    if (!valeurs.length) valeurs = equipeDB.getValeurs();
     valeursEl.innerHTML = `
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;margin-top:8px;">
       <span style="font-size:20px;">⭐</span>
@@ -12915,7 +12922,7 @@ async function renderEquipe() {
       <div class="equipe-valeur">
         <div class="equipe-valeur-icon">${v.icon}</div>
         <div class="equipe-valeur-title">${v.titre}</div>
-        <div class="equipe-valeur-desc">${v.desc}</div>
+        <div class="equipe-valeur-desc">${v.descr||v.desc||''}</div>
       </div>`).join('')}
     </div>`;
   }
@@ -13297,7 +13304,7 @@ async function renderVideos() {
 document.addEventListener('DOMContentLoaded', renderVideos);
 
 // ── ADMIN — NOTRE ÉQUIPE ──────────────────────────────────────────
-function abRenderEquipeAdmin() {
+async function abRenderEquipeAdmin() {
   const cfg = _cloudCfg(), cn = cfg.cloudName||'dpyboca4x';
   const members = equipeDB.getMembers().sort((a,b)=>(a.ordre||0)-(b.ordre||0));
   const list = document.getElementById('abEqList');
@@ -13324,20 +13331,27 @@ function abRenderEquipeAdmin() {
     }).join('') || '<div style="color:var(--text-dim);font-size:13px;padding:20px 0;">Aucun membre. Cliquez sur ＋ pour ajouter.</div>';
   }
 
-  // Valeurs
+  // Valeurs — Supabase (nx_valeurs) avec fallback equipeDB localStorage
   const valeursEl = document.getElementById('abEqValeurs');
   if (valeursEl) {
-    const valeurs = equipeDB.getValeurs();
-    valeursEl.innerHTML = valeurs.map((v,i) => `
+    let valeurs = [];
+    if (_supa) {
+      try {
+        const { data } = await _supa.from('nx_valeurs').select('*').order('ordre');
+        if (data && data.length) valeurs = data;
+      } catch {}
+    }
+    if (!valeurs.length) valeurs = equipeDB.getValeurs();
+    valeursEl.innerHTML = valeurs.map((v) => `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div style="display:flex;align-items:center;gap:8px;">
-          <input class="ab-fctrl" value="${v.icon}" style="width:44px;text-align:center;font-size:20px;padding:4px;" onchange="abEqUpdateValeur(${i},'icon',this.value)">
-          <input class="ab-fctrl" value="${v.titre}" style="flex:1;font-weight:700;" onchange="abEqUpdateValeur(${i},'titre',this.value)">
+          <input class="ab-fctrl" value="${v.icon||'⭐'}" style="width:44px;text-align:center;font-size:20px;padding:4px;" onchange="abEqUpdateValeur('${v.id}','icon',this.value)">
+          <input class="ab-fctrl" value="${(v.titre||'').replace(/"/g,'&quot;')}" style="flex:1;font-weight:700;" onchange="abEqUpdateValeur('${v.id}','titre',this.value)">
         </div>
-        <button class="ab-btn ab-btn-ghost ab-btn-sm c-red" onclick="abEqDeleteValeur(${i})" style="margin-left:8px;">🗑</button>
+        <button class="ab-btn ab-btn-ghost ab-btn-sm c-red" onclick="abEqDeleteValeur('${v.id}')" style="margin-left:8px;">🗑</button>
       </div>
-      <textarea class="ab-fctrl" rows="2" style="resize:vertical;font-size:12px;" onchange="abEqUpdateValeur(${i},'desc',this.value)">${v.desc}</textarea>
+      <textarea class="ab-fctrl" rows="2" style="resize:vertical;font-size:12px;" onchange="abEqUpdateValeur('${v.id}','descr',this.value)">${v.descr||v.desc||''}</textarea>
     </div>`).join('');
   }
 }
@@ -13376,7 +13390,7 @@ function abEqOpenModal(id) {
 }
 function abEqCloseModal(){document.getElementById('abEqModal').style.display='none';document.body.style.overflow='';}
 function abEqEdit(id){abEqOpenModal(id);}
-function abEqDelete(id){if(!confirm('Supprimer ce membre ?'))return;equipeDB.removeMember(id);abRenderEquipeAdmin();renderEquipe();abToast('Membre supprimé.','s');}
+async function abEqDelete(id){if(!confirm('Supprimer ce membre ?'))return;equipeDB.removeMember(id);await abRenderEquipeAdmin();renderEquipe();abToast('Membre supprimé.','s');}
 function abEqPreview(){
   const pid=document.getElementById('eqPublicId').value.trim();
   const thumb=document.getElementById('eqThumb');
@@ -13385,7 +13399,7 @@ function abEqPreview(){
   const url=`https://res.cloudinary.com/${cn}/image/upload/c_fill,w_60,h_60,f_auto,q_auto,g_face/${pid}`;
   thumb.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='👤'">`;
 }
-function abEqSave(){
+async function abEqSave(){
   const nom=document.getElementById('eqNom').value.trim();
   if(!nom){abToast('Le nom est requis.','e');return;}
   const m={
@@ -13406,19 +13420,43 @@ function abEqSave(){
   const editId=document.getElementById('eqEditId').value;
   if(editId){equipeDB.updateMember(editId,m);abToast('Membre mis à jour.','s');}
   else{equipeDB.addMember(m);abToast('Membre ajouté.','s');}
-  abEqCloseModal();abRenderEquipeAdmin();renderEquipe();
+  abEqCloseModal();await abRenderEquipeAdmin();renderEquipe();
 }
-function abEqUpdateValeur(i,field,val){
-  const v=equipeDB.getValeurs();v[i][field]=val;equipeDB.saveValeurs(v);renderEquipe();
-}
-function abEqDeleteValeur(i){
-  if(!confirm('Supprimer cette valeur ?'))return;
-  const v=equipeDB.getValeurs();v.splice(i,1);equipeDB.saveValeurs(v);abRenderEquipeAdmin();renderEquipe();
-}
-function abEqAddValeur(){
+async function abEqUpdateValeur(id,field,val){
+  if(_supa){
+    try{
+      await _supa.from('nx_valeurs').update({[field]:val}).eq('id',id);
+    }catch{}
+  }
+  // Sync localStorage fallback
   const v=equipeDB.getValeurs();
-  v.push({id:'v_'+Date.now(),icon:'⭐',titre:'Nouvelle valeur',desc:'Description de la valeur.'});
-  equipeDB.saveValeurs(v);abRenderEquipeAdmin();renderEquipe();
+  const item=v.find(x=>x.id===id);
+  if(item){item[field]=val;equipeDB.saveValeurs(v);}
+  renderEquipe();
+}
+async function abEqDeleteValeur(id){
+  if(!confirm('Supprimer cette valeur ?'))return;
+  if(_supa){
+    try{ await _supa.from('nx_valeurs').delete().eq('id',id); }catch{}
+  }
+  const v=equipeDB.getValeurs().filter(x=>x.id!==id);
+  equipeDB.saveValeurs(v);
+  await abRenderEquipeAdmin();renderEquipe();
+}
+async function abEqAddValeur(){
+  const item={id:'v_'+Date.now(),icon:'⭐',titre:'Nouvelle valeur',descr:'Description de la valeur.',ordre:0};
+  if(_supa){
+    try{
+      const {data}=await _supa.from('nx_valeurs').select('ordre').order('ordre',{ascending:false}).limit(1);
+      if(data&&data.length) item.ordre=(data[0].ordre||0)+1;
+      await _supa.from('nx_valeurs').insert(item);
+    }catch{}
+  }
+  // localStorage fallback sync
+  const v=equipeDB.getValeurs();
+  v.push({...item,desc:item.descr});
+  equipeDB.saveValeurs(v);
+  await abRenderEquipeAdmin();renderEquipe();
 }
 
 // ── ADMIN — ANIMATIONS HERO ───────────────────────────────────────
@@ -19443,7 +19481,7 @@ function abGoPage(id) {
   abRenderPage(id);
   abCloseSidebar();
 }
-function abRenderPage(id) {
+async function abRenderPage(id) {
   const map = {
     overview:abRenderOverview, engins:abRenderEngins, validation:abRenderValidation,
     clients:abRenderClients, contrats:abRenderContrats, demandes:()=>abRenderDemandes(''),
@@ -19459,7 +19497,7 @@ function abRenderPage(id) {
     equipe:abRenderEquipeAdmin,
     vitrine:abRenderVitrine
   };
-  if(map[id]) map[id]();
+  if(map[id]) await map[id]();
 }
 function abToggleSidebar() {
   document.getElementById('abSidebar').classList.toggle('open');
