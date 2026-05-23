@@ -12825,14 +12825,27 @@ const equipeDB = {
 
 const DEPT_ICONS = { direction:'👑', commercial:'💼', tech:'💻', ops:'⚙️', finance:'💰', rh:'👥', autre:'🏢' };
 
-function renderEquipe() {
+async function renderEquipe() {
   const membersEl = document.getElementById('equipeMembers');
   const valeursEl = document.getElementById('equipeValeurs');
   if (!membersEl) return;
 
   const cfg = _cloudCfg();
   const cn  = cfg.cloudName || 'dpyboca4x';
-  const members = equipeDB.getMembers().filter(m=>m.enabled).sort((a,b)=>(a.ordre||0)-(b.ordre||0));
+  let members = [];
+
+  if (_supa) {
+    try {
+      const { data } = await _supa.from('nx_equipe').select('*').order('ordre');
+      if (data && data.length) {
+        members = data.map(m => ({
+          ...m, publicId: m.public_id, deptType: m.dept_type, isPdg: m.is_pdg,
+          location: m.location, whatsapp: m.whatsapp,
+        })).filter(m => m.enabled !== false);
+      }
+    } catch {}
+  }
+  if (!members.length) members = equipeDB.getMembers().filter(m => m.enabled);
 
   // Grouper par deptType
   const groups = {};
@@ -12997,7 +13010,7 @@ const galDB = {
 let _galData = [];
 
 async function galleryRender() {
-  // 1) Charger depuis Cloudinary (tag noldex_galerie) — source principale
+  // 1) Cloudinary (tag noldex_galerie) — source principale
   const cloudItems = await cldFetchList('image', 'noldex_galerie');
   if (cloudItems && cloudItems.length) {
     _galData = cloudItems.map(r => {
@@ -13017,8 +13030,20 @@ async function galleryRender() {
         desc:   ctx.desc   || ctx.description || '',
       };
     });
+  } else if (_supa) {
+    // 2) Supabase (table nx_galerie) — sync multi-appareils
+    try {
+      const { data } = await _supa.from('nx_galerie').select('*').order('created_at');
+      if (data && data.length) {
+        _galData = data.map(r => ({
+          publicId: r.public_id, nom: r.nom, type: r.type, ville: r.ville,
+          statut: r.statut, cap: r.cap, annee: r.annee, marque: r.marque,
+          modele: r.modele, prix: r.prix, gps: r.gps, desc: r.descr,
+        }));
+      } else { _galData = galDB.get(); }
+    } catch { _galData = galDB.get(); }
   } else {
-    // 2) Fallback : données locales (back-office médias)
+    // 3) localStorage (fallback local)
     _galData = galDB.get();
   }
 
