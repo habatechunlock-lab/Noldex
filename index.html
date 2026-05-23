@@ -10358,23 +10358,6 @@ document.addEventListener('DOMContentLoaded', () => {
               <input type="text" id="inscEngins" placeholder="Ex : 3 camions benne, 1 chargeuse CAT, 1 pelle Komatsu...">
             </div>
             <div class="form-group insc-full">
-              <label class="form-label">NINEA <span style="font-size:11px;color:var(--text-dim);">(optionnel)</span></label>
-              <input type="text" id="inscNinea" placeholder="Numéro d'identification fiscale">
-            </div>
-            <div class="form-group insc-full">
-              <label class="form-label">RCCM <span style="font-size:11px;color:var(--text-dim);">(optionnel)</span></label>
-              <input type="text" id="inscRccm" placeholder="Ex : GN-CNK-2023-B-12345">
-            </div>
-            <div class="form-group insc-full">
-              <label class="form-label">Document justificatif <span style="font-size:11px;color:var(--text-dim);">(RCCM ou NINEA scan — optionnel)</span></label>
-              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                <input type="file" id="inscDocFile" accept="image/*,application/pdf" style="display:none;" onchange="inscDocPreview()">
-                <button type="button" class="btn btn-outline" style="font-size:13px;padding:8px 16px;" onclick="document.getElementById('inscDocFile').click()">📎 Joindre un document</button>
-                <span id="inscDocName" style="font-size:12px;color:var(--text-dim);">Aucun fichier</span>
-              </div>
-              <input type="hidden" id="inscDocUrl">
-            </div>
-            <div class="form-group insc-full">
               <label class="form-label">Message (optionnel)</label>
               <textarea id="inscMessage" placeholder="Décrivez votre situation, vos besoins ou vos questions..." style="min-height:80px;"></textarea>
             </div>
@@ -10451,34 +10434,10 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
       <div class="auth-field">
         <label class="auth-lbl">Vous êtes...</label>
-        <select class="auth-input" id="signupRole" onchange="signupToggleFields()">
+        <select class="auth-input" id="signupRole">
           <option value="client">Client B2B (louer des engins)</option>
           <option value="partner">Partenaire (mettre mes engins en location)</option>
         </select>
-      </div>
-      <!-- Champs supplémentaires affichés après choix du rôle -->
-      <div id="signupExtraFields" style="display:none;">
-        <div class="auth-field">
-          <label class="auth-lbl">Téléphone <span class="c-orange">*</span></label>
-          <input class="auth-input" id="signupTel" type="tel" placeholder="+224 620 000 000">
-        </div>
-        <div class="auth-field">
-          <label class="auth-lbl">NINEA</label>
-          <input class="auth-input" id="signupNinea" type="text" placeholder="Numéro d'identification fiscale">
-        </div>
-        <div class="auth-field">
-          <label class="auth-lbl">RCCM</label>
-          <input class="auth-input" id="signupRccm" type="text" placeholder="Ex : GN-CNK-2023-B-12345">
-        </div>
-        <div class="auth-field">
-          <label class="auth-lbl">Document justificatif <span style="font-size:10px;color:var(--text-dim);">(RCCM ou NINEA scan, optionnel)</span></label>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <input type="file" id="signupDocFile" accept="image/*,application/pdf" style="display:none;" onchange="signupDocPreview()">
-            <button type="button" onclick="document.getElementById('signupDocFile').click()" style="font-size:12px;padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);cursor:pointer;">📎 Joindre un document</button>
-            <span id="signupDocName" style="font-size:11px;color:var(--text-dim);">Aucun fichier</span>
-          </div>
-          <input type="hidden" id="signupDocUrl">
-        </div>
       </div>
       <div class="auth-err" id="signupErr"></div>
       <div class="auth-ok" id="signupOk"></div>
@@ -11490,7 +11449,6 @@ function openAuthModal(tab) {
   document.getElementById('authModal').classList.add('open');
   document.body.style.overflow = 'hidden';
   _updateAuthSupaStatus();
-  if (tab === 'signup') signupToggleFields();
 }
 function closeAuthModal() {
   document.getElementById('authModal').classList.remove('open');
@@ -11578,85 +11536,8 @@ async function doAuthLogin() {
 }
 
 async function doAuthSignup() {
-  const email   = (document.getElementById('signupEmail').value  || '').trim();
-  const pass    = (document.getElementById('signupPass').value   || '');
-  const societe = (document.getElementById('signupSociete').value|| '').trim();
-  const role    = document.getElementById('signupRole').value || 'client';
-  const tel     = (document.getElementById('signupTel')?.value   || '').trim();
-  const ninea   = (document.getElementById('signupNinea')?.value || '').trim();
-  const rccm    = (document.getElementById('signupRccm')?.value  || '').trim();
-  const docUrl  = (document.getElementById('signupDocUrl')?.value|| '').trim();
-  const errEl   = document.getElementById('signupErr');
-  const okEl    = document.getElementById('signupOk');
-  const btn     = document.getElementById('signupBtn');
-
-  errEl.classList.remove('show'); okEl.classList.remove('show');
-  if (!email) { errEl.textContent = 'Email requis.'; errEl.classList.add('show'); return; }
-  if (pass.length < 8) { errEl.textContent = 'Le mot de passe doit contenir au moins 8 caractères.'; errEl.classList.add('show'); return; }
-  if (!societe) { errEl.textContent = 'Le nom de la société est requis.'; errEl.classList.add('show'); return; }
-
-  // Upload doc si fichier sélectionné
-  let finalDocUrl = docUrl;
-  const docFile = document.getElementById('signupDocFile')?.files?.[0];
-  if (docFile && !finalDocUrl) {
-    btn.disabled = true; btn.textContent = '⏳ Upload du document...';
-    try { finalDocUrl = await abUploadToCloudinary(docFile); } catch(e) {}
-  }
-
-  btn.disabled = true; btn.textContent = '⏳ Création du compte...';
-
-  try {
-    if (_supaReady) {
-      const signupData = await supaSignUp(email, pass, { societe, role, validated: false });
-      const uid = signupData?.user?.id;
-      const now = new Date().toISOString();
-
-      if (role === 'partner' && uid) {
-        await _supa.from('partenaires').upsert([{
-          id: uid, nom: societe, email, contact: societe, tel, ville: '',
-          ninea, rccm, doc_url: finalDocUrl, engins: 0,
-          validated: false, statut: 'En attente', created_at: now
-        }], { onConflict: 'id' });
-        okEl.textContent = '✅ Demande envoyée ! Votre compte partenaire sera activé par l\'administrateur sous 24h.';
-      } else if (role === 'client' && uid) {
-        await _supa.from('clients').upsert([{
-          id: uid, societe, contact: societe, tel, email,
-          ninea, rccm, doc_url: finalDocUrl,
-          secteur: 'Autre', ville: 'Conakry', locations: 0, total: 0,
-          statut: 'En attente', created_at: now
-        }], { onConflict: 'id' });
-        okEl.textContent = '✅ Demande envoyée ! Votre compte client B2B sera activé par l\'administrateur sous 24h.';
-      } else {
-        okEl.textContent = '✅ Compte créé ! Vérifiez votre email pour confirmer votre inscription.';
-      }
-      okEl.classList.add('show');
-    } else {
-      await new Promise(r => setTimeout(r, 800));
-      okEl.textContent = '✅ Compte démo créé pour ' + email + '. Configurez Supabase pour activer l\'auth réelle.';
-      okEl.classList.add('show');
-    }
-  } catch(e) {
-    errEl.textContent = e.message || 'Erreur lors de la création du compte.';
-    errEl.classList.add('show');
-  }
-  btn.disabled = false; btn.textContent = '✅ Créer mon compte';
-}
-
-// Afficher/masquer les champs extra selon le rôle sélectionné
-function signupToggleFields() {
-  const role = document.getElementById('signupRole')?.value;
-  const extra = document.getElementById('signupExtraFields');
-  if (extra) extra.style.display = role ? 'block' : 'none';
-}
-
-// Prévisualiser le nom du doc sélectionné dans signup
-function signupDocPreview() {
-  const f = document.getElementById('signupDocFile')?.files?.[0];
-  const nameEl = document.getElementById('signupDocName');
-  if (nameEl) nameEl.textContent = f ? f.name : 'Aucun fichier';
-  document.getElementById('signupDocUrl').value = '';
-}
-
+  const email  = (document.getElementById('signupEmail').value || '').trim();
+  const pass   = (document.getElementById('signupPass').value  || '');
   const societe= (document.getElementById('signupSociete').value || '').trim();
   const role   = document.getElementById('signupRole').value || 'client';
   const errEl  = document.getElementById('signupErr');
@@ -11768,8 +11649,6 @@ async function submitInscriptionPartenaire() {
   const email   = (document.getElementById('inscEmail')?.value   || '').trim();
   const ville   = (document.getElementById('inscVille')?.value   || '');
   const engins  = (document.getElementById('inscEngins')?.value  || '').trim();
-  const ninea   = (document.getElementById('inscNinea')?.value   || '').trim();
-  const rccm    = (document.getElementById('inscRccm')?.value    || '').trim();
 
   if (!societe || !nom || !tel || !email || !engins) {
     abToast('Veuillez remplir tous les champs obligatoires (*).', 'e');
@@ -11780,26 +11659,17 @@ async function submitInscriptionPartenaire() {
     return;
   }
 
-  const btn = document.querySelector('#inscFoot .btn-main');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Envoi...'; }
-
-  // Upload doc Cloudinary si présent
-  let docUrl = document.getElementById('inscDocUrl')?.value || '';
-  const docFile = document.getElementById('inscDocFile')?.files?.[0];
-  if (docFile && !docUrl) {
-    if (btn) btn.textContent = '⏳ Upload du document...';
-    try { docUrl = await abUploadToCloudinary(docFile); } catch(e) {}
-  }
-
   const data = {
-    id: 'ip_' + Date.now(),
-    societe, nom, telephone: tel, email, ville, ninea, rccm, doc_url: docUrl,
+    societe, nom, telephone: tel, email, ville,
     nb_engins: document.getElementById('inscNbEngins')?.value || '',
     types_engins: engins,
     message: document.getElementById('inscMessage')?.value || '',
     statut: 'En attente',
     created_at: new Date().toISOString(),
   };
+
+  const btn = document.querySelector('#inscFoot .btn-main');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Envoi...'; }
 
   if (_supaReady && _supa) {
     try {
@@ -12955,27 +12825,14 @@ const equipeDB = {
 
 const DEPT_ICONS = { direction:'👑', commercial:'💼', tech:'💻', ops:'⚙️', finance:'💰', rh:'👥', autre:'🏢' };
 
-async function renderEquipe() {
+function renderEquipe() {
   const membersEl = document.getElementById('equipeMembers');
   const valeursEl = document.getElementById('equipeValeurs');
   if (!membersEl) return;
 
   const cfg = _cloudCfg();
   const cn  = cfg.cloudName || 'dpyboca4x';
-  let members = [];
-
-  if (_supa) {
-    try {
-      const { data } = await _supa.from('nx_equipe').select('*').order('ordre');
-      if (data && data.length) {
-        members = data.map(m => ({
-          ...m, publicId: m.public_id, deptType: m.dept_type, isPdg: m.is_pdg,
-          location: m.location, whatsapp: m.whatsapp,
-        })).filter(m => m.enabled !== false);
-      }
-    } catch {}
-  }
-  if (!members.length) members = equipeDB.getMembers().filter(m => m.enabled);
+  const members = equipeDB.getMembers().filter(m=>m.enabled).sort((a,b)=>(a.ordre||0)-(b.ordre||0));
 
   // Grouper par deptType
   const groups = {};
@@ -13031,16 +12888,9 @@ async function renderEquipe() {
   });
   membersEl.innerHTML = html;
 
-  // Valeurs — Supabase (nx_valeurs) avec fallback localStorage
+  // Valeurs
   if (valeursEl) {
-    let valeurs = [];
-    if (_supa) {
-      try {
-        const { data } = await _supa.from('nx_valeurs').select('*').order('ordre');
-        if (data && data.length) valeurs = data;
-      } catch {}
-    }
-    if (!valeurs.length) valeurs = equipeDB.getValeurs();
+    const valeurs = equipeDB.getValeurs();
     valeursEl.innerHTML = `
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;margin-top:8px;">
       <span style="font-size:20px;">⭐</span>
@@ -13052,7 +12902,7 @@ async function renderEquipe() {
       <div class="equipe-valeur">
         <div class="equipe-valeur-icon">${v.icon}</div>
         <div class="equipe-valeur-title">${v.titre}</div>
-        <div class="equipe-valeur-desc">${v.descr||v.desc||''}</div>
+        <div class="equipe-valeur-desc">${v.desc}</div>
       </div>`).join('')}
     </div>`;
   }
@@ -13147,7 +12997,7 @@ const galDB = {
 let _galData = [];
 
 async function galleryRender() {
-  // 1) Cloudinary (tag noldex_galerie) — source principale
+  // 1) Charger depuis Cloudinary (tag noldex_galerie) — source principale
   const cloudItems = await cldFetchList('image', 'noldex_galerie');
   if (cloudItems && cloudItems.length) {
     _galData = cloudItems.map(r => {
@@ -13167,20 +13017,8 @@ async function galleryRender() {
         desc:   ctx.desc   || ctx.description || '',
       };
     });
-  } else if (_supa) {
-    // 2) Supabase (table nx_galerie) — sync multi-appareils
-    try {
-      const { data } = await _supa.from('nx_galerie').select('*').order('created_at');
-      if (data && data.length) {
-        _galData = data.map(r => ({
-          publicId: r.public_id, nom: r.nom, type: r.type, ville: r.ville,
-          statut: r.statut, cap: r.cap, annee: r.annee, marque: r.marque,
-          modele: r.modele, prix: r.prix, gps: r.gps, desc: r.descr,
-        }));
-      } else { _galData = galDB.get(); }
-    } catch { _galData = galDB.get(); }
   } else {
-    // 3) localStorage (fallback local)
+    // 2) Fallback : données locales (back-office médias)
     _galData = galDB.get();
   }
 
@@ -13434,7 +13272,7 @@ async function renderVideos() {
 document.addEventListener('DOMContentLoaded', renderVideos);
 
 // ── ADMIN — NOTRE ÉQUIPE ──────────────────────────────────────────
-async function abRenderEquipeAdmin() {
+function abRenderEquipeAdmin() {
   const cfg = _cloudCfg(), cn = cfg.cloudName||'dpyboca4x';
   const members = equipeDB.getMembers().sort((a,b)=>(a.ordre||0)-(b.ordre||0));
   const list = document.getElementById('abEqList');
@@ -13461,27 +13299,20 @@ async function abRenderEquipeAdmin() {
     }).join('') || '<div style="color:var(--text-dim);font-size:13px;padding:20px 0;">Aucun membre. Cliquez sur ＋ pour ajouter.</div>';
   }
 
-  // Valeurs — Supabase (nx_valeurs) avec fallback equipeDB localStorage
+  // Valeurs
   const valeursEl = document.getElementById('abEqValeurs');
   if (valeursEl) {
-    let valeurs = [];
-    if (_supa) {
-      try {
-        const { data } = await _supa.from('nx_valeurs').select('*').order('ordre');
-        if (data && data.length) valeurs = data;
-      } catch {}
-    }
-    if (!valeurs.length) valeurs = equipeDB.getValeurs();
-    valeursEl.innerHTML = valeurs.map((v) => `
+    const valeurs = equipeDB.getValeurs();
+    valeursEl.innerHTML = valeurs.map((v,i) => `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div style="display:flex;align-items:center;gap:8px;">
-          <input class="ab-fctrl" value="${v.icon||'⭐'}" style="width:44px;text-align:center;font-size:20px;padding:4px;" onchange="abEqUpdateValeur('${v.id}','icon',this.value)">
-          <input class="ab-fctrl" value="${(v.titre||'').replace(/"/g,'&quot;')}" style="flex:1;font-weight:700;" onchange="abEqUpdateValeur('${v.id}','titre',this.value)">
+          <input class="ab-fctrl" value="${v.icon}" style="width:44px;text-align:center;font-size:20px;padding:4px;" onchange="abEqUpdateValeur(${i},'icon',this.value)">
+          <input class="ab-fctrl" value="${v.titre}" style="flex:1;font-weight:700;" onchange="abEqUpdateValeur(${i},'titre',this.value)">
         </div>
-        <button class="ab-btn ab-btn-ghost ab-btn-sm c-red" onclick="abEqDeleteValeur('${v.id}')" style="margin-left:8px;">🗑</button>
+        <button class="ab-btn ab-btn-ghost ab-btn-sm c-red" onclick="abEqDeleteValeur(${i})" style="margin-left:8px;">🗑</button>
       </div>
-      <textarea class="ab-fctrl" rows="2" style="resize:vertical;font-size:12px;" onchange="abEqUpdateValeur('${v.id}','descr',this.value)">${v.descr||v.desc||''}</textarea>
+      <textarea class="ab-fctrl" rows="2" style="resize:vertical;font-size:12px;" onchange="abEqUpdateValeur(${i},'desc',this.value)">${v.desc}</textarea>
     </div>`).join('');
   }
 }
@@ -13520,7 +13351,7 @@ function abEqOpenModal(id) {
 }
 function abEqCloseModal(){document.getElementById('abEqModal').style.display='none';document.body.style.overflow='';}
 function abEqEdit(id){abEqOpenModal(id);}
-async function abEqDelete(id){if(!confirm('Supprimer ce membre ?'))return;equipeDB.removeMember(id);await abRenderEquipeAdmin();renderEquipe();abToast('Membre supprimé.','s');}
+function abEqDelete(id){if(!confirm('Supprimer ce membre ?'))return;equipeDB.removeMember(id);abRenderEquipeAdmin();renderEquipe();abToast('Membre supprimé.','s');}
 function abEqPreview(){
   const pid=document.getElementById('eqPublicId').value.trim();
   const thumb=document.getElementById('eqThumb');
@@ -13529,7 +13360,7 @@ function abEqPreview(){
   const url=`https://res.cloudinary.com/${cn}/image/upload/c_fill,w_60,h_60,f_auto,q_auto,g_face/${pid}`;
   thumb.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='👤'">`;
 }
-async function abEqSave(){
+function abEqSave(){
   const nom=document.getElementById('eqNom').value.trim();
   if(!nom){abToast('Le nom est requis.','e');return;}
   const m={
@@ -13550,43 +13381,19 @@ async function abEqSave(){
   const editId=document.getElementById('eqEditId').value;
   if(editId){equipeDB.updateMember(editId,m);abToast('Membre mis à jour.','s');}
   else{equipeDB.addMember(m);abToast('Membre ajouté.','s');}
-  abEqCloseModal();await abRenderEquipeAdmin();renderEquipe();
+  abEqCloseModal();abRenderEquipeAdmin();renderEquipe();
 }
-async function abEqUpdateValeur(id,field,val){
-  if(_supa){
-    try{
-      await _supa.from('nx_valeurs').update({[field]:val}).eq('id',id);
-    }catch{}
-  }
-  // Sync localStorage fallback
-  const v=equipeDB.getValeurs();
-  const item=v.find(x=>x.id===id);
-  if(item){item[field]=val;equipeDB.saveValeurs(v);}
-  renderEquipe();
+function abEqUpdateValeur(i,field,val){
+  const v=equipeDB.getValeurs();v[i][field]=val;equipeDB.saveValeurs(v);renderEquipe();
 }
-async function abEqDeleteValeur(id){
+function abEqDeleteValeur(i){
   if(!confirm('Supprimer cette valeur ?'))return;
-  if(_supa){
-    try{ await _supa.from('nx_valeurs').delete().eq('id',id); }catch{}
-  }
-  const v=equipeDB.getValeurs().filter(x=>x.id!==id);
-  equipeDB.saveValeurs(v);
-  await abRenderEquipeAdmin();renderEquipe();
+  const v=equipeDB.getValeurs();v.splice(i,1);equipeDB.saveValeurs(v);abRenderEquipeAdmin();renderEquipe();
 }
-async function abEqAddValeur(){
-  const item={id:'v_'+Date.now(),icon:'⭐',titre:'Nouvelle valeur',descr:'Description de la valeur.',ordre:0};
-  if(_supa){
-    try{
-      const {data}=await _supa.from('nx_valeurs').select('ordre').order('ordre',{ascending:false}).limit(1);
-      if(data&&data.length) item.ordre=(data[0].ordre||0)+1;
-      await _supa.from('nx_valeurs').insert(item);
-    }catch{}
-  }
-  // localStorage fallback sync
+function abEqAddValeur(){
   const v=equipeDB.getValeurs();
-  v.push({...item,desc:item.descr});
-  equipeDB.saveValeurs(v);
-  await abRenderEquipeAdmin();renderEquipe();
+  v.push({id:'v_'+Date.now(),icon:'⭐',titre:'Nouvelle valeur',desc:'Description de la valeur.'});
+  equipeDB.saveValeurs(v);abRenderEquipeAdmin();renderEquipe();
 }
 
 // ── ADMIN — ANIMATIONS HERO ───────────────────────────────────────
@@ -17475,24 +17282,13 @@ function generateCataloguePDF() {
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;text-transform:uppercase;margin-bottom:6px;">Validation</div>
         <div style="font-size:13px;color:var(--text-dim);margin-bottom:20px;">Comptes partenaires et engins en attente de vérification.</div>
 
-        <!-- ══ CLIENTS B2B EN ATTENTE ══ -->
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;text-transform:uppercase;margin-bottom:10px;color:#60a5fa;">
-          🏢 Clients B2B en attente <span id="abNbClientsAttente" style="font-size:13px;font-weight:400;color:var(--text-dim);"></span>
-        </div>
-        <div class="ab-card" style="margin-bottom:24px;">
-          <div class="ab-table-wrap"><table class="ab-table">
-            <thead><tr><th>Société</th><th>Contact</th><th>NINEA / RCCM</th><th>Secteur</th><th>Date demande</th><th>Documents</th><th>Actions</th></tr></thead>
-            <tbody id="abClientsAttenteBody"></tbody>
-          </table></div>
-        </div>
-
         <!-- ══ COMPTES PARTENAIRES EN ATTENTE ══ -->
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;text-transform:uppercase;margin-bottom:10px;color:var(--orange);">
           👤 Comptes partenaires en attente <span id="abNbPartenairesAttente" style="font-size:13px;font-weight:400;color:var(--text-dim);"></span>
         </div>
         <div class="ab-card" style="margin-bottom:24px;">
           <div class="ab-table-wrap"><table class="ab-table">
-            <thead><tr><th>Société / Nom</th><th>Email</th><th>NINEA / RCCM</th><th>Ville</th><th>Date demande</th><th>Documents</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Société / Nom</th><th>Email</th><th>Ville</th><th>Date demande</th><th>Statut</th><th>Actions</th></tr></thead>
             <tbody id="abPartenairesAttenteBody"></tbody>
           </table></div>
         </div>
@@ -18919,58 +18715,20 @@ create policy "public_all" on platform_params for all using (true) with check (t
         <div class="ab-fg"><label class="ab-flbl">Contact</label><input class="ab-fctrl" id="abCContact" placeholder="Ibrahima Diallo"></div>
         <div class="ab-fg"><label class="ab-flbl">Téléphone</label><input class="ab-fctrl" id="abCTel" placeholder="+224 620 000 000"></div>
         <div class="ab-fg"><label class="ab-flbl">Email</label><input class="ab-fctrl" id="abCEmail" type="email" placeholder="contact@société.gn"></div>
-        <div class="ab-fg"><label class="ab-flbl">NINEA</label><input class="ab-fctrl" id="abCNinea" placeholder="Ex : 123456789"></div>
-        <div class="ab-fg"><label class="ab-flbl">RCCM</label><input class="ab-fctrl" id="abCRccm" placeholder="Ex : GN-CNK-2023-B-12345"></div>
         <div class="ab-fg"><label class="ab-flbl">Secteur</label>
           <select class="ab-fctrl" id="abCSecteur"><option>Mines</option><option>BTP</option><option>Transport</option><option>Industrie</option><option>Agriculture</option><option>Autre</option></select>
         </div>
         <div class="ab-fg"><label class="ab-flbl">Ville</label>
-          <select class="ab-fctrl" id="abCVille"><option>Conakry</option><option>Boké</option><option>Siguiri</option><option>Kindia</option><option>Labé</option><option>Faranah</option><option>Kankan</option><option>Nzérékoré</option></select>
+          <select class="ab-fctrl" id="abCVille"><option>Conakry</option><option>Boké</option><option>Siguiri</option><option>Kindia</option><option>Labé</option><option>Faranah</option></select>
         </div>
         <div class="ab-fg full"><label class="ab-flbl">Statut</label>
-          <select class="ab-fctrl" id="abCStatut"><option>En attente</option><option>Actif</option><option>Rejeté</option><option>Suspendu</option></select>
-        </div>
-        <div class="ab-fg full">
-          <label class="ab-flbl">Document justificatif (RCCM / NINEA scan)</label>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <input type="file" id="abCDocFile" accept="image/*,application/pdf" style="display:none;" onchange="abUploadClientDoc()">
-            <button class="ab-btn ab-btn-ghost ab-btn-sm" onclick="document.getElementById('abCDocFile').click()">📎 Choisir un fichier</button>
-            <span id="abCDocStatus" style="font-size:12px;color:var(--text-dim);">Aucun fichier</span>
-          </div>
-          <input type="hidden" id="abCDocUrl">
-          <div id="abCDocPreview" style="margin-top:8px;display:none;">
-            <a id="abCDocLink" href="#" target="_blank" style="font-size:12px;color:var(--orange);">📄 Voir le document uploadé</a>
-          </div>
+          <select class="ab-fctrl" id="abCStatut"><option>Actif</option><option>Inactif</option></select>
         </div>
       </div>
     </div>
     <div class="ab-modal-foot">
       <button class="ab-btn ab-btn-ghost" onclick="abCloseClientModal()">Annuler</button>
       <button class="ab-btn ab-btn-primary" onclick="abSaveClient()">💾 Enregistrer</button>
-    </div>
-  </div>
-</div>
-
-<!-- ADMIN MODAL REJET COMPTE -->
-<div class="ab-modal-overlay" id="abRejetModal">
-  <div class="ab-modal" style="max-width:460px;">
-    <div class="ab-modal-head">
-      <div class="ab-modal-title" id="abRejetModalTitle">Rejeter le compte</div>
-      <button class="ab-modal-close" onclick="abCloseRejetModal()">✕</button>
-    </div>
-    <div class="ab-modal-body">
-      <input type="hidden" id="abRejetId">
-      <input type="hidden" id="abRejetType"><!-- 'client' | 'partenaire' -->
-      <input type="hidden" id="abRejetEmail">
-      <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px;">Précisez le motif du rejet. Il sera visible dans le dossier et pourra être communiqué au demandeur.</p>
-      <div class="ab-fg full" style="margin-bottom:0;">
-        <label class="ab-flbl">Motif du rejet *</label>
-        <textarea class="ab-fctrl" id="abRejetMotif" rows="4" placeholder="Ex : Dossier incomplet — RCCM manquant. Veuillez soumettre un scan lisible du RCCM et relancer votre demande." style="resize:vertical;"></textarea>
-      </div>
-    </div>
-    <div class="ab-modal-foot">
-      <button class="ab-btn ab-btn-ghost" onclick="abCloseRejetModal()">Annuler</button>
-      <button class="ab-btn ab-btn-red" onclick="abConfirmerRejet()">✕ Confirmer le rejet</button>
     </div>
   </div>
 </div>
@@ -19660,7 +19418,7 @@ function abGoPage(id) {
   abRenderPage(id);
   abCloseSidebar();
 }
-async function abRenderPage(id) {
+function abRenderPage(id) {
   const map = {
     overview:abRenderOverview, engins:abRenderEngins, validation:abRenderValidation,
     clients:abRenderClients, contrats:abRenderContrats, demandes:()=>abRenderDemandes(''),
@@ -19676,7 +19434,7 @@ async function abRenderPage(id) {
     equipe:abRenderEquipeAdmin,
     vitrine:abRenderVitrine
   };
-  if(map[id]) await map[id]();
+  if(map[id]) map[id]();
 }
 function abToggleSidebar() {
   document.getElementById('abSidebar').classList.toggle('open');
@@ -19716,13 +19474,9 @@ function abToast(msg,type='s') {
 function abUpdateBadges() {
   const engins = abDB.get('engins');
   const dem = abDB.get('demandes');
-  const clients = abDB.get('clients');
   document.getElementById('abNbEngins').textContent = engins.filter(e=>e.validated).length;
-  // Badge Validation = engins non validés + clients en attente (partenaires chargés async dans abRenderValidation)
-  const enginsNonVal = engins.filter(e=>!e.validated).length;
-  const clientsAttente = clients.filter(c=>c.statut==='En attente').length;
-  document.getElementById('abNbValidation').textContent = enginsNonVal + clientsAttente;
-  document.getElementById('abNbClients').textContent = clients.filter(c=>c.statut!=='En attente').length;
+  document.getElementById('abNbValidation').textContent = engins.filter(e=>!e.validated).length;
+  document.getElementById('abNbClients').textContent = abDB.get('clients').length;
   document.getElementById('abNbDemandes').textContent = dem.filter(d=>d.statut==='En attente').length;
   const comPend = (comDB.get()||[]).filter(c=>c.statut==='En attente').length;
   const badgeCom = document.getElementById('abNbCommentaires');
@@ -19933,33 +19687,6 @@ function abDeleteEngin(id) {
 
 // ADMIN — VALIDATION
 async function abRenderValidation() {
-  // ── Clients B2B en attente ──
-  let clientsAttente = [];
-  if (_supaReady && _supa) {
-    const { data } = await _supa.from('clients').select('*').eq('statut','En attente').order('created_at',{ascending:false});
-    clientsAttente = data || [];
-  } else {
-    clientsAttente = abDB.get('clients').filter(c => c.statut === 'En attente');
-  }
-  const nbCl = document.getElementById('abNbClientsAttente');
-  if (nbCl) nbCl.textContent = clientsAttente.length > 0 ? `(${clientsAttente.length})` : '(aucun)';
-
-  document.getElementById('abClientsAttenteBody').innerHTML = clientsAttente.length
-    ? clientsAttente.map(c => `
-    <tr>
-      <td><strong>${c.societe||'—'}</strong><br><span style="font-size:11px;color:var(--text-dim);">${c.email||''}</span></td>
-      <td style="font-size:12px;">${c.contact||'—'}<br><span style="color:var(--text-dim);">${c.tel||''}</span></td>
-      <td style="font-size:11px;">${c.ninea?'NINEA: '+c.ninea:'—'}<br>${c.rccm?'RCCM: '+c.rccm:''}</td>
-      <td>${c.secteur||'—'}</td>
-      <td class="fs-12">${c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR') : '—'}</td>
-      <td>${c.doc_url ? `<a href="${c.doc_url}" target="_blank" class="ab-btn ab-btn-ghost ab-btn-sm">📄 Voir</a>` : '<span style="color:var(--text-dim);font-size:11px;">Aucun</span>'}</td>
-      <td style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="ab-btn ab-btn-green ab-btn-sm" onclick="abValiderClient('${c.id}','${(c.email||'').replace(/'/g,'\\\'') }')">✓ Valider</button>
-        <button class="ab-btn ab-btn-red ab-btn-sm" onclick="abOuvrirRejet('${c.id}','client','${(c.email||'').replace(/'/g,'\\\'') }','${(c.societe||'').replace(/'/g,'\\\'') }')">✕ Rejeter</button>
-      </td>
-    </tr>`).join('')
-    : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px;">✅ Aucun client en attente.</td></tr>';
-
   // ── Comptes partenaires en attente ──
   let partenairesAttente = [];
   if (_supaReady && _supa) {
@@ -19969,99 +19696,77 @@ async function abRenderValidation() {
     partenairesAttente = abDB.get('partenaires').filter(p => !p.validated);
   }
 
+  const nbAttente = partenairesAttente.length;
   const nbEl = document.getElementById('abNbPartenairesAttente');
-  if (nbEl) nbEl.textContent = partenairesAttente.length > 0 ? `(${partenairesAttente.length})` : '(aucun)';
+  if (nbEl) nbEl.textContent = nbAttente > 0 ? `(${nbAttente})` : '(aucun)';
 
+  document.getElementById('abPartenairesAttenteBody').innerHTML = partenairesAttente.length
+    ? partenairesAttente.map(p => `
+    <tr>
+      <td><strong>${p.nom || '—'}</strong></td>
+      <td style="font-size:12px;color:var(--text-dim);">${p.email || '—'}</td>
+      <td>${p.ville || '—'}</td>
+      <td class="fs-12">${p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR') : '—'}</td>
+      <td>${abBadge('En attente')}</td>
+      <td style="display:flex;gap:6px;">
+        <button class="ab-btn ab-btn-green ab-btn-sm" onclick="abValiderPartenaire('${p.id}','${p.email}')">✓ Valider</button>
+        <button class="ab-btn ab-btn-red ab-btn-sm" onclick="abRejeterPartenaire('${p.id}','${p.email}')">✕ Rejeter</button>
+      </td>
+    </tr>`).join('')
+    : '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px;">✅ Aucun compte en attente.</td></tr>';
+
+  // ── Engins en attente ──
+  const toValid = abDB.get('engins').filter(e=>!e.validated);
+  document.getElementById('abValidFullBody').innerHTML = toValid.length ? toValid.map(e=>`
+    <tr>
+      <td>${e.emoji} ${e.nom}</td>
+      <td style="font-size:12px;color:var(--text-dim);">${e.type} — ${e.cap}</td>
+      <td>${e.proprio}</td>
+      <td>${e.ville}</td>
+      <td class="fs-12">${abToday()}</td>
+      <td>${abBadge('À valider')}</td>
+      <td style="display:flex;gap:6px;">
+        <button class="ab-btn ab-btn-green ab-btn-sm" onclick="abValiderEngin('${e.id}')">✓ Valider</button>
+        <button class="ab-btn ab-btn-red ab-btn-sm" onclick="abRejeterEngin('${e.id}')">✕ Rejeter</button>
+      </td>
+    </tr>`).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px;">✅ Aucun engin en attente de validation.</td></tr>';
+  abUpdateBadges();
+}
 
 async function abValiderPartenaire(id, email) {
-  if (!confirm('Valider le compte partenaire ' + email + ' ?')) return;
+  if (!confirm(`Valider le compte partenaire ${email} ?`)) return;
   try {
     if (_supaReady && _supa) {
+      // Mettre à jour la table partenaires
       await _supa.from('partenaires').update({ validated: true, statut: 'Actif' }).eq('id', id);
+      // Mettre à jour user_metadata dans auth.users
+      await _supa.from('auth_users_meta').select('*').eq('id', id).maybeSingle().catch(()=>{});
+      // Note: la mise à jour auth.users se fait via SQL car l'API admin n'est pas disponible côté client
+      // L'admin peut aussi aller dans Supabase Dashboard > Auth > Users > Edit
     } else {
       abDB.set('partenaires', abDB.get('partenaires').map(p => p.id === id ? {...p, validated:true, statut:'Actif'} : p));
     }
-    abToast('✅ Compte partenaire validé !', 's');
+    abToast('✅ Compte partenaire validé ! Il peut maintenant se connecter.', 's');
     abRenderValidation();
-  } catch(e) { abToast('Erreur: ' + e.message, 'e'); }
-}
-
-async function abValiderClient(id, email) {
-  if (!confirm('Valider le compte client B2B ' + email + ' ?')) return;
-  try {
-    if (_supaReady && _supa) {
-      await _supa.from('clients').update({ statut: 'Actif' }).eq('id', id);
-    } else {
-      abDB.set('clients', abDB.get('clients').map(c => c.id === id ? {...c, statut:'Actif'} : c));
-    }
-    abToast('✅ Compte client B2B validé !', 's');
-    abRenderValidation(); abRenderClients();
-  } catch(e) { abToast('Erreur: ' + e.message, 'e'); }
-}
-
-function abOuvrirRejet(id, type, email, nom) {
-  document.getElementById('abRejetId').value = id;
-  document.getElementById('abRejetType').value = type;
-  document.getElementById('abRejetEmail').value = email;
-  document.getElementById('abRejetModalTitle').textContent = 'Rejeter — ' + nom;
-  document.getElementById('abRejetMotif').value = '';
-  document.getElementById('abRejetModal').classList.add('open');
-}
-function abCloseRejetModal() { document.getElementById('abRejetModal').classList.remove('open'); }
-
-async function abConfirmerRejet() {
-  const id    = document.getElementById('abRejetId').value;
-  const type  = document.getElementById('abRejetType').value;
-  const motif = document.getElementById('abRejetMotif').value.trim();
-  if (!motif) { abToast('Veuillez saisir un motif.', 'e'); return; }
-  try {
-    if (type === 'partenaire') {
-      if (_supaReady && _supa) {
-        await _supa.from('partenaires').update({ statut: 'Rejeté', motif_rejet: motif }).eq('id', id);
-      } else {
-        abDB.set('partenaires', abDB.get('partenaires').map(p => p.id===id ? {...p, statut:'Rejeté', motif_rejet:motif} : p));
-      }
-    } else {
-      if (_supaReady && _supa) {
-        await _supa.from('clients').update({ statut: 'Rejeté', motif_rejet: motif }).eq('id', id);
-      } else {
-        abDB.set('clients', abDB.get('clients').map(c => c.id===id ? {...c, statut:'Rejeté', motif_rejet:motif} : c));
-      }
-    }
-    abCloseRejetModal();
-    abToast('Compte rejeté. Motif enregistré.', 'e');
-    abRenderValidation();
-  } catch(e) { abToast('Erreur: ' + e.message, 'e'); }
-}
-
-// ── Upload doc justificatif — modal client B2B ────────────────────
-async function abUploadClientDoc() {
-  const file = document.getElementById('abCDocFile')?.files?.[0];
-  if (!file) return;
-  const st = document.getElementById('abCDocStatus');
-  const lnk = document.getElementById('abCDocLink');
-  const prev = document.getElementById('abCDocPreview');
-  if (st) st.textContent = '⏳ Upload...';
-  try {
-    const url = await abUploadToCloudinary(file);
-    document.getElementById('abCDocUrl').value = url;
-    if (st) st.textContent = file.name;
-    if (lnk) { lnk.href = url; prev.style.display = 'block'; }
-    abToast('Document uploadé.', 's');
   } catch(e) {
-    if (st) st.textContent = 'Erreur upload.';
-    abToast('Erreur upload : ' + e.message, 'e');
+    abToast('Erreur: ' + e.message, 'e');
   }
 }
 
-// ── Prévisualiser nom du doc dans formul. partenaire vitrine ──────
-function inscDocPreview() {
-  const f = document.getElementById('inscDocFile')?.files?.[0];
-  const el = document.getElementById('inscDocName');
-  if (el) el.textContent = f ? f.name : 'Aucun fichier';
-  document.getElementById('inscDocUrl').value = '';
+async function abRejeterPartenaire(id, email) {
+  if (!confirm(`Rejeter et supprimer le compte partenaire ${email} ?`)) return;
+  try {
+    if (_supaReady && _supa) {
+      await _supa.from('partenaires').delete().eq('id', id);
+    } else {
+      abDB.set('partenaires', abDB.get('partenaires').filter(p => p.id !== id));
+    }
+    abToast('Compte partenaire rejeté et supprimé.', 'e');
+    abRenderValidation();
+  } catch(e) {
+    abToast('Erreur: ' + e.message, 'e');
+  }
 }
-
 function abValiderEngin(id) {
   abDB.set('engins',abDB.get('engins').map(e=>e.id===id?{...e,validated:true}:e));
   abRenderValidation();
@@ -20111,46 +19816,27 @@ function abOpenEditClient(id) {
   document.getElementById('abCContact').value  = c ? c.contact  : '';
   document.getElementById('abCTel').value      = c ? c.tel      : '';
   document.getElementById('abCEmail').value    = c ? c.email    : '';
-  document.getElementById('abCNinea').value    = c ? (c.ninea||'') : '';
-  document.getElementById('abCRccm').value     = c ? (c.rccm||'')  : '';
   document.getElementById('abCSecteur').value  = c ? (c.secteur||'Mines') : 'Mines';
   document.getElementById('abCVille').value    = c ? (c.ville||'Conakry') : 'Conakry';
-  document.getElementById('abCStatut').value   = c ? (c.statut||'En attente') : 'En attente';
-  document.getElementById('abCDocUrl').value   = c ? (c.doc_url||'') : '';
-  document.getElementById('abCDocStatus').textContent = c?.doc_url ? '📄 Document existant' : 'Aucun fichier';
-  document.getElementById('abCDocPreview').style.display = c?.doc_url ? 'block' : 'none';
-  if (c?.doc_url) document.getElementById('abCDocLink').href = c.doc_url;
+  document.getElementById('abCStatut').value   = c ? (c.statut||'Actif') : 'Actif';
   document.getElementById('abClientModal').classList.add('open');
 }
 function abCloseClientModal() { document.getElementById('abClientModal').classList.remove('open'); }
-async function abSaveClient() {
+function abSaveClient() {
   const societe = document.getElementById('abCSociete').value.trim();
   if(!societe) { abToast('Société requise.','e'); return; }
   const clients = abDB.get('clients');
-  const docUrl = document.getElementById('abCDocUrl')?.value || '';
   const data = {
     id: abEditClientId || abUID(),
     societe, contact: document.getElementById('abCContact').value,
     tel: document.getElementById('abCTel').value,
     email: document.getElementById('abCEmail').value,
-    ninea: document.getElementById('abCNinea')?.value || '',
-    rccm: document.getElementById('abCRccm')?.value || '',
-    doc_url: docUrl,
     secteur: document.getElementById('abCSecteur').value,
     ville: document.getElementById('abCVille').value,
     statut: document.getElementById('abCStatut').value,
     locations: abEditClientId ? (clients.find(c=>c.id===abEditClientId)||{}).locations||0 : 0,
     total:     abEditClientId ? (clients.find(c=>c.id===abEditClientId)||{}).total||0     : 0,
   };
-  if (_supaReady && _supa) {
-    try {
-      if (abEditClientId) {
-        await _supa.from('clients').update(data).eq('id', abEditClientId);
-      } else {
-        await _supa.from('clients').insert([{...data, created_at: new Date().toISOString()}]);
-      }
-    } catch(e) {}
-  }
   if(abEditClientId) {
     abDB.set('clients', clients.map(c=>c.id===abEditClientId?{...c,...data}:c));
     abToast('Client mis à jour.','s');
@@ -20922,7 +20608,7 @@ function abRefreshParResume(p) {
 
 // ADMIN — MODALS CLIENT / CONTRAT / PAIEMENT / PARTENAIRE
 // Fermeture au clic sur overlay
-document.querySelectorAll('#abClientModal,#abContratModal,#abPaiModal,#abPartModal,#abRejetModal')
+document.querySelectorAll('#abClientModal,#abContratModal,#abPaiModal,#abPartModal')
   .forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); }));
 
 // Close engin detail modal on overlay click
