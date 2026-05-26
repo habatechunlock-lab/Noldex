@@ -28,7 +28,7 @@
 <meta property="og:title" content="NOLDEX LOGISTICS SARL | Location d'engins lourds en Guinée">
 <meta property="og:description" content="Marketplace B2B de location d'engins lourds en Guinée. Camions benne, chargeuses, grues, pelles. GPS temps réel, contrats digitaux, paiement mobile. Disponible sur toute la Guinée.">
 <meta property="og:url" content="https://www.noldexfleet.com/">
-<meta property="og:image" content="https://www.noldexfleet.com/og-image.jpg">
+<meta property="og:image" content="https://res.cloudinary.com/dpyboca4x/image/upload/q_auto,f_auto,w_1200,h_630,c_fill/noldex/brand/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="NOLDEX LOGISTICS SARL — Location d'engins lourds en Guinée">
@@ -39,7 +39,7 @@
 <meta name="twitter:site" content="@NoldexLogistics">
 <meta name="twitter:title" content="NOLDEX LOGISTICS SARL | Location d'engins lourds en Guinée">
 <meta name="twitter:description" content="Marketplace B2B d'engins lourds en Guinée. GPS, contrats digitaux, paiement Orange Money. BTP · Mines · Industrie.">
-<meta name="twitter:image" content="https://www.noldexfleet.com/og-image.jpg">
+<meta name="twitter:image" content="https://res.cloudinary.com/dpyboca4x/image/upload/q_auto,f_auto,w_1200,h_630,c_fill/noldex/brand/og-image.png">
 
 <!-- PWA / THEME -->
 <meta name="theme-color" content="#E8600A">
@@ -68,7 +68,7 @@
         "width": 512,
         "height": 512
       },
-      "image": "https://www.noldexfleet.com/og-image.jpg",
+      "image": "https://res.cloudinary.com/dpyboca4x/image/upload/q_auto,f_auto,w_1200,h_630,c_fill/noldex/brand/og-image.png",
       "telephone": ["+224621785252", "+224620221409"],
       "email": "info@noldexfleet.com",
       "address": {
@@ -290,16 +290,11 @@ const CLOUDINARY_FOLDER        = 'noldex/engins';
 // RÈGLES REALTIME DATABASE (console → Realtime Database → Règles) :
 //   { "rules": { ".read": true, ".write": "auth != null" } }
 // ══════════════════════════════════════════════════════════════════
-const FIREBASE_CONFIG = {
-  apiKey:            '',   // AIzaSy... (Paramètres projet → Clé API Web)
-  authDomain:        '',   // noldexfleet.firebaseapp.com
-  databaseURL:       '',   // https://noldexfleet-default-rtdb.europe-west1.firebasedatabase.app
-  projectId:         '',   // noldexfleet
-  storageBucket:     '',   // noldexfleet.appspot.com
-  messagingSenderId: '',   // 12 chiffres
-  appId:             '',   // 1:xxx:web:xxx
-  measurementId:     ''    // G-XXXXXXXX (optionnel)
-};
+// ── Firebase — NON UTILISÉ (désactivé) ───────────────────────────────────
+// Firebase n'est pas configuré. Supprimez ce bloc si vous n'en avez pas besoin.
+// Si vous l'activez, configurez les variables via les Paramètres admin,
+// ne les mettez jamais en dur dans ce fichier.
+const FIREBASE_CONFIG = null; // désactivé
 const CLOUDINARY_QUALITY       = 'auto';
 
 /** Retourne la config Cloudinary active (localStorage > constantes hardcodées) */
@@ -318,10 +313,14 @@ function cloudIsReady() { const c = _cloudCfg(); return !!(c.cloudName && c.uplo
 
 
 // Rôles — emails autorisés par rôle
-// ── Rôles admin/partenaire — À MIGRER vers user_metadata Supabase
-// Pour ajouter un admin : Supabase Dashboard > Authentication > Users > Edit user > user_metadata : {"role":"admin"}
-const ADMIN_EMAILS   = ['admin@noldexfleet.com'];
-const PARTNER_EMAILS = ['partenaire@noldexfleet.com'];
+// ── Rôles admin/partenaire ─────────────────────────────────────────────────
+// IMPORTANT : Ne pas utiliser les listes d'emails en production.
+// Assignez les rôles via Supabase Dashboard → Authentication → Users
+// → Edit user → user_metadata : {"role":"admin"} ou {"role":"partner"}
+// Les listes ci-dessous sont un FALLBACK de développement uniquement.
+// En production, videz ces tableaux et utilisez exclusivement user_metadata.
+const ADMIN_EMAILS   = NX_DEV ? ['admin@noldexfleet.com'] : [];
+const PARTNER_EMAILS = NX_DEV ? ['partenaire@noldexfleet.com'] : [];
 
 // État global session
 let _supaSession = null;
@@ -330,7 +329,17 @@ let _supa        = null;
 let _supaReady   = false;
 let _qrTimer     = null; // timer countdown PIN QR (désactivé — déclaré pour éviter ReferenceError)
 
-const NX_DEV = location.hostname === 'localhost' || new URLSearchParams(location.search).has('debug');
+// Mode debug : activé uniquement sur localhost ou avec ?debug dans l'URL
+// NE JAMAIS activer en production (retire les console.log sensibles)
+const NX_DEV = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
+// Supprime les console.error/warn en production pour éviter les fuites d'info
+if (!NX_DEV) {
+  const _noop = () => {};
+  console.warn  = _noop;
+  console.error = _noop;
+  console.log   = _noop;
+}
 
 function _supaIsConfigured() {
   return SUPABASE_URL.startsWith('https://') && SUPABASE_ANON_KEY.startsWith('eyJ');
@@ -672,8 +681,9 @@ supaInit().then(() => {
 (function fbAutoInit() {
   try {
     const saved = JSON.parse(localStorage.getItem('nf_firebase') || 'null');
-    const cfg = (saved && saved.projectId) ? saved : FIREBASE_CONFIG;
-    if (cfg.projectId) fbInit(cfg);
+    // Firebase désactivé par défaut. Activez-le via le panneau admin en saisissant vos clés.
+    const cfg = (saved && saved.projectId) ? saved : null; // FIREBASE_CONFIG = null
+    if (cfg && cfg.projectId) fbInit(cfg);
   } catch(e) { console.warn('[Firebase autoInit]', e.message); }
 })();
 
@@ -7459,7 +7469,7 @@ function _setMarketplace() {
 }
 
 function _setPartenaires() {
-  const page = document.getElementById('page-partenaires-new') || document.getElementById('page-partenaires');
+  const page = document.getElementById('page-partenaires-new');
   if (!page) return;
   const lbl = page.querySelector('.section-label');
   if (lbl) lbl.textContent = t('part_lbl');
@@ -8890,115 +8900,6 @@ document.addEventListener('DOMContentLoaded', () => {
 <!-- ============================================================ -->
 <!-- PAGE 3: PARTENAIRES -->
 <!-- ============================================================ -->
-<!-- PAGE-PARTENAIRES DÉSACTIVÉE — remplacée par page-partenaires-new. Conserver pour rollback. -->
-<div class="page" id="page-partenaires" style="display:none!important;">
-  <section class="solutions-hero">
-    <div class="solutions-hero-bg"></div>
-    <div class="container" style="position:relative;z-index:1;">
-      <div class="section-label">⚡ Propriétaires d'engins — Opportunité exclusive</div>
-      <h1 class="hero-title mb-16">Votre flotte immobilisée,<br>c'est de l'argent <em>qui dort.</em></h1>
-      <p style="font-size:17px;color:var(--text-dim);max-width:640px;margin-bottom:16px;">Chaque jour sans location, c'est un manque à gagner. NOLDEX LOGISTICS SARL connecte votre flotte à des dizaines d'entreprises minières, BTP et industrielles qui cherchent des engins <strong class="c-text">en ce moment même</strong> — sur toute la Guinée.</p>
-      <p style="font-size:15px;color:var(--orange);font-weight:600;max-width:580px;margin-bottom:36px;">✦ Inscription gratuite · Zéro commission sur les 3 premiers contrats · Paiement garanti Orange Money / MTN</p>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;">
-        <button class="btn btn-main" onclick="showPage('devis')">💰 Monétiser ma flotte maintenant</button>
-        <button class="btn btn-outline" onclick="showPage('devis')">📊 Voir le tableau de bord partenaire</button>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      <div class="grid-2" style="gap:48px;align-items:start;">
-        <div>
-          <div class="section-label">Vos avantages exclusifs</div>
-          <h2 class="section-title mb-8">Arrêtez de perdre<br>de l'argent chaque jour</h2>
-          <p style="font-size:14px;color:var(--text-muted);margin-bottom:28px;">Un engin qui ne tourne pas vous coûte : amortissement, gardiennage, assurance. NOLDEX le fait travailler à votre place.</p>
-          <div class="avantage-list">
-            <div class="avantage-item">
-              <div class="avantage-check">🌐</div>
-              <div><div class="avantage-title">Visibilité immédiate sur toute la Guinée</div><div class="avantage-desc">Dès validation, vos engins sont exposés à des entreprises minières, BTP et industrielles actives sur le territoire — <strong class="c-text">sans démarchage, sans intermédiaire.</strong></div></div>
-            </div>
-            <div class="avantage-item">
-              <div class="avantage-check">💰</div>
-              <div><div class="avantage-title">Revenus garantis, payés directement sur votre téléphone</div><div class="avantage-desc">Paiement automatique via Orange Money et MTN Mobile Money à la fin de chaque location. <strong class="c-text">Historique complet, aucun impayé non résolu.</strong></div></div>
-            </div>
-            <div class="avantage-item">
-              <div class="avantage-check">🔧</div>
-              <div><div class="avantage-title">Zéro panne surprise — alertes maintenance proactives</div><div class="avantage-desc">Planifiez l'entretien avant que la panne coûte. <strong class="c-text">Nos alertes intelligentes protègent votre investissement</strong> et réduisent les immobilisations imprévues.</div></div>
-            </div>
-            <div class="avantage-item">
-              <div class="avantage-check">📄</div>
-              <div><div class="avantage-title">Contrats béton — litiges impossibles</div><div class="avantage-desc">Contrats Cadre de Location (CCL) numériques, signés électroniquement, juridiquement opposables. <strong class="c-text">Votre engin est protégé dès la première heure.</strong></div></div>
-            </div>
-            <div class="avantage-item">
-              <div class="avantage-check">📊</div>
-              <div><div class="avantage-title">Pilotez votre flotte comme un pro depuis votre poche</div><div class="avantage-desc">Revenus en temps réel, taux d'utilisation, demandes entrantes, GPS live — <strong class="c-text">tout votre business sur un seul écran,</strong> depuis n'importe où en Guinée.</div></div>
-            </div>
-            <div class="avantage-item">
-              <div class="avantage-check">🤝</div>
-              <div><div class="avantage-title">Une équipe locale qui vous répond — pas un bot</div><div class="avantage-desc">L'équipe NOLDEX est basée en Guinée, connaît le terrain minier et BTP, et vous accompagne <strong class="c-text">de l'inscription jusqu'à chaque contrat signé.</strong></div></div>
-            </div>
-          </div>
-        </div>
-        <div>
-          <div class="section-label">Votre chemin vers les revenus</div>
-          <h2 class="section-title mb-8">De l'inscription<br>au premier paiement</h2>
-          <p style="font-size:14px;color:var(--text-muted);margin-bottom:28px;">Moins de 48h pour être actif sur la marketplace.</p>
-          <div style="display:flex;flex-direction:column;gap:0;">
-            <div class="step-v">
-              <div class="step-v-num">1</div>
-              <div class="step-v-content">
-                <div class="step-v-title">Inscription & validation — sous 48h</div>
-                <div class="step-v-desc">Créez votre profil partenaire en ligne en 10 minutes. Notre équipe vérifie vos documents et vous active sur la plateforme. Vous êtes visible sur la marketplace avant même que vos concurrents le sachent.</div>
-                <div class="step-v-tags"><span class="step-tag">RCCM</span><span class="step-tag">Assurance</span><span class="step-tag">Photos</span></div>
-              </div>
-            </div>
-            <div class="step-v">
-              <div class="step-v-num">2</div>
-              <div class="step-v-content">
-                <div class="step-v-title">Publiez vos engins — 5 minutes par fiche</div>
-                <div class="step-v-desc">Renseignez caractéristiques, photos et disponibilités. Publication immédiate. Votre engin est déjà exposé à des clients qui cherchent exactement ce que vous avez.</div>
-              </div>
-            </div>
-            <div class="step-v">
-              <div class="step-v-num">3</div>
-              <div class="step-v-content">
-                <div class="step-v-title">Les clients viennent à vous</div>
-                <div class="step-v-desc">Notifications en temps réel pour chaque demande de devis. Acceptez, négociez ou refusez en un clic depuis votre dashboard. Plus de courses pour trouver des clients.</div>
-              </div>
-            </div>
-            <div class="step-v">
-              <div class="step-v-num">4</div>
-              <div class="step-v-content">
-                <div class="step-v-title">Encaissez automatiquement</div>
-                <div class="step-v-desc">Fin de location = paiement déclenché automatiquement. Orange Money ou MTN directement sur votre compte. Aucun suivi, aucune relance, aucune mauvaise surprise.</div>
-                <div class="step-v-tags"><span class="step-tag" style="color:var(--orange);border-color:var(--border-orange);">Orange Money</span><span class="step-tag" style="color:#FFCC00;border-color:rgba(255,204,0,0.3);">MTN MoMo</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="cta-section">
-    <div class="container">
-      <div class="cta-inner">
-        <h2 class="cta-title">Votre prochain contrat<br><span class="text-orange">attend votre flotte.</span></h2>
-        <p class="cta-sub">Des entreprises minières et BTP cherchent des engins en Guinée en ce moment même. Soyez celui qu'elles trouvent.</p>
-        <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;">
-          <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);"><span class="c-green">✓</span> Inscription 100% gratuite</div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);"><span class="c-green">✓</span> 0% commission sur vos 3 premiers contrats</div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);"><span class="c-green">✓</span> Actif sur la marketplace en moins de 48h</div>
-        </div>
-        <div class="cta-btns">
-          <button class="btn btn-main" onclick="showPage('devis')">💰 Je veux monétiser ma flotte</button>
-          <button class="btn btn-outline" onclick="showPage('devis')">📊 Voir la démo du tableau de bord</button>
-        </div>
-      </div>
-    </div>
-  </section>
-</div>
 
 <!-- ============================================================ -->
 <!-- PAGE 4: CLIENTS B2B -->
@@ -11270,7 +11171,7 @@ function showPage(id) {
   const pageMap = {
     'tarifs':           'page-tarifs',
     'partenaires':      'page-partenaires-new',
-    'partenaires-new':  'page-partenaires-new',
+    'partenaires-new':  'page-partenaires-new', /* ancienne page supprimée */
     'catalogue':        'page-gallery',   // Catalogue → Galerie
     'acquisition':      'page-acquisition',
     'carte':            'page-carte',
@@ -11371,11 +11272,11 @@ async function submitForm() {
     try {
       const { error } = await _supa.from('demandes_devis').insert([devisData]);
       if (error) {
-        console.warn('[NOLDEX] Supabase insert error:', error.message);
-        // Fallback localStorage
+        // Fallback localStorage si Supabase échoue
         _saveDevisLocally(devisData);
       } else {
-        if(NX_DEV) console.log('[NOLDEX] Devis enregistré dans Supabase ✅');
+        // Notifier l'équipe par WhatsApp (message formaté)
+        _notifyWhatsApp(devisData);
       }
     } catch(e) {
       _saveDevisLocally(devisData);
@@ -11388,6 +11289,28 @@ async function submitForm() {
   if (btn) { btn.disabled = false; btn.textContent = '📋 Envoyer ma demande de devis →'; }
   document.getElementById('formBody').style.display = 'none';
   document.getElementById('successMsg').style.display = 'block';
+}
+
+function _notifyWhatsApp(data) {
+  // Envoie un message WhatsApp pré-rempli à l'équipe NOLDEX
+  // Le numéro admin peut être configuré dans les paramètres plateforme
+  try {
+    const adminTel = '224621785252'; // ← Remplacer par le numéro WhatsApp admin
+    const msg = `🔔 *Nouveau devis NOLDEX*
+📅 ${new Date().toLocaleString('fr-FR')}
+🏗️ Engin : ${data.type_engin} ${data.capacite ? '— ' + data.capacite : ''}
+📍 Chantier : ${data.chantier || 'N/A'}
+🗓️ Démarrage : ${data.date_debut || 'N/A'} (${data.duree || ''})
+🏢 Société : ${data.societe || 'Particulier'}
+👤 Contact : ${data.nom}
+📞 Tél : ${data.telephone}
+📧 Email : ${data.email || 'N/A'}
+💬 ${data.description ? data.description.substring(0, 100) : ''}`;
+    // Ouvre WhatsApp dans un onglet silencieux (non bloquant)
+    const url = `https://wa.me/${adminTel}?text=${encodeURIComponent(msg)}`;
+    const w = window.open(url, '_blank', 'noopener,noreferrer,width=1,height=1');
+    if (w) setTimeout(() => { try { w.close(); } catch(e){} }, 3000);
+  } catch(e) {}
 }
 
 function _saveDevisLocally(data) {
@@ -12825,14 +12748,27 @@ const equipeDB = {
 
 const DEPT_ICONS = { direction:'👑', commercial:'💼', tech:'💻', ops:'⚙️', finance:'💰', rh:'👥', autre:'🏢' };
 
-function renderEquipe() {
+async function renderEquipe() {
   const membersEl = document.getElementById('equipeMembers');
   const valeursEl = document.getElementById('equipeValeurs');
   if (!membersEl) return;
 
   const cfg = _cloudCfg();
   const cn  = cfg.cloudName || 'dpyboca4x';
-  const members = equipeDB.getMembers().filter(m=>m.enabled).sort((a,b)=>(a.ordre||0)-(b.ordre||0));
+  let members = [];
+
+  if (_supa) {
+    try {
+      const { data } = await _supa.from('nx_equipe').select('*').order('ordre');
+      if (data && data.length) {
+        members = data.map(m => ({
+          ...m, publicId: m.public_id, deptType: m.dept_type, isPdg: m.is_pdg,
+          location: m.location, whatsapp: m.whatsapp,
+        })).filter(m => m.enabled !== false);
+      }
+    } catch {}
+  }
+  if (!members.length) members = equipeDB.getMembers().filter(m => m.enabled);
 
   // Grouper par deptType
   const groups = {};
@@ -12888,9 +12824,16 @@ function renderEquipe() {
   });
   membersEl.innerHTML = html;
 
-  // Valeurs
+  // Valeurs — Supabase (nx_valeurs) avec fallback localStorage
   if (valeursEl) {
-    const valeurs = equipeDB.getValeurs();
+    let valeurs = [];
+    if (_supa) {
+      try {
+        const { data } = await _supa.from('nx_valeurs').select('*').order('ordre');
+        if (data && data.length) valeurs = data;
+      } catch {}
+    }
+    if (!valeurs.length) valeurs = equipeDB.getValeurs();
     valeursEl.innerHTML = `
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;margin-top:8px;">
       <span style="font-size:20px;">⭐</span>
@@ -12902,7 +12845,7 @@ function renderEquipe() {
       <div class="equipe-valeur">
         <div class="equipe-valeur-icon">${v.icon}</div>
         <div class="equipe-valeur-title">${v.titre}</div>
-        <div class="equipe-valeur-desc">${v.desc}</div>
+        <div class="equipe-valeur-desc">${v.descr||v.desc||''}</div>
       </div>`).join('')}
     </div>`;
   }
@@ -12997,7 +12940,7 @@ const galDB = {
 let _galData = [];
 
 async function galleryRender() {
-  // 1) Charger depuis Cloudinary (tag noldex_galerie) — source principale
+  // 1) Cloudinary (tag noldex_galerie) — source principale
   const cloudItems = await cldFetchList('image', 'noldex_galerie');
   if (cloudItems && cloudItems.length) {
     _galData = cloudItems.map(r => {
@@ -13017,8 +12960,20 @@ async function galleryRender() {
         desc:   ctx.desc   || ctx.description || '',
       };
     });
+  } else if (_supa) {
+    // 2) Supabase (table nx_galerie) — sync multi-appareils
+    try {
+      const { data } = await _supa.from('nx_galerie').select('*').order('created_at');
+      if (data && data.length) {
+        _galData = data.map(r => ({
+          publicId: r.public_id, nom: r.nom, type: r.type, ville: r.ville,
+          statut: r.statut, cap: r.cap, annee: r.annee, marque: r.marque,
+          modele: r.modele, prix: r.prix, gps: r.gps, desc: r.descr,
+        }));
+      } else { _galData = galDB.get(); }
+    } catch { _galData = galDB.get(); }
   } else {
-    // 2) Fallback : données locales (back-office médias)
+    // 3) localStorage (fallback local)
     _galData = galDB.get();
   }
 
@@ -13272,7 +13227,7 @@ async function renderVideos() {
 document.addEventListener('DOMContentLoaded', renderVideos);
 
 // ── ADMIN — NOTRE ÉQUIPE ──────────────────────────────────────────
-function abRenderEquipeAdmin() {
+async function abRenderEquipeAdmin() {
   const cfg = _cloudCfg(), cn = cfg.cloudName||'dpyboca4x';
   const members = equipeDB.getMembers().sort((a,b)=>(a.ordre||0)-(b.ordre||0));
   const list = document.getElementById('abEqList');
@@ -13299,20 +13254,27 @@ function abRenderEquipeAdmin() {
     }).join('') || '<div style="color:var(--text-dim);font-size:13px;padding:20px 0;">Aucun membre. Cliquez sur ＋ pour ajouter.</div>';
   }
 
-  // Valeurs
+  // Valeurs — Supabase (nx_valeurs) avec fallback equipeDB localStorage
   const valeursEl = document.getElementById('abEqValeurs');
   if (valeursEl) {
-    const valeurs = equipeDB.getValeurs();
-    valeursEl.innerHTML = valeurs.map((v,i) => `
+    let valeurs = [];
+    if (_supa) {
+      try {
+        const { data } = await _supa.from('nx_valeurs').select('*').order('ordre');
+        if (data && data.length) valeurs = data;
+      } catch {}
+    }
+    if (!valeurs.length) valeurs = equipeDB.getValeurs();
+    valeursEl.innerHTML = valeurs.map((v) => `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div style="display:flex;align-items:center;gap:8px;">
-          <input class="ab-fctrl" value="${v.icon}" style="width:44px;text-align:center;font-size:20px;padding:4px;" onchange="abEqUpdateValeur(${i},'icon',this.value)">
-          <input class="ab-fctrl" value="${v.titre}" style="flex:1;font-weight:700;" onchange="abEqUpdateValeur(${i},'titre',this.value)">
+          <input class="ab-fctrl" value="${v.icon||'⭐'}" style="width:44px;text-align:center;font-size:20px;padding:4px;" onchange="abEqUpdateValeur('${v.id}','icon',this.value)">
+          <input class="ab-fctrl" value="${(v.titre||'').replace(/"/g,'&quot;')}" style="flex:1;font-weight:700;" onchange="abEqUpdateValeur('${v.id}','titre',this.value)">
         </div>
-        <button class="ab-btn ab-btn-ghost ab-btn-sm c-red" onclick="abEqDeleteValeur(${i})" style="margin-left:8px;">🗑</button>
+        <button class="ab-btn ab-btn-ghost ab-btn-sm c-red" onclick="abEqDeleteValeur('${v.id}')" style="margin-left:8px;">🗑</button>
       </div>
-      <textarea class="ab-fctrl" rows="2" style="resize:vertical;font-size:12px;" onchange="abEqUpdateValeur(${i},'desc',this.value)">${v.desc}</textarea>
+      <textarea class="ab-fctrl" rows="2" style="resize:vertical;font-size:12px;" onchange="abEqUpdateValeur('${v.id}','descr',this.value)">${v.descr||v.desc||''}</textarea>
     </div>`).join('');
   }
 }
@@ -13351,7 +13313,7 @@ function abEqOpenModal(id) {
 }
 function abEqCloseModal(){document.getElementById('abEqModal').style.display='none';document.body.style.overflow='';}
 function abEqEdit(id){abEqOpenModal(id);}
-function abEqDelete(id){if(!confirm('Supprimer ce membre ?'))return;equipeDB.removeMember(id);abRenderEquipeAdmin();renderEquipe();abToast('Membre supprimé.','s');}
+async function abEqDelete(id){if(!confirm('Supprimer ce membre ?'))return;equipeDB.removeMember(id);await abRenderEquipeAdmin();renderEquipe();abToast('Membre supprimé.','s');}
 function abEqPreview(){
   const pid=document.getElementById('eqPublicId').value.trim();
   const thumb=document.getElementById('eqThumb');
@@ -13360,7 +13322,7 @@ function abEqPreview(){
   const url=`https://res.cloudinary.com/${cn}/image/upload/c_fill,w_60,h_60,f_auto,q_auto,g_face/${pid}`;
   thumb.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='👤'">`;
 }
-function abEqSave(){
+async function abEqSave(){
   const nom=document.getElementById('eqNom').value.trim();
   if(!nom){abToast('Le nom est requis.','e');return;}
   const m={
@@ -13381,19 +13343,43 @@ function abEqSave(){
   const editId=document.getElementById('eqEditId').value;
   if(editId){equipeDB.updateMember(editId,m);abToast('Membre mis à jour.','s');}
   else{equipeDB.addMember(m);abToast('Membre ajouté.','s');}
-  abEqCloseModal();abRenderEquipeAdmin();renderEquipe();
+  abEqCloseModal();await abRenderEquipeAdmin();renderEquipe();
 }
-function abEqUpdateValeur(i,field,val){
-  const v=equipeDB.getValeurs();v[i][field]=val;equipeDB.saveValeurs(v);renderEquipe();
-}
-function abEqDeleteValeur(i){
-  if(!confirm('Supprimer cette valeur ?'))return;
-  const v=equipeDB.getValeurs();v.splice(i,1);equipeDB.saveValeurs(v);abRenderEquipeAdmin();renderEquipe();
-}
-function abEqAddValeur(){
+async function abEqUpdateValeur(id,field,val){
+  if(_supa){
+    try{
+      await _supa.from('nx_valeurs').update({[field]:val}).eq('id',id);
+    }catch{}
+  }
+  // Sync localStorage fallback
   const v=equipeDB.getValeurs();
-  v.push({id:'v_'+Date.now(),icon:'⭐',titre:'Nouvelle valeur',desc:'Description de la valeur.'});
-  equipeDB.saveValeurs(v);abRenderEquipeAdmin();renderEquipe();
+  const item=v.find(x=>x.id===id);
+  if(item){item[field]=val;equipeDB.saveValeurs(v);}
+  renderEquipe();
+}
+async function abEqDeleteValeur(id){
+  if(!confirm('Supprimer cette valeur ?'))return;
+  if(_supa){
+    try{ await _supa.from('nx_valeurs').delete().eq('id',id); }catch{}
+  }
+  const v=equipeDB.getValeurs().filter(x=>x.id!==id);
+  equipeDB.saveValeurs(v);
+  await abRenderEquipeAdmin();renderEquipe();
+}
+async function abEqAddValeur(){
+  const item={id:'v_'+Date.now(),icon:'⭐',titre:'Nouvelle valeur',descr:'Description de la valeur.',ordre:0};
+  if(_supa){
+    try{
+      const {data}=await _supa.from('nx_valeurs').select('ordre').order('ordre',{ascending:false}).limit(1);
+      if(data&&data.length) item.ordre=(data[0].ordre||0)+1;
+      await _supa.from('nx_valeurs').insert(item);
+    }catch{}
+  }
+  // localStorage fallback sync
+  const v=equipeDB.getValeurs();
+  v.push({...item,desc:item.descr});
+  equipeDB.saveValeurs(v);
+  await abRenderEquipeAdmin();renderEquipe();
 }
 
 // ── ADMIN — ANIMATIONS HERO ───────────────────────────────────────
@@ -17805,15 +17791,16 @@ alter table maintenance enable row level security;
 alter table partenaires enable row level security;
 alter table platform_params enable row level security;
 
--- Politique lecture/écriture publique (mode démo — à restreindre en production)
-create policy "public_all" on engins      for all using (true) with check (true);
-create policy "public_all" on clients     for all using (true) with check (true);
-create policy "public_all" on contrats    for all using (true) with check (true);
-create policy "public_all" on demandes    for all using (true) with check (true);
-create policy "public_all" on paiements   for all using (true) with check (true);
-create policy "public_all" on maintenance for all using (true) with check (true);
-create policy "public_all" on partenaires for all using (true) with check (true);
-create policy "public_all" on platform_params for all using (true) with check (true);</pre>
+-- Politique sécurisée : accès admin uniquement pour les tables back-office
+-- Pour activer : Supabase Dashboard → Auth → Users → Edit → user_metadata : {"role":"admin"}
+create policy "admin_all" on engins      for all using ((auth.jwt()->>'user_metadata')::jsonb->>'role' = 'admin') with check ((auth.jwt()->>'user_metadata')::jsonb->>'role' = 'admin');
+create policy "admin_all" on clients     for all using ((auth.jwt()->>'user_metadata')::jsonb->>'role' = 'admin') with check ((auth.jwt()->>'user_metadata')::jsonb->>'role' = 'admin');
+create policy "admin_all" on contrats    for all using ((auth.jwt()->>'user_metadata')::jsonb->>'role' = 'admin') with check ((auth.jwt()->>'user_metadata')::jsonb->>'role' = 'admin');
+create policy "admin_all" on demandes    for all using ((auth.jwt()->>'user_metadata')::jsonb->>'role' = 'admin') with check ((auth.jwt()->>'user_metadata')::jsonb->>'role' = 'admin');
+create policy "admin_all" on paiements   for all using ((auth.jwt()->>'user_metadata')::jsonb->>'role' = 'admin') with check ((auth.jwt()->>'user_metadata')::jsonb->>'role' = 'admin');
+create policy "admin_all" on maintenance for all using ((auth.jwt()->>'user_metadata')::jsonb->>'role' = 'admin') with check ((auth.jwt()->>'user_metadata')::jsonb->>'role' = 'admin');
+create policy "admin_all" on partenaires for all using ((auth.jwt()->>'user_metadata')::jsonb->>'role' = 'admin') with check ((auth.jwt()->>'user_metadata')::jsonb->>'role' = 'admin');
+create policy "admin_all" on platform_params for all using ((auth.jwt()->>'user_metadata')::jsonb->>'role' = 'admin') with check ((auth.jwt()->>'user_metadata')::jsonb->>'role' = 'admin');</pre>
               <button class="ab-btn ab-btn-ghost ab-btn-sm" style="margin-top:8px;" onclick="abCopySql()">📋 Copier le script</button>
             </details>
 
@@ -19418,7 +19405,7 @@ function abGoPage(id) {
   abRenderPage(id);
   abCloseSidebar();
 }
-function abRenderPage(id) {
+async function abRenderPage(id) {
   const map = {
     overview:abRenderOverview, engins:abRenderEngins, validation:abRenderValidation,
     clients:abRenderClients, contrats:abRenderContrats, demandes:()=>abRenderDemandes(''),
@@ -19434,7 +19421,7 @@ function abRenderPage(id) {
     equipe:abRenderEquipeAdmin,
     vitrine:abRenderVitrine
   };
-  if(map[id]) map[id]();
+  if(map[id]) await map[id]();
 }
 function abToggleSidebar() {
   document.getElementById('abSidebar').classList.toggle('open');
