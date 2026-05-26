@@ -493,15 +493,9 @@ async function supaInit(){
   try{
     // Réutiliser le client créé par doLogin (déjà authentifié)
     if (!_supa) _supa = supabase.createClient(SUPA_URL, SUPA_KEY);
-    // Tester la connexion avec la session active
+    // Tester la connexion via la session active uniquement (sans requête DB)
     const { data: sessionData } = await _supa.auth.getSession();
-    if (sessionData?.session) {
-      // Session active — tester l'accès à la base
-      const {data, error} = await _supa.from('nx_galerie').select('id').limit(1);
-      _online = !error;
-    } else {
-      _online = false;
-    }
+    _online = !!sessionData?.session;
   } catch(e){ _online=false; }
   updateDot();
 }
