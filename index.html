@@ -11181,7 +11181,7 @@ function renderEngins() {
     const ville    = e.ville  || e.loc    || '—';
     const cap      = e.cap    || e.capacite || '—';
     const emoji    = e.emoji  || '🚛';
-    const photoUrl = e.photo_url || '';
+    const photoUrl = e.photo_url || e.photoUrl || (e.public_id ? `https://res.cloudinary.com/dpyboca4x/image/upload/f_auto,q_auto/${e.public_id}` : '');
     const badgeClass = statut === 'Disponible' ? 'badge-green' : statut === 'En entretien' ? 'badge-orange' : 'badge-red';
     const imgHtml = photoUrl
       ? `<img src="${photoUrl}" alt="${nom}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
@@ -13147,7 +13147,9 @@ function galleryFilter() {
     // Construire l'URL photo depuis le Public ID Cloudinary
     const photoUrl = e.publicId
       ? `https://res.cloudinary.com/${cn}/image/upload/f_auto,q_auto/${e.publicId}`
-      : (e.photoUrl || '');
+      : e.public_id
+        ? `https://res.cloudinary.com/${cn}/image/upload/f_auto,q_auto/${e.public_id}`
+        : (e.photoUrl || e.photo_url || '');
 
     const photoHtml = photoUrl
       ? `<img src="${photoUrl}" alt="${e.nom||''}" loading="lazy"
