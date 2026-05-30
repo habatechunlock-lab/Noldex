@@ -418,13 +418,17 @@ async function doLogin() {
   btn.textContent = '⏳ Connexion...';
 
   try {
-    // Initialiser Supabase si pas encore fait
+    // Initialiser Supabase
     if (!_supa) {
+      if (typeof supabase === 'undefined') throw new Error('SDK Supabase non chargé.');
       const { createClient } = supabase;
       _supa = createClient(SUPA_URL, SUPA_KEY);
     }
 
-    const { data, error } = await _supa.auth.signInWithPassword({ email, password: pwd });
+    // Timeout 10s
+    const loginPromise = _supa.auth.signInWithPassword({ email, password: pwd });
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout — vérifiez votre connexion internet.')), 10000));
+    const { data, error } = await Promise.race([loginPromise, timeout]);
 
     if (error) {
       err.textContent = error.message === 'Invalid login credentials'
@@ -436,7 +440,7 @@ async function doLogin() {
       return;
     }
 
-    // Vérifier que l'utilisateur a le rôle admin
+    // Vérifier le rôle admin
     const role = data.user?.user_metadata?.role;
     const ADMIN_EMAILS = ['admin@noldexfleet.com'];
     const isAdmin = role === 'admin' || ADMIN_EMAILS.includes(data.user?.email);
@@ -452,7 +456,7 @@ async function doLogin() {
     unlock();
 
   } catch(e) {
-    err.textContent = '❌ Erreur réseau. Vérifiez votre connexion.';
+    err.textContent = '❌ ' + (e.message || 'Erreur inconnue. Vérifiez votre connexion.');
     btn.disabled = false;
     btn.textContent = 'Se connecter →';
   }
