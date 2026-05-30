@@ -438,7 +438,9 @@ async function doLogin() {
 
     // Vérifier que l'utilisateur a le rôle admin
     const role = data.user?.user_metadata?.role;
-    if (role !== 'admin') {
+    const ADMIN_EMAILS = ['admin@noldexfleet.com'];
+    const isAdmin = role === 'admin' || ADMIN_EMAILS.includes(data.user?.email);
+    if (!isAdmin) {
       await _supa.auth.signOut();
       err.textContent = '❌ Accès refusé. Compte non autorisé.';
       btn.disabled = false;
@@ -485,7 +487,8 @@ async function _checkSession(){
     const session = data?.session;
     if (!session) return false;
     const role = session.user?.user_metadata?.role;
-    return role === 'admin';
+    const ADMIN_EMAILS = ['admin@noldexfleet.com'];
+    return role === 'admin' || ADMIN_EMAILS.includes(session.user?.email);
   } catch { return false; }
 }
 
