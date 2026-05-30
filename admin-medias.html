@@ -462,7 +462,9 @@ async function doLogin() {
     unlock();
 
   } catch(e) {
-    err.textContent = '❌ ' + (e.message || 'Erreur inconnue. Vérifiez votre connexion.');
+    const msg = e?.message || JSON.stringify(e) || 'Erreur inconnue';
+    alert('DEBUG ERREUR: ' + msg);
+    err.textContent = '❌ ' + msg;
     btn.disabled = false;
     btn.textContent = 'Se connecter →';
   }
