@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex,nofollow">
 <title>NOLDEX — Gestion Médias</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+  // Fallback si unpkg échoue
+  if (typeof supabase === 'undefined') {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');
+  }
+</script>
 <style>
 :root{
   --bg:#0a0c12;--surface:#12151f;--surface2:#1a1e2b;--border:#262b3a;
