@@ -5,13 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex,nofollow">
 <title>NOLDEX — Gestion Médias</title>
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script>
-  // Fallback si unpkg échoue
-  if (typeof supabase === 'undefined') {
-    document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');
-  }
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 :root{
   --bg:#0a0c12;--surface:#12151f;--surface2:#1a1e2b;--border:#262b3a;
@@ -509,10 +503,8 @@ async function lock(){
 
 async function _checkSession(){
   try{
-    if (!_supa) {
-      const { createClient } = supabase;
-      _supa = createClient(SUPA_URL, SUPA_KEY);
-    }
+    if (typeof supabase === 'undefined' || typeof supabase.createClient !== 'function') return false;
+    if (!_supa) _supa = supabase.createClient(SUPA_URL, SUPA_KEY);
     const { data } = await _supa.auth.getSession();
     const session = data?.session;
     if (!session) return false;
@@ -567,9 +559,15 @@ function updateDot(){
 
 // ─── DB HELPERS (Supabase + localStorage fallback) ─
 async function dbGet(table, lsKey, orderBy='created_at'){
-  if(_online){
-    const {data,error}=await _supa.from(table).select('*').order(orderBy,{ascending:true});
-    if(!error&&data){ try{localStorage.setItem(lsKey,JSON.stringify(data));}catch(e){} return data; }
+  if(_supa){
+    try{
+      const {data,error}=await _supa.from(table).select('*').order(orderBy,{ascending:true});
+      if(!error&&data){ 
+        _online=true; updateDot();
+        try{localStorage.setItem(lsKey,JSON.stringify(data));}catch(e){}
+        return data;
+      }
+    }catch(e){}
   }
   try{return JSON.parse(localStorage.getItem(lsKey)||'[]');}catch{return [];}
 }
@@ -924,10 +922,10 @@ async function eqAddVal(){
 }
 
 // ─── Init ─────────────────────────────────────────
-// Vérifier la session Supabase au chargement (async)
-(async () => {
+// Vérifier la session Supabase au chargement (après que le SDK soit prêt)
+window.addEventListener('load', async () => {
   if (await _checkSession()) unlock();
-})();
+});
 </script>
 </body>
 </html>
