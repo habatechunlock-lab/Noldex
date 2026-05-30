@@ -173,7 +173,8 @@ textarea.ctrl{resize:vertical;min-height:60px;}
     <div class="tb-logo"><div class="nl">NL</div><div class="nm">NOLDEX <em>MÉDIAS</em></div></div>
     <div class="supa-status"><span class="supa-dot" id="supaDot"></span><span id="supaStatusTxt">Connexion…</span></div>
     <div class="tb-spacer"></div>
-    <button class="tb-btn" onclick="window.open('/','_blank')">🔗 Site</button>
+    <button class="tb-btn" onclick="syncToVitrine()" title="Pousser toutes les données vers Supabase (vitrine)" style="background:rgba(232,96,10,.15);border-color:rgba(232,96,10,.4);color:#E8600A;">🔄 Sync vitrine</button>
+    <button class="tb-btn" onclick="window.open('https://noldexfleet.com','_blank')">🔗 Site</button>
     <button class="tb-btn" onclick="lock()">🔒</button>
   </div>
 
@@ -491,14 +492,39 @@ async function _checkSession(){
 // ─── SUPABASE ─────────────────────────────────────
 async function supaInit(){
   try{
-    // Réutiliser le client créé par doLogin (déjà authentifié)
     if (!_supa) _supa = supabase.createClient(SUPA_URL, SUPA_KEY);
-    // Tester la connexion via la session active uniquement (sans requête DB)
-    const { data: sessionData } = await _supa.auth.getSession();
-    _online = !!sessionData?.session;
+    // Tester la connexion réelle (ping léger sur nx_galerie)
+    const { error } = await _supa.from('nx_galerie').select('id').limit(1);
+    _online = !error;
   } catch(e){ _online=false; }
   updateDot();
 }
+// ── SYNC VERS VITRINE ───────────────────────────────────────────────────
+// Pousse les données localStorage vers Supabase pour que le vitrine les voie
+async function syncToVitrine(){
+  if(!_supa){ toast('Supabase non connecté. Connectez-vous d'abord.','e'); return; }
+  const tables = [
+    ['nx_galerie',   K_GAL],
+    ['nx_videos',    K_VID],
+    ['nx_equipe',    K_EQM],
+    ['nx_valeurs',   K_VAL],
+  ];
+  let ok=0, fail=0;
+  for(const [table, lsKey] of tables){
+    const items = JSON.parse(localStorage.getItem(lsKey)||'[]');
+    if(!items.length){ ok++; continue; }
+    const {error} = await _supa.from(table).upsert(items, {onConflict:'id'});
+    if(error){ toast(`${table}: ${error.message}`, 'e'); fail++; }
+    else { ok++; }
+  }
+  if(fail===0){
+    _online=true; updateDot();
+    toast(`✅ Sync réussie — ${tables.length} tables envoyées vers le vitrine.`,'s');
+  } else {
+    toast(`⚠️ Sync partielle — ${ok} OK, ${fail} erreurs.`,'w');
+  }
+}
+
 function updateDot(){
   const dot=document.getElementById('supaDot');
   const txt=document.getElementById('supaStatusTxt');
@@ -515,10 +541,16 @@ async function dbGet(table, lsKey, orderBy='created_at'){
   try{return JSON.parse(localStorage.getItem(lsKey)||'[]');}catch{return [];}
 }
 async function dbUpsert(table, lsKey, item){
-  if(_online){
+  if(_supa){
     const {error}=await _supa.from(table).upsert(item,{onConflict:'id'});
-    if(error){ toast('Supabase: '+error.message,'e'); }
-    else { await dbSyncLS(table,lsKey); return true; }
+    if(error){
+      toast('Supabase: '+error.message,'e');
+      // Fallback localStorage si Supabase refuse (ex: RLS non configuré)
+    } else {
+      await dbSyncLS(table,lsKey);
+      _online=true; updateDot();
+      return true;
+    }
   }
   // localStorage fallback
   let arr=[]; try{arr=JSON.parse(localStorage.getItem(lsKey)||'[]');}catch{}
@@ -528,7 +560,7 @@ async function dbUpsert(table, lsKey, item){
   return true;
 }
 async function dbDelete(table, lsKey, id){
-  if(_online){
+  if(_supa){
     const {error}=await _supa.from(table).delete().eq('id',id);
     if(error){ toast('Supabase: '+error.message,'e'); return false; }
     await dbSyncLS(table,lsKey); return true;
