@@ -423,51 +423,69 @@ async function doLogin() {
   btn.disabled = true;
   btn.textContent = '⏳ Connexion...';
 
-  try {
-    // Initialiser Supabase
-    if (!_supa) {
-      if (typeof supabase === 'undefined') throw new Error('SDK Supabase non chargé.');
-      const { createClient } = supabase;
-      _supa = createClient(SUPA_URL, SUPA_KEY);
-    }
+  // Réinitialiser le style du champ password
+  document.getElementById('loginPwd').style.borderColor = '';
 
-    // Timeout 10s
-    const loginPromise = _supa.auth.signInWithPassword({ email, password: pwd });
-    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout — vérifiez votre connexion internet.')), 10000));
-    const { data, error } = await Promise.race([loginPromise, timeout]);
-
-    if (error) {
-      err.textContent = error.message === 'Invalid login credentials'
-        ? '❌ Email ou mot de passe incorrect.'
-        : '❌ ' + error.message;
-      document.getElementById('loginPwd').style.borderColor = 'var(--red)';
-      btn.disabled = false;
-      btn.textContent = 'Se connecter →';
-      return;
-    }
-
-    // Vérifier le rôle admin
-    const role = data.user?.user_metadata?.role;
-    const ADMIN_EMAILS = ['admin@noldexfleet.com'];
-    const isAdmin = role === 'admin' || ADMIN_EMAILS.includes(data.user?.email);
-    if (!isAdmin) {
-      await _supa.auth.signOut();
-      err.textContent = '❌ Accès refusé. Compte non autorisé.';
-      btn.disabled = false;
-      btn.textContent = 'Se connecter →';
-      return;
-    }
-
-    // ✅ Connexion réussie
-    unlock();
-
-  } catch(e) {
-    const msg = e?.message || JSON.stringify(e) || 'Erreur inconnue';
-    alert('DEBUG ERREUR: ' + msg);
+  const showErr = (msg) => {
     err.textContent = '❌ ' + msg;
     btn.disabled = false;
     btn.textContent = 'Se connecter →';
+  };
+
+  // Vérifier que le SDK Supabase est chargé
+  if (typeof supabase === 'undefined' || typeof supabase.createClient !== 'function') {
+    showErr('SDK Supabase non chargé. Rechargez la page.');
+    return;
   }
+
+  // Initialiser le client Supabase
+  if (!_supa) {
+    try { _supa = supabase.createClient(SUPA_URL, SUPA_KEY); }
+    catch(e) { showErr('Erreur init Supabase: ' + e.message); return; }
+  }
+
+  // Tentative de connexion avec timeout
+  let result;
+  try {
+    const timer = new Promise(resolve =>
+      setTimeout(() => resolve({ data: null, error: { message: 'Timeout réseau (10s). Vérifiez votre connexion.' } }), 10000)
+    );
+    result = await Promise.race([
+      _supa.auth.signInWithPassword({ email, password: pwd }),
+      timer
+    ]);
+  } catch(e) {
+    showErr('Erreur réseau: ' + (e.message || 'inconnue'));
+    return;
+  }
+
+  const { data, error } = result;
+
+  if (error) {
+    document.getElementById('loginPwd').style.borderColor = 'var(--red)';
+    showErr(error.message === 'Invalid login credentials'
+      ? 'Email ou mot de passe incorrect.'
+      : error.message);
+    return;
+  }
+
+  if (!data?.user) {
+    showErr('Réponse inattendue. Réessayez.');
+    return;
+  }
+
+  // Vérifier le rôle admin
+  const role = data.user?.user_metadata?.role;
+  const ADMIN_EMAILS = ['admin@noldexfleet.com'];
+  const isAdmin = role === 'admin' || ADMIN_EMAILS.includes(data.user?.email);
+  if (!isAdmin) {
+    try { await _supa.auth.signOut(); } catch(e) {}
+    showErr('Accès refusé. Compte non autorisé.');
+    return;
+  }
+
+  // ✅ Connexion réussie
+  unlock();
 }
 
 // Soumettre avec la touche Entrée
