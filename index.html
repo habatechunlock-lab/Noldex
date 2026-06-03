@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MANFRA-SHOP APP v16</title>
+<title>MANFRA-SHOP APP v17</title>
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
@@ -525,6 +525,16 @@ nav a.admin-only { display:none; }
 .kpi-value { font-family:'JetBrains Mono',monospace; font-size:26px; color:var(--txt); font-weight:700; letter-spacing:-0.5px; }
 .kpi-sub { font-size:13px; color:var(--txt2); margin-top:6px; }
 .kpi-icon { position:absolute; right:18px; top:50%; transform:translateY(-50%); font-size:34px; opacity:.08; }
+/* KPI Cards module Crédits */
+.kpi-card {
+  background:var(--bg2); border:1px solid var(--brd); border-radius:var(--radius);
+  padding:18px 22px; position:relative; overflow:hidden;
+  transition:var(--transition);
+}
+.kpi-card:hover { transform:translateY(-2px); border-color:var(--brd2); box-shadow:var(--shadow-sm); }
+.kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,var(--or),rgba(201,162,39,0)); }
+.kpi-card .kpi-value { font-family:'JetBrains Mono',monospace; font-size:24px; color:var(--or); font-weight:700; letter-spacing:-0.5px; margin-bottom:6px; }
+.kpi-card .kpi-label { font-size:12px; color:var(--txt3); letter-spacing:1.5px; text-transform:uppercase; font-weight:700; }
 .charts-row { display:grid; grid-template-columns:1fr 1.8fr; gap:16px; margin-bottom:28px; }
 .chart-card { background:var(--bg2); border:1px solid var(--brd); border-radius:var(--radius); padding:20px; transition:var(--transition); }
 .chart-title { font-family:'Cinzel',serif; font-size:14px; color:var(--txt); margin-bottom:16px; letter-spacing:.5px; font-weight:700; }
@@ -3395,7 +3405,6 @@ function showApp() {
 }
 
 async function doLogin() {
-  try {
   const email = document.getElementById('auth-email').value.trim();
   const pwd   = document.getElementById('auth-pwd').value;
   const errEl = document.getElementById('auth-error');
@@ -3416,9 +3425,6 @@ async function doLogin() {
     errEl.textContent = msgs[e.code] || ('Erreur: ' + e.message);
     errEl.classList.add('show');
     btn.disabled = false; btn.textContent = 'Se connecter';
-  }
-  } catch(e) {
-    showToast((e.message || String(e)), 'error');
   }
 }
 
@@ -4074,7 +4080,7 @@ function posRenderProductGrid() {
     card.className = 'pos-product-card' + (stock<=0?' out-of-stock':'');
     card.innerHTML = `
       <div class="pname">${esc(p.l)||'—'}</div>
-      <div class="pprice">${fmtFull(p.p)} GNF</div>
+      <div class="pprice">${fmtFull(p.pv||p.p)} GNF</div>
       <div class="pstock">Stock: ${stock}</div>`;
     if(stock > 0) {
       card.onclick = () => posAddToCart(p);
@@ -4359,12 +4365,12 @@ function ventesRender() {
   const credit = data.filter(v=>v.paiement==='CREDIT').reduce((s,v)=>s+v.total,0);
   const orange = data.filter(v=>v.paiement==='ORANGE').reduce((s,v)=>s+v.total,0);
   const banque = data.filter(v=>v.paiement==='BANQUE').reduce((s,v)=>s+v.total,0);
-  document.getElementById('vkpi-nb').textContent = data.length;
-  document.getElementById('vkpi-total').textContent = fmt(totalAmt);
-  document.getElementById('vkpi-especes').textContent = fmt(especes);
+  document.getElementById('vkpi-nb') && (document.getElementById('vkpi-nb').textContent = data.length);
+  document.getElementById('vkpi-total') && (document.getElementById('vkpi-total').textContent = fmt(totalAmt));
+  document.getElementById('vkpi-especes') && (document.getElementById('vkpi-especes').textContent = fmt(especes));
   document.getElementById('vkpi-orange') && (document.getElementById('vkpi-orange').textContent = fmt(orange));
   document.getElementById('vkpi-banque') && (document.getElementById('vkpi-banque').textContent = fmt(banque));
-  document.getElementById('vkpi-credit').textContent = fmt(credit);
+  document.getElementById('vkpi-credit') && (document.getElementById('vkpi-credit').textContent = fmt(credit));
   // Table
   const page = ventesPage;
   const total = data.length;
@@ -5297,7 +5303,7 @@ async function createUser() {
 // OBS-4/5 FIX: Service Worker inline via Blob URL — fonctionne sans fichier sw.js externe
 if ('serviceWorker' in navigator) {
   const SW_CODE = `
-const CACHE = 'manfra-shop-v16';
+const CACHE = 'manfra-shop-v17';
 const ASSETS = []; // pas de précache — app self-contained
 self.addEventListener('install', e => { self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(clients.claim()); });
@@ -6289,6 +6295,7 @@ async function credConfirmerRemboursement(ticketId, total) {
 let credSearchStr = '';
 function credFilter() {
   credSearchStr = document.getElementById('cred-search')?.value.toLowerCase() || '';
+  credPager = null; // reset pager pour recalculer la pagination sur le nouveau filtre
   credRenderAll();
 }
 
@@ -6402,7 +6409,7 @@ function rptGenererVentes() {
   });
   const total = filtered.reduce((s,v)=>s+v.total,0);
   const especes = filtered.filter(v=>v.paiement==='ESPECES').reduce((s,v)=>s+v.total,0);
-  const mobile = filtered.filter(v=>v.paiement==='MOBILE').reduce((s,v)=>s+v.total,0);
+  const mobile = filtered.filter(v=>v.paiement==='MOBILE'||v.paiement==='ORANGE').reduce((s,v)=>s+v.total,0);
   const credit = filtered.filter(v=>v.paiement==='CREDIT').reduce((s,v)=>s+v.total,0);
   const nbArticles = filtered.reduce((s,v)=>s+(v.articles?.length||0),0);
   document.getElementById('rpt-ventes-result').innerHTML = `
@@ -7244,7 +7251,7 @@ function actDrawClassements() {
 
   // Articles volume
   const artVol = {}, artCA = {};
-  ventes.forEach(v => (v.items||[]).forEach(it => {
+  ventes.forEach(v => (v.articles||v.items||[]).forEach(it => {
     const n = it.nom||it.name||'?';
     if (!artVol[n]) artVol[n] = {ca:0};
     if (!artCA[n])  artCA[n]  = {ca:0};
@@ -7475,7 +7482,7 @@ function clotureCaisseModal() {
   const today = new Date().toISOString().substring(0,10);
   const ventesJour = POS_VENTES.filter(v => v.date && v.date.substring(0,10) === today);
   const totalEsp = ventesJour.filter(v=>v.paiement==='ESPECES').reduce((s,v)=>s+v.total,0);
-  const totalMob = ventesJour.filter(v=>v.paiement==='MOBILE').reduce((s,v)=>s+v.total,0);
+  const totalMob = ventesJour.filter(v=>v.paiement==='MOBILE'||v.paiement==='ORANGE').reduce((s,v)=>s+v.total,0);
   const totalBanq = ventesJour.filter(v=>v.paiement==='BANQUE').reduce((s,v)=>s+v.total,0);
   const totalCred = ventesJour.filter(v=>v.paiement==='CREDIT').reduce((s,v)=>s+v.total,0);
   const totalVentes = totalEsp + totalMob + totalBanq + totalCred;
