@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" width="220" height="48" role="img" aria-label="NOLDEX LOGISTICS SARL">
+
+  <!-- ══ MARK — hexagone coupé (clip-path identique au CSS) ══ -->
+  <defs>
+    <clipPath id="nx-clip">
+      <!-- polygon(0 0, 78% 0, 100% 22%, 100% 100%, 22% 100%, 0 78%) sur 40×40 -->
+      <polygon points="0,0 31.2,0 40,8.8 40,40 8.8,40 0,31.2"/>
+    </clipPath>
+  </defs>
+
+  <!-- Fond orange avec clip -->
+  <rect x="0" y="4" width="40" height="40" fill="#E8600A" clip-path="url(#nx-clip)"/>
+
+  <!-- Lettre NX centrée dans le mark -->
+  <text
+    x="20" y="29"
+    font-family="'Barlow Condensed', Arial Narrow, sans-serif"
+    font-size="13"
+    font-weight="800"
+    fill="#ffffff"
+    text-anchor="middle"
+    letter-spacing="0.5">NX</text>
+
+  <!-- ══ TEXTE DU LOGO ══ -->
+  <!-- "NOLDEX" en blanc -->
+  <text
+    x="50" y="30"
+    font-family="'Barlow Condensed', Arial Narrow, sans-serif"
+    font-size="20"
+    font-weight="800"
+    fill="#ffffff"
+    letter-spacing="0.4">NOLDEX</text>
+
+  <!-- "LOGISTICS" en orange, positionné après NOLDEX (~50 + largeur NOLDEX ~76px) -->
+  <text
+    x="129" y="30"
+    font-family="'Barlow Condensed', Arial Narrow, sans-serif"
+    font-size="20"
+    font-weight="800"
+    fill="#E8600A"
+    letter-spacing="0.4">LOGISTICS</text>
+
+</svg>
