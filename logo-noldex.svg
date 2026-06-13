@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Fond sombre -->
+  <rect width="512" height="512" fill="#0A0E1A"/>
+  
+  <!-- Forme coupée coin haut-droit et bas-gauche -->
+  <polygon points="0,0 388,0 512,124 512,512 124,512 0,388" fill="#111827"/>
+  <polygon points="16,16 384,16 496,136 496,496 136,496 16,384" fill="#151e30"/>
+  
+  <!-- Triangle orange coin haut-droit -->
+  <polygon points="388,0 512,0 512,124" fill="#E8600A"/>
+  <polygon points="390,16 496,16 496,136" fill="#cc5200" opacity="0.6"/>
+
+  <!-- Lettre N (orange) -->
+  <!-- Barre verticale gauche -->
+  <rect x="76" y="155" width="42" height="210" fill="#E8600A"/>
+  <!-- Barre verticale droite -->
+  <rect x="160" y="155" width="42" height="210" fill="#E8600A"/>
+  <!-- Diagonale (penche de haut-gauche vers bas-droite) -->
+  <polygon points="76,155 118,155 202,365 160,365" fill="#E8600A"/>
+
+  <!-- Lettre X (blanc) -->
+  <!-- Diagonale \ -->
+  <polygon points="224,155 270,155 354,365 308,365" fill="#FFFFFF"/>
+  <!-- Diagonale / -->
+  <polygon points="308,155 354,155 270,365 224,365" fill="#FFFFFF"/>
+
+  <!-- NOLDEX texte -->
+  <text x="256" y="438" 
+        font-family="Arial Black, Impact, sans-serif" 
+        font-weight="900" 
+        font-size="54" 
+        fill="#E8600A" 
+        text-anchor="middle" 
+        letter-spacing="9">NOLDEX</text>
+  
+  <!-- LOGISTICS texte -->
+  <text x="256" y="472" 
+        font-family="Arial, Helvetica, sans-serif" 
+        font-weight="300" 
+        font-size="22" 
+        fill="#6b7f9a" 
+        text-anchor="middle" 
+        letter-spacing="7">LOGISTICS</text>
+</svg>
