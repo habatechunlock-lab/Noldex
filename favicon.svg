@@ -1,0 +1,6 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'>
+  <rect width='512' height='512' fill='#0A0E1A'/>
+  <polygon points='0,0 400,0 512,112 512,512 112,512 0,400' fill='#111827'/>
+  <polygon points='0,0 380,0 512,132 512,512 132,512 0,380' fill='#1a2540'/>
+  <text x='256' y='320' font-family='Arial Black,sans-serif' font-weight='900' font-size='200' fill='#E8600A' text-anchor='middle' letter-spacing='-5'>NX</text>
+</svg>
