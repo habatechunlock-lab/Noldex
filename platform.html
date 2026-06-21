@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NOLDEX PLATFORM v16 — Espace de gestion</title>
+<meta name="theme-color" content="#E8600A">
+<!-- ══ FAVICON ══ -->
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<!-- ══ PWA ══ -->
+<link rel="manifest" href="/platform-manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NOLDEX Platform">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script>
@@ -1727,6 +1740,7 @@ body.gps-active .content { padding: 0; overflow: hidden; position: relative; }
     <nav class="sidebar-nav" id="sidebar-nav"></nav>
 
     <div class="sidebar-footer">
+      <button id="nx-install-btn" onclick="installPlatformApp()" style="display:none;width:100%;align-items:center;gap:8px;padding:9px 12px;background:rgba(39,201,138,.1);border:1px solid rgba(39,201,138,.25);color:#27C98A;font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;transition:all .2s;cursor:pointer" onmouseover="this.style.background='rgba(39,201,138,.18)'" onmouseout="this.style.background='rgba(39,201,138,.1)'">📲 <span>Installer l'application</span></button>
       <a href="index.html" target="_blank" style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:rgba(232,96,10,.08);border:1px solid rgba(232,96,10,.2);color:#E8600A;font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;text-decoration:none;text-transform:uppercase;margin-bottom:10px;transition:all .2s" onmouseover="this.style.background='rgba(232,96,10,.18)'" onmouseout="this.style.background='rgba(232,96,10,.08)'">🌐 <span>Site public NOLDEX</span></a>
       <div class="user-card" onclick="doLogout()">
         <div class="user-avatar" id="user-avatar">A</div>
@@ -5416,6 +5430,52 @@ try {
   // Lancer l'animation en continu pour le retour fluide
   raf = requestAnimationFrame(animate);
 })();
+</script>
+
+<!-- ══ PWA INSTALL ══ -->
+<script>
+let _nxPlatDeferredPrompt = null;
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/platform-sw.js').catch(() => {});
+  });
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _nxPlatDeferredPrompt = e;
+  const btn = document.getElementById('nx-install-btn');
+  if (btn) btn.style.display = 'flex';
+});
+
+window.installPlatformApp = async function() {
+  if (_nxPlatDeferredPrompt) {
+    _nxPlatDeferredPrompt.prompt();
+    const { outcome } = await _nxPlatDeferredPrompt.userChoice;
+    if (outcome === 'accepted' && typeof toast === 'function') {
+      toast('Installation en cours…', 'ok');
+    }
+    _nxPlatDeferredPrompt = null;
+    const btn = document.getElementById('nx-install-btn');
+    if (btn) btn.style.display = 'none';
+    return;
+  }
+  if (typeof toast === 'function') {
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+      toast('Application déjà installée', 'ok');
+    } else {
+      toast('Ouvrez le menu de votre navigateur et choisissez "Ajouter à l\'écran d\'accueil"', 'warn');
+    }
+  }
+};
+
+window.addEventListener('appinstalled', () => {
+  if (typeof toast === 'function') toast('NOLDEX Platform installé avec succès !', 'ok');
+  const btn = document.getElementById('nx-install-btn');
+  if (btn) btn.style.display = 'none';
+  _nxPlatDeferredPrompt = null;
+});
 </script>
 </body>
 </html>
