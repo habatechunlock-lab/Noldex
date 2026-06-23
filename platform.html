@@ -17,6 +17,60 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="NOLDEX Platform">
+<!-- ══ FIREBASE SDK — Demandes de devis temps réel ══ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, doc, onSnapshot, updateDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDvOkWfKmjBEEF6WZlO21ninEaz3UNNrV4",
+  authDomain: "noldexflotte-sarl.firebaseapp.com",
+  projectId: "noldexflotte-sarl",
+  storageBucket: "noldexflotte-sarl.firebasestorage.app",
+  messagingSenderId: "478103615533",
+  appId: "1:478103615533:web:5bb885eec39396cec0a0a4"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db    = getFirestore(fbApp);
+
+// Met à jour le statut d'un devis web directement dans Firestore
+window.fbUpdateDevisStatut = async (docId, statut) => {
+  try { await updateDoc(doc(db,'devis',docId), { status: statut }); return true; }
+  catch(e){ console.error('fbUpdateDevisStatut',e); return false; }
+};
+
+// Écoute en temps réel la collection 'devis' (demandes venues du site public noldexfleet.com)
+onSnapshot(collection(db,'devis'), (snap) => {
+  const webDevis = [];
+  snap.forEach(d => {
+    const x = d.data();
+    const statutMap = { nouveau:'en_attente', accepte:'accepte', refuse:'refuse', en_cours:'en_cours', termine:'termine' };
+    webDevis.push({
+      id: 'DV-WEB-' + d.id.replace('devis_',''),
+      _fbDocId: d.id,
+      source: 'web',
+      client: x.societe ? `${x.nom} (${x.societe})` : (x.nom || '—'),
+      engin: x.typeEngin || '—',
+      ville: x.ville || '—',
+      duree: '—',
+      montant: 0,
+      contact: x.telephone || '—',
+      date: x.createdAt ? x.createdAt.slice(0,10) : '—',
+      statut: statutMap[x.status] || 'en_attente',
+      message: x.message || '',
+      secteur: x.secteur || ''
+    });
+  });
+  window._nxWebDevis = webDevis;
+  window.dispatchEvent(new CustomEvent('nx-web-devis-updated'));
+});
+</script>
+
+<!-- ══ PDF Export libs ══ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script>
@@ -2050,7 +2104,7 @@ function doLogout() {
 // ─── BADGES NAV DYNAMIQUES ────────────────────────
 function getNavBadges() {
   const alertes    = getData('nx_alertes');
-  const devis      = getData('nx_devis');
+  const devis      = [...(window._nxWebDevis || []), ...getData('nx_devis')];
   const paiements  = getData('nx_paiements');
   const maint      = getData('nx_maintenance');
   const messages   = getData('nx_messages');
@@ -2156,6 +2210,61 @@ function updateTopbarStats() {
   ['tb-stat-engins','tb-stat-alertes','tb-stat-rev'].forEach(id => {
     document.getElementById(id).style.display = '';
   });
+}
+
+function syncAlertesFromMaintenance() {
+  const maint = getData('nx_maintenance');
+  const alertes = getData('nx_alertes');
+  let changed = false;
+  maint.forEach(m => {
+    if (m.statut === 'ok') return;
+    const alreadyExists = alertes.some(a => a.enginId === m.enginId && a._maintId === m.id);
+    if (alreadyExists) return;
+    const isRetard = m.statut === 'en_retard';
+    alertes.unshift({
+      id: Date.now() + Math.random(),
+      _maintId: m.id,
+      type: isRetard ? 'urgent' : 'warning',
+      icon: isRetard ? '🔴' : '🟡',
+      titre: isRetard ? 'Maintenance en retard' : 'Maintenance imminente',
+      desc: `${m.enginNom} — ${m.type} (${m.kmCur.toLocaleString()} km / ${m.kmNext.toLocaleString()} km)`,
+      temps: 'Maintenance',
+      enginId: m.enginId,
+    });
+    changed = true;
+  });
+  // Nettoyer les alertes maintenance résolues (engin revenu à statut ok)
+  const okIds = maint.filter(m=>m.statut==='ok').map(m=>m.id);
+  const cleaned = alertes.filter(a => !(a._maintId && okIds.includes(a._maintId)));
+  if (changed || cleaned.length !== alertes.length) {
+    setData('nx_alertes', changed ? alertes : cleaned);
+  }
+}
+
+function syncAlertesFromContrats() {
+  const contrats = getData('nx_contrats');
+  const alertes = getData('nx_alertes');
+  const today = new Date(); today.setHours(0,0,0,0);
+  let changed = false;
+  contrats.filter(c=>c.statut==='actif').forEach(c => {
+    const fin = new Date(c.fin);
+    const diffDays = Math.round((fin - today) / 86400000);
+    if (diffDays > 7 || diffDays < 0) return;
+    const alreadyExists = alertes.some(a => a._contratId === c.id);
+    if (alreadyExists) return;
+    alertes.unshift({
+      id: Date.now() + Math.random(),
+      _contratId: c.id,
+      type: diffDays <= 3 ? 'urgent' : 'warning',
+      icon: diffDays <= 3 ? '🔴' : '🟡',
+      titre: `Contrat expirant dans ${diffDays}j`,
+      desc: `${c.id} — ${c.client} · ${c.engin}`,
+      temps: 'Contrat',
+      enginId: null,
+    });
+    changed = true;
+  });
+  if (changed) setData('nx_alertes', alertes);
 }
 
 function initApp() {
@@ -2267,13 +2376,42 @@ function navigate(pageId, label) {
   else document.getElementById('main-content').innerHTML = `<div class="empty-state"><div class="es-icon">🚧</div><div class="es-text">Page en construction</div></div>`;
 }
 
+// Rafraîchissement temps réel quand de nouveaux devis arrivent depuis noldexfleet.com
+window.addEventListener('nx-web-devis-updated', () => {
+  if (!currentUser) return; // app pas encore initialisée / pas connecté
+  const activeEl = document.querySelector('.nav-item.active');
+  const activePage = activeEl ? activeEl.dataset.page : null;
+
+  // Rafraîchir les badges de la sidebar
+  const badges = getNavBadges();
+  document.querySelectorAll('.nav-item').forEach(el => {
+    const id = el.dataset.page;
+    const badgeVal = badges[id];
+    let badgeEl = el.querySelector('.nav-badge');
+    if (badgeVal) {
+      if (!badgeEl) {
+        badgeEl = document.createElement('span');
+        badgeEl.className = 'nav-badge ' + (id === 'messagerie' ? 'green' : id === 'devis' || id === 'paiements' ? 'amber' : '');
+        el.appendChild(badgeEl);
+      }
+      badgeEl.textContent = badgeVal;
+    } else if (badgeEl) {
+      badgeEl.remove();
+    }
+  });
+
+  // Re-render la page si on est sur devis ou dashboard
+  if (activePage === 'devis') renderDevis();
+  if (activePage === 'dashboard') renderDashboard();
+});
+
 // ═══════════════════════════════════════════════════════
 // DASHBOARD
 // ═══════════════════════════════════════════════════════
 
 function renderDashboard() {
   const engins = getData('nx_engins');
-  const devis = getData('nx_devis');
+  const devis = [...(window._nxWebDevis || []), ...getData('nx_devis')];
   const contrats = getData('nx_contrats');
   const alertes = getData('nx_alertes');
 
@@ -2309,10 +2447,21 @@ function renderDashboard() {
     ];
   }
 
-  // ── Bar chart data ──
-  const months = ['Jan','Fév','Mar','Avr','Mai','Jun'];
-  const vals = [32,41,38,55,62,48];
-  const maxV = Math.max(...vals);
+  // ── Bar chart data — revenus réels 6 derniers mois ──
+  const nowDb = new Date();
+  const dbMonths = []; const dbVals = [];
+  for (let i=5;i>=0;i--) {
+    const d = new Date(nowDb.getFullYear(), nowDb.getMonth()-i, 1);
+    dbMonths.push(d.toLocaleString('fr-FR',{month:'short'}));
+    const y=d.getFullYear(), m=d.getMonth();
+    dbVals.push(getData('nx_paiements')
+      .filter(p=>p.statut==='paye'&&p.datePaie)
+      .filter(p=>{const pd=new Date(p.datePaie);return pd.getFullYear()===y&&pd.getMonth()===m;})
+      .reduce((s,p)=>s+p.montant,0)/1000000);
+  }
+  const months = dbMonths;
+  const vals = dbVals;
+  const maxV = Math.max(...vals, 1);
 
   // ── Hero KPI variables (non utilisées directement — kpi-grid affiche tout)
   const heroKpi = kpis[0];
@@ -2722,6 +2871,12 @@ function deleteEngin(id) {
 // PARTENAIRES (admin only)
 // ═══════════════════════════════════════════════════════
 
+function calcRevenusPartenaire(nom) {
+  return getData('nx_paiements')
+    .filter(p => p.partenaire === nom && p.statut === 'paye')
+    .reduce((s,p) => s+p.montant, 0);
+}
+
 function renderPartenaires() {
   const partenaires = getData('nx_partenaires');
   const rows = partenaires.map(p => `
@@ -2732,7 +2887,7 @@ function renderPartenaires() {
       <td>${p.ville}</td>
       <td>${p.engins}</td>
       <td>${p.rccm}</td>
-      <td>${formatMontant(p.revenus)}</td>
+      <td>${formatMontant(calcRevenusPartenaire(p.nom))}</td>
       <td>${p.statut === 'valide' ? '<span class="badge badge-green">✅ Validé</span>' : '<span class="badge badge-amber">⏳ En attente</span>'}</td>
       <td>
         <div style="display:flex;gap:6px">
@@ -2844,10 +2999,10 @@ function deletePartenaire(id) {
 // ═══════════════════════════════════════════════════════
 
 function renderDevis() {
-  const devis = getData('nx_devis');
+  const devis = [...(window._nxWebDevis || []), ...getData('nx_devis')];
   const rows = devis.map(d => `
     <tr>
-      <td><strong>${d.id}</strong></td>
+      <td><strong>${d.id}</strong>${d.source === 'web' ? ' <span class="nav-badge amber" style="position:static;margin-left:4px" title="Reçu depuis noldexfleet.com">🌐</span>' : ''}</td>
       <td>${d.client}</td>
       <td>${d.engin}</td>
       <td>${d.ville}</td>
@@ -2884,7 +3039,8 @@ function renderDevis() {
 }
 
 function viewDevis(id) {
-  const d = getData('nx_devis').find(x => x.id === id);
+  const devis = [...(window._nxWebDevis || []), ...getData('nx_devis')];
+  const d = devis.find(x => x.id === id);
   if (!d) return;
   const steps = ['Soumis','Évaluation','Accepté','En cours','Terminé'];
   const stepIdx = { en_attente:1, accepte:2, en_cours:3, termine:4, refuse:1 };
@@ -2898,7 +3054,7 @@ function viewDevis(id) {
 
   openModal(`
     <div class="modal-header">
-      <div class="modal-title">📋 ${d.id}</div>
+      <div class="modal-title">📋 ${d.id}${d.source === 'web' ? ' <span style="font-size:12px;color:var(--ox-l)">🌐 noldexfleet.com</span>' : ''}</div>
       <button class="modal-close" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
@@ -2912,6 +3068,8 @@ function viewDevis(id) {
         <div><div class="form-label">Contact</div><div style="color:var(--mist);margin-bottom:12px">${d.contact}</div></div>
         <div><div class="form-label">Date</div><div style="color:var(--mist)">${d.date}</div></div>
         <div><div class="form-label">Statut</div><div style="margin-top:4px">${statutBadge(d.statut)}</div></div>
+        ${d.secteur ? `<div><div class="form-label">Secteur</div><div style="color:var(--mist)">${d.secteur}</div></div>` : ''}
+        ${d.message ? `<div style="grid-column:1/-1"><div class="form-label">Message du client</div><div style="color:var(--mist);background:rgba(255,255,255,.03);border-radius:8px;padding:10px;margin-top:4px">${d.message}</div></div>` : ''}
       </div>
     </div>
     <div class="modal-footer">
@@ -2977,6 +3135,16 @@ function saveDevis() {
 }
 
 function changeDevisStatut(id, statut) {
+  if (id.startsWith('DV-WEB-')) {
+    const d = (window._nxWebDevis || []).find(x => x.id === id);
+    if (!d) return;
+    const fbStatutMap = { accepte:'accepte', refuse:'refuse', en_cours:'en_cours', termine:'termine' };
+    window.fbUpdateDevisStatut(d._fbDocId, fbStatutMap[statut] || statut).then(ok => {
+      if (ok) { renderDevis(); toast(statut === 'accepte' ? 'Devis accepté ✅' : 'Devis refusé', statut === 'accepte' ? 'ok' : 'error'); }
+      else { toast('Erreur de synchronisation', 'error'); }
+    });
+    return;
+  }
   const devis = getData('nx_devis');
   const idx = devis.findIndex(d => d.id === id);
   if (idx === -1) return;
@@ -3005,7 +3173,7 @@ function renderContrats() {
         <div class="contract-meta-item">Montant: <span style="color:var(--ox-l);font-weight:700">${formatMontant(c.montant)}</span></div>
       </div>
       <div style="margin-top:12px;display:flex;gap:8px">
-        <button class="btn btn-ghost btn-sm">📄 Voir CCL</button>
+        <button class="btn btn-ghost btn-sm" onclick="viewContrat('${c.id}')">📄 Voir CCL</button>
         ${c.statut === 'actif' ? `<button class="btn btn-danger btn-sm" onclick="terminerContrat('${c.id}')">⏹ Clôturer</button>` : ''}
       </div>
     </div>
@@ -3046,7 +3214,7 @@ function convertContratsToTable() {
               <td>${c.statut === 'actif' ? '<span class="badge badge-green">● Actif</span>' : '<span class="badge badge-blue">✓ Terminé</span>'}</td>
               <td>
                 <div style="display:flex;gap:6px">
-                  <button class="btn btn-ghost btn-sm">📄 CCL</button>
+                  <button class="btn btn-ghost btn-sm" onclick="viewContrat('${c.id}')">📄 CCL</button>
                   ${c.statut === 'actif' ? `<button class="btn btn-danger btn-sm" onclick="terminerContrat('${c.id}')">⏹</button>` : ''}
                 </div>
               </td>
@@ -3667,15 +3835,27 @@ function renderReporting() {
   const paiements = getData('nx_paiements');
   const interventions = getData('nx_interventions');
 
-  const months = ['Janvier','Février','Mars','Avril','Mai','Juin'];
-  const revs = [32000000, 41000000, 38000000, 55000000, 62000000, 48000000];
-  const maxR = Math.max(...revs);
+  // Revenus réels par mois depuis paiements payés
+  const now = new Date();
+  const monthLabels = [];
+  const revs = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    monthLabels.push(d.toLocaleString('fr-FR',{month:'short'}));
+    const y = d.getFullYear(), m = d.getMonth();
+    const total = paiements
+      .filter(p => p.statut==='paye' && p.datePaie)
+      .filter(p => { const pd=new Date(p.datePaie); return pd.getFullYear()===y && pd.getMonth()===m; })
+      .reduce((s,p) => s+p.montant, 0);
+    revs.push(total);
+  }
+  const maxR = Math.max(...revs, 1);
 
-  const bars = months.map((m,i) => `
+  const bars = monthLabels.map((m,i) => `
     <div class="bar-col">
-      <div class="bar-val">${(revs[i]/1000000).toFixed(0)}M</div>
+      <div class="bar-val">${revs[i]>0?(revs[i]/1000000).toFixed(1)+'M':'0'}</div>
       <div class="bar-fill" style="height:${Math.round((revs[i]/maxR)*120)}px"></div>
-      <div class="bar-label">${m.slice(0,3)}</div>
+      <div class="bar-label">${m}</div>
     </div>
   `).join('');
 
@@ -3704,12 +3884,12 @@ function renderReporting() {
       </div>
     </div>
     <div class="kpi-grid" style="margin-bottom:24px">
-      <div class="kpi-card" data-icon="💰"><div class="kpi-label">Revenus 2026 (GNF)</div><div class="kpi-value">276M</div><div class="kpi-delta">↑ +23% vs 2025</div></div>
+      <div class="kpi-card" data-icon="💰"><div class="kpi-label">Revenus ${now.getFullYear()} (GNF)</div><div class="kpi-value">${(paiements.filter(p=>p.statut==='paye'&&p.datePaie&&new Date(p.datePaie).getFullYear()===now.getFullYear()).reduce((s,p)=>s+p.montant,0)/1000000).toFixed(1)}M</div><div class="kpi-delta">Total paiements encaissés</div></div>
       <div class="kpi-card" data-icon="✅"><div class="kpi-label">Encaissé</div><div class="kpi-value" style="color:var(--green)">${(totalPaye/1000000).toFixed(1)}M</div><div class="kpi-delta">GNF reçus</div></div>
       <div class="kpi-card" data-icon="🚛"><div class="kpi-label">Taux d'utilisation</div><div class="kpi-value">${tauxEnLocation}%</div><div class="kpi-delta">Flotte active</div></div>
       <div class="kpi-card" data-icon="🔧"><div class="kpi-label">Coûts maintenance</div><div class="kpi-value" style="color:var(--amber)">${(totalCoutsMaint/1000000).toFixed(1)}M</div><div class="kpi-delta neg">GNF dépensés</div></div>
       <div class="kpi-card" data-icon="📋"><div class="kpi-label">Contrats signés</div><div class="kpi-value">${contrats.length}</div><div class="kpi-delta">Total</div></div>
-      <div class="kpi-card" data-icon="⭐"><div class="kpi-label">Mois record</div><div class="kpi-value">Mai</div><div class="kpi-delta">62M GNF</div></div>
+      <div class="kpi-card" data-icon="⭐">${(()=>{const mr=revs.reduce((bI,v,i)=>v>revs[bI]?i:bI,0);return `<div class="kpi-label">Mois record</div><div class="kpi-value">${monthLabels[mr]||'—'}</div><div class="kpi-delta">${revs[mr]>0?(revs[mr]/1000000).toFixed(1)+'M GNF':'Aucun encaissement'}</div>`;})()}</div>
     </div>
     <div class="grid-2">
       <div class="panel">
@@ -4047,7 +4227,7 @@ function viewFacture(id) {
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal()">Fermer</button>
-      <button class="btn btn-ox" onclick="toast('Export PDF en cours...');closeModal()">📥 Télécharger PDF</button>
+      <button class="btn btn-ox" id="btn-dl-facture" onclick="exportFacturePDF('${p.id}')">📥 Télécharger PDF</button>
     </div>
   `);
 }
@@ -4257,6 +4437,9 @@ function marquerMaintFait(id) {
   m[idx].kmNext = prev.kmNext + prev.intervalle;
   m[idx].statut = 'ok';
   setData('nx_maintenance', m);
+  // Nettoyer l'alerte liée si elle existe
+  const alertesPost = getData('nx_alertes').filter(a => a._maintId !== prev.id);
+  setData('nx_alertes', alertesPost);
   renderMaintenance('planning'); toast('Maintenance effectuée ✅');
 }
 
@@ -5356,6 +5539,8 @@ document.addEventListener('keydown', e => {
 try {
   initUsers(); // Toujours en premier — création des comptes auth hashés
   initData();
+  syncAlertesFromMaintenance();
+  syncAlertesFromContrats();
 } catch(e) {
   console.error('initData error:', e);
   const errEl = document.getElementById('auth-error');
@@ -5476,6 +5661,124 @@ window.addEventListener('appinstalled', () => {
   if (btn) btn.style.display = 'none';
   _nxPlatDeferredPrompt = null;
 });
+
+/* ══ VIEW CONTRAT CCL ══ */
+function viewContrat(id) {
+  const c = getData('nx_contrats').find(x => x.id === id);
+  if (!c) return;
+  const paiement = getData('nx_paiements').find(p => p.contratId === id);
+  const engin = getData('nx_engins').find(e => e.nom === c.engin);
+  openModal(`
+    <div class="modal-header">
+      <div class="modal-title">📄 Contrat ${c.id}</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" style="padding:0;overflow-y:auto">
+      <div class="facture-preview" id="ccl-print-${c.id}">
+        <div class="facture-header">
+          <div>
+            <div class="facture-logo">NOLDEX <span style="color:#1a2332">LOGISTICS</span></div>
+            <div style="font-size:11px;color:#666;margin-top:4px">Plateforme de location d'engins · Conakry, Guinée</div>
+            <div style="font-size:10px;color:#999;margin-top:2px">RCCM GN.TCC.2026.B.01055 · NIF 123456789</div>
+          </div>
+          <div class="facture-meta">
+            <div style="font-size:18px;font-weight:700;color:#1a2332">${c.id}</div>
+            <div>Date création : ${c.debut}</div>
+            <div>Expiration : ${c.fin}</div>
+            <div style="margin-top:6px"><span style="background:${c.statut==='actif'?'#dcfce7':'#dbeafe'};color:${c.statut==='actif'?'#16a34a':'#1d4ed8'};padding:2px 8px;font-weight:700;font-size:11px">${c.statut==='actif'?'● ACTIF':'✓ TERMINÉ'}</span></div>
+          </div>
+        </div>
+        <div class="facture-parties">
+          <div>
+            <div class="facture-party-label">Partenaire (Bailleur)</div>
+            <div style="font-weight:700">${c.partenaire}</div>
+          </div>
+          <div>
+            <div class="facture-party-label">Client (Locataire)</div>
+            <div style="font-weight:700">${c.client}</div>
+          </div>
+        </div>
+        <table class="facture-table">
+          <thead><tr><th>Engin</th><th>Type</th><th>Capacité</th><th>Tarif/jour</th><th>Période</th><th>Montant Total</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>${c.engin}</strong></td>
+              <td>${engin?.type||'—'}</td>
+              <td>${engin?.capacite||'—'}</td>
+              <td>${engin?formatMontant(engin.tarif)+' GNF':'—'}</td>
+              <td>${c.debut} → ${c.fin}</td>
+              <td><strong>${formatMontant(c.montant)} GNF</strong></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="facture-total">Total : ${formatMontant(c.montant)} GNF</div>
+        ${paiement ? `<div style="margin-top:12px;padding:10px;background:#f9f9f9;border-left:3px solid ${paiement.statut==='paye'?'#22C55E':'#F59E0B'};font-size:12px">
+          Paiement : <strong>${paiement.facture}</strong> · Statut : <strong style="color:${paiement.statut==='paye'?'#16a34a':'#d97706'}">${paiement.statut==='paye'?'PAYÉ':'EN ATTENTE'}</strong>
+          ${paiement.datePaie?` · Payé le ${paiement.datePaie} via ${paiement.methode}`:''}
+        </div>` : ''}
+        <div style="margin-top:20px;padding-top:12px;border-top:1px solid #eee;display:grid;grid-template-columns:1fr 1fr;gap:24px;font-size:11px;color:#888">
+          <div>
+            <div style="font-weight:700;margin-bottom:8px;color:#333">NOLDEXFLEET LOGISTICS SARL</div>
+            <div>Signature & Cachet Bailleur</div>
+            <div style="margin-top:32px;border-top:1px solid #ccc;padding-top:4px">___________________</div>
+          </div>
+          <div>
+            <div style="font-weight:700;margin-bottom:8px;color:#333">${c.client}</div>
+            <div>Signature & Cachet Locataire</div>
+            <div style="margin-top:32px;border-top:1px solid #ccc;padding-top:4px">___________________</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Fermer</button>
+      <button class="btn btn-ox" onclick="exportContratPDF('${c.id}')">📥 Télécharger PDF</button>
+    </div>
+  `);
+}
+
+/* ══ EXPORT PDF FACTURE ══ */
+async function exportFacturePDF(payId) {
+  const p = getData('nx_paiements').find(x => x.id === payId);
+  if (!p) return;
+  const btn = document.getElementById('btn-dl-facture');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Génération...'; }
+  try {
+    const el = document.querySelector('#blogModal .facture-preview, .modal .facture-preview, [class*="modal"] .facture-preview');
+    const target = el || document.querySelector('.facture-preview');
+    if (!target) { toast('Élément facture introuvable', 'error'); return; }
+    const canvas = await html2canvas(target, { scale:2, useCORS:true, backgroundColor:'#ffffff' });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const imgW = 210, imgH = (canvas.height * imgW) / canvas.width;
+    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgW, Math.min(imgH, 297));
+    pdf.save(`${p.facture}_NOLDEX.pdf`);
+    toast('Facture PDF téléchargée ✅');
+  } catch(e) {
+    console.error(e);
+    toast('Erreur export PDF', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '📥 Télécharger PDF'; }
+  }
+}
+
+/* ══ EXPORT PDF CONTRAT CCL ══ */
+async function exportContratPDF(contratId) {
+  try {
+    const target = document.getElementById('ccl-print-' + contratId);
+    if (!target) { toast('Élément contrat introuvable', 'error'); return; }
+    const canvas = await html2canvas(target, { scale:2, useCORS:true, backgroundColor:'#ffffff' });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const imgW = 210, imgH = (canvas.height * imgW) / canvas.width;
+    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgW, Math.min(imgH, 297));
+    pdf.save(`${contratId}_NOLDEX.pdf`);
+    toast('Contrat PDF téléchargé ✅');
+  } catch(e) {
+    console.error(e);
+    toast('Erreur export PDF', 'error');
+  }
+}
 </script>
 </body>
 </html>
