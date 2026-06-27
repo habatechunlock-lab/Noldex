@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>NOLDEX PLATFORM v16 — Espace de gestion</title>
+<title>NOLDEX PLATFORM v17 — Espace de gestion</title>
 <meta name="theme-color" content="#E8600A">
 <!-- ══ FAVICON ══ -->
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -450,6 +450,43 @@ select.form-input option { background: var(--steel-m); }
   box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 2px 8px rgba(0,0,0,.3);
 }
 .auth-demo strong { color: var(--mist); }
+
+/* LIEN CRÉER UN COMPTE */
+.auth-switch-link {
+  text-align: center; margin-top: 14px;
+  font-size: 12px; color: var(--fog);
+}
+.auth-switch-link a {
+  color: var(--ox); font-weight: 700; text-decoration: none;
+  cursor: pointer; transition: color .2s;
+}
+.auth-switch-link a:hover { color: #ff8c30; text-decoration: underline; }
+
+/* SUCCÈS */
+.auth-success {
+  padding: 10px 14px;
+  background: rgba(34,197,94,.1);
+  border: 1px solid rgba(34,197,94,.3);
+  border-left: 3px solid var(--green);
+  color: #4ade80;
+  font-size: 13px; margin-bottom: 16px; display: none;
+  box-shadow: inset 0 1px 0 rgba(34,197,94,.1), 0 0 12px rgba(34,197,94,.1);
+}
+
+/* BADGE EN ATTENTE */
+.badge-amber { background: rgba(245,158,11,.15); color: #fbbf24; border: 1px solid rgba(245,158,11,.3); }
+
+/* SECTION COMPTES EN ATTENTE */
+.pending-user-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  background: rgba(245,158,11,.05);
+  border: 1px solid rgba(245,158,11,.2);
+  border-left: 3px solid #f59e0b;
+  margin-bottom: 8px;
+}
+.pending-user-row .u-details { flex: 1; }
+.pending-actions { display: flex; gap: 8px; }
 
 /* ERREUR */
 .auth-error {
@@ -1697,40 +1734,91 @@ body.gps-active .content { padding: 0; overflow: hidden; position: relative; }
             </svg>
           </div>
           <div class="auth-logo-text">
-            <div class="brand-name">NOLDEX <strong>LOGISTICS</strong></div>
+            <div class="brand-name">NOLDEX <strong>FLEET</strong></div>
             <div class="sub">Plateforme de gestion</div>
+            <div class="sub" style="font-size:0.7em;opacity:0.6;margin-top:2px;letter-spacing:0.05em;">Powered by <strong>NOLDEX LOGISTICS</strong></div>
           </div>
         </div>
 
         <div class="auth-divider"></div>
 
-        <div class="auth-title">Connexion</div>
-        <div class="auth-sub">Accédez à votre espace dédié</div>
+        <!-- ══ VUE LOGIN ══ -->
+        <div id="view-login">
+          <div class="auth-title">Connexion</div>
+          <div class="auth-sub">Accédez à votre espace dédié</div>
 
-        <div class="auth-tabs">
-          <button class="auth-tab" id="admin-tab" style="display:none" onclick="setRole('admin')">⚙️ Admin</button>
-          <button class="auth-tab active" onclick="setRole('partenaire')">🏗️ Partenaire</button>
-          <button class="auth-tab" onclick="setRole('client')">🏢 Client B2B</button>
-        </div>
+          <div class="auth-tabs">
+            <button class="auth-tab" id="admin-tab" style="display:none" onclick="setRole('admin')">⚙️ Admin</button>
+            <button class="auth-tab active" onclick="setRole('partenaire')">🏗️ Partenaire</button>
+            <button class="auth-tab" onclick="setRole('client')">🏢 Client B2B</button>
+          </div>
 
-        <div class="auth-error" id="auth-error">Identifiants incorrects.</div>
+          <div class="auth-error" id="auth-error">Identifiants incorrects.</div>
 
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input type="email" class="form-input" id="login-email" placeholder="votre@email.com" oninput="autoSelectTab(this.value)">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Mot de passe</label>
-          <input type="password" class="form-input" id="login-pass" placeholder="••••••••">
-        </div>
-        <button class="btn-primary" id="login-btn">Se connecter →</button>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" id="login-email" placeholder="votre@email.com" oninput="autoSelectTab(this.value)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mot de passe</label>
+            <input type="password" class="form-input" id="login-pass" placeholder="••••••••">
+          </div>
+          <button class="btn-primary" id="login-btn" onclick="doLogin()">Se connecter →</button>
+
+          <div class="auth-switch-link">
+            Pas encore de compte ?
+            <a onclick="switchAuthView('register')">Créer un compte</a>
+          </div>
+        </div><!-- /view-login -->
+
+        <!-- ══ VUE INSCRIPTION ══ -->
+        <div id="view-register" style="display:none">
+          <div class="auth-title">Créer un compte</div>
+          <div class="auth-sub">Choisissez votre type d'accès</div>
+
+          <div class="auth-tabs">
+            <button class="auth-tab active" id="reg-tab-partenaire" onclick="setRegRole('partenaire')">🏗️ Partenaire</button>
+            <button class="auth-tab" id="reg-tab-client" onclick="setRegRole('client')">🏢 Client B2B</button>
+          </div>
+
+          <div class="auth-error" id="reg-error">Erreur d'inscription.</div>
+          <div class="auth-success" id="reg-success">Compte créé ! En attente de validation par l'administrateur.</div>
+
+          <div class="form-group">
+            <label class="form-label">Nom complet / Société</label>
+            <input type="text" class="form-input" id="reg-nom" placeholder="Votre nom ou raison sociale">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" id="reg-email" placeholder="votre@email.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mot de passe</label>
+            <input type="password" class="form-input" id="reg-pass" placeholder="Min. 6 caractères">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirmer le mot de passe</label>
+            <input type="password" class="form-input" id="reg-pass2" placeholder="Répétez le mot de passe">
+          </div>
+          <button class="btn-primary" onclick="doRegister()">Créer mon compte →</button>
+
+          <div class="auth-switch-link">
+            Déjà un compte ?
+            <a onclick="switchAuthView('login')">Se connecter</a>
+          </div>
+        </div><!-- /view-register -->
 
       </div><!-- /auth-card-inner -->
 
-      <div class="auth-demo">
+      <div class="auth-demo" id="auth-demo-login">
         <strong>Accès restreint :</strong><br>
         Contactez l'administrateur pour obtenir vos identifiants.<br>
         📧 contact@noldexfleet.com · 📞 +224627541925
+      </div>
+      <div class="auth-demo" id="auth-demo-register" style="display:none">
+        <strong>ℹ️ Validation requise :</strong><br>
+        Votre demande sera examinée par l'administrateur.<br>
+        Vous recevrez confirmation par email.
       </div>
 
       <div style="text-align:center;padding:14px 32px 0">
@@ -2063,10 +2151,85 @@ function autoSelectTab(email) {
   if (user) setRole(user.role);
 }
 
+// ─── SWITCH LOGIN / REGISTER ────────────────────────────
+let currentRegRole = 'partenaire';
+
+function switchAuthView(view) {
+  const isLogin = view === 'login';
+  document.getElementById('view-login').style.display    = isLogin ? '' : 'none';
+  document.getElementById('view-register').style.display = isLogin ? 'none' : '';
+  document.getElementById('auth-demo-login').style.display    = isLogin ? '' : 'none';
+  document.getElementById('auth-demo-register').style.display = isLogin ? 'none' : '';
+  // Reset erreurs/succès
+  ['auth-error','reg-error','reg-success'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
+
+function setRegRole(role) {
+  currentRegRole = role;
+  document.getElementById('reg-tab-partenaire').classList.toggle('active', role === 'partenaire');
+  document.getElementById('reg-tab-client').classList.toggle('active', role === 'client');
+}
+
+function doRegister() {
+  const nom   = document.getElementById('reg-nom').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass  = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+  const errEl = document.getElementById('reg-error');
+  const okEl  = document.getElementById('reg-success');
+
+  errEl.style.display = 'none';
+  okEl.style.display  = 'none';
+
+  if (!nom)                         { errEl.textContent = 'Le nom est obligatoire.';              errEl.style.display='block'; return; }
+  if (!email || !email.includes('@')){ errEl.textContent = 'Email invalide.';                     errEl.style.display='block'; return; }
+  if (pass.length < 6)              { errEl.textContent = 'Mot de passe trop court (min 6 car.).'; errEl.style.display='block'; return; }
+  if (pass !== pass2)               { errEl.textContent = 'Les mots de passe ne correspondent pas.'; errEl.style.display='block'; return; }
+
+  // Vérifier si email déjà utilisé (auth OU en attente)
+  if (getAuthUser(email)) { errEl.textContent = 'Cet email est déjà enregistré.'; errEl.style.display='block'; return; }
+  const pending = getData('nx_pending_users');
+  if (pending.find(p => p.email === email)) { errEl.textContent = 'Une demande existe déjà pour cet email.'; errEl.style.display='block'; return; }
+
+  // Enregistrer en attente
+  pending.push({
+    id: Date.now(),
+    nom, email, role: currentRegRole,
+    passHash: hashPass(pass),
+    avatar: nom[0]?.toUpperCase() || '?',
+    dateDemande: new Date().toLocaleDateString('fr-FR'),
+  });
+  setData('nx_pending_users', pending);
+
+  // Si l'admin est connecté dans ce même contexte, rafraîchir le badge notif
+  if (currentUser && currentRole === 'admin') {
+    refreshNavBadges();
+    renderNotifPanel();
+  }
+
+  // Succès
+  okEl.style.display = 'block';
+  document.getElementById('reg-nom').value = '';
+  document.getElementById('reg-email').value = '';
+  document.getElementById('reg-pass').value = '';
+  document.getElementById('reg-pass2').value = '';
+}
+
 function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const pass = document.getElementById('login-pass').value;
   const err = document.getElementById('auth-error');
+
+  // Vérifier si compte en attente de validation
+  const pendingUsers = getData('nx_pending_users');
+  if (pendingUsers.find(p => p.email === email)) {
+    err.textContent = "Votre compte est en attente de validation par l'administrateur.";
+    err.style.display = 'block';
+    return;
+  }
 
   const user = getAuthUser(email);
   if (!user || user.passHash !== hashPass(pass)) {
@@ -2108,19 +2271,22 @@ function getNavBadges() {
   const paiements  = getData('nx_paiements');
   const maint      = getData('nx_maintenance');
   const messages   = getData('nx_messages');
+  const pending    = getData('nx_pending_users');
 
   const urgentes    = alertes.filter(a => a.type === 'urgent').length;
   const devisAttente = devis.filter(d => d.statut === 'en_attente').length;
   const paiementsEnCours = paiements.filter(p => p.statut !== 'paye').length;
   const maintRetard  = maint.filter(m => m.statut === 'en_retard').length;
   const newMsgs      = messages.reduce((s, c) => s + c.msgs.filter(m => m.from === 'in').length, 0);
+  const pendingCount = pending.length;
 
   return {
-    alertes:     urgentes      > 0 ? String(urgentes)        : null,
-    devis:       devisAttente  > 0 ? String(devisAttente)    : null,
-    paiements:   paiementsEnCours > 0 ? String(paiementsEnCours) : null,
-    maintenance: maintRetard   > 0 ? String(maintRetard)    : null,
-    messagerie:  newMsgs       > 0 ? String(newMsgs)        : null,
+    alertes:      urgentes       > 0 ? String(urgentes)         : null,
+    devis:        devisAttente   > 0 ? String(devisAttente)     : null,
+    paiements:    paiementsEnCours > 0 ? String(paiementsEnCours) : null,
+    maintenance:  maintRetard    > 0 ? String(maintRetard)      : null,
+    messagerie:   newMsgs        > 0 ? String(newMsgs)          : null,
+    utilisateurs: pendingCount   > 0 ? String(pendingCount)     : null,
   };
 }
 
@@ -2298,7 +2464,7 @@ function initApp() {
       // Badge dynamique si disponible, sinon badge statique de config
       const dynamicBadge = badges[item.id];
       const badgeVal = dynamicBadge !== undefined ? dynamicBadge : item.badge;
-      const badgeCls = item.id === 'messagerie' ? 'green' : item.id === 'devis' || item.id === 'paiements' ? 'amber' : '';
+      const badgeCls = item.id === 'messagerie' ? 'green' : item.id === 'devis' || item.id === 'paiements' || item.id === 'utilisateurs' ? 'amber' : '';
       const badgeHtml = badgeVal ? `<span class="nav-badge ${badgeCls}">${badgeVal}</span>` : '';
       el.innerHTML = `<span class="nav-icon">${item.icon}</span><span>${item.label}</span>${badgeHtml}`;
       el.onclick = () => navigate(item.id, item.label);
@@ -3001,7 +3167,7 @@ function deletePartenaire(id) {
 function renderDevis() {
   const devis = [...(window._nxWebDevis || []), ...getData('nx_devis')];
   const rows = devis.map(d => `
-    <tr>
+    <tr class="devis-row" data-statut="${d.statut}" data-search="${(d.client+d.engin+d.id+d.ville).toLowerCase()}">
       <td><strong>${d.id}</strong>${d.source === 'web' ? ' <span class="nav-badge amber" style="position:static;margin-left:4px" title="Reçu depuis noldexfleet.com">🌐</span>' : ''}</td>
       <td>${d.client}</td>
       <td>${d.engin}</td>
@@ -3029,13 +3195,48 @@ function renderDevis() {
       <div class="section-title">Demandes de devis</div>
       ${addBtn}
     </div>
+    <div class="filter-bar" style="margin-bottom:16px">
+      <input class="filter-input" placeholder="🔍 Client, engin, ID..." id="dv-q"
+        oninput="filterDevisTable()" style="flex:1 1 160px">
+      <select class="filter-input" id="dv-statut" onchange="filterDevisTable()">
+        <option value="">Tous statuts</option>
+        <option value="en_attente">⏳ En attente</option>
+        <option value="accepte">✅ Accepté</option>
+        <option value="en_cours">🔵 En cours</option>
+        <option value="termine">✓ Terminé</option>
+        <option value="refuse">❌ Refusé</option>
+      </select>
+      <select class="filter-input" id="dv-source" onchange="filterDevisTable()">
+        <option value="">Toutes sources</option>
+        <option value="web">🌐 Web</option>
+        <option value="interne">🏢 Interne</option>
+      </select>
+    </div>
     <div class="nx-table-wrap" style="overflow-x:auto">
       <table class="nx-table">
         <thead><tr><th>ID</th><th>Client</th><th>Engin</th><th>Ville</th><th>Durée</th><th>Montant est.</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead>
-        <tbody>${rows}</tbody>
+        <tbody id="devis-tbody">${rows}</tbody>
       </table>
     </div>
+    <div id="devis-empty" style="display:none" class="empty-state"><div class="es-icon">🔍</div><div class="es-text">Aucun devis trouvé</div></div>
   `;
+}
+
+function filterDevisTable() {
+  const q = (document.getElementById('dv-q')?.value || '').toLowerCase();
+  const statut = document.getElementById('dv-statut')?.value || '';
+  const source = document.getElementById('dv-source')?.value || '';
+  let visible = 0;
+  document.querySelectorAll('.devis-row').forEach(row => {
+    const matchQ = !q || row.dataset.search.includes(q);
+    const matchS = !statut || row.dataset.statut === statut;
+    const matchSrc = !source || (source === 'web' ? row.innerHTML.includes('🌐') : !row.innerHTML.includes('🌐'));
+    const show = matchQ && matchS && matchSrc;
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  const emptyEl = document.getElementById('devis-empty');
+  if (emptyEl) emptyEl.style.display = visible === 0 ? 'block' : 'none';
 }
 
 function viewDevis(id) {
@@ -4021,20 +4222,159 @@ function sendMessage() {
 function renderNotifPanel() {
   const el = document.getElementById('notif-list');
   if (!el) return;
-  const alertes = getData('nx_alertes').slice(0,6);
-  el.innerHTML = alertes.map(a => `
-    <div class="alert-item ${a.type}" style="border-bottom:1px solid rgba(58,77,107,.4)">
-      <div class="alert-icon">${a.icon}</div>
-      <div class="alert-body">
-        <div class="a-title" style="font-size:12px">${a.titre}</div>
-        <div class="a-sub" style="font-size:11px">${a.temps}</div>
+
+  const alertes = getData('nx_alertes').slice(0, 5);
+  const pending = currentRole === 'admin' ? getData('nx_pending_users') : [];
+  const roleLabels = { partenaire:'Partenaire', client:'Client B2B' };
+  const roleColors = { partenaire:'var(--blue)', client:'var(--green)' };
+  const roleBadge  = { partenaire:'badge-blue', client:'badge-green' };
+
+  // ── Section inscriptions en attente (admin uniquement) ──
+  const pendingHtml = pending.length > 0 ? `
+    <div style="padding:10px 16px 6px;background:rgba(245,158,11,.06);border-bottom:2px solid rgba(245,158,11,.25)">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:8px">
+        ⏳ Inscriptions en attente (${pending.length})
+      </div>
+      ${pending.map(p => `
+        <div style="
+          display:flex;align-items:center;gap:10px;
+          padding:9px 10px;margin-bottom:6px;
+          background:rgba(245,158,11,.08);
+          border:1px solid rgba(245,158,11,.2);
+          border-left:3px solid var(--amber);
+        ">
+          <div style="
+            width:34px;height:34px;flex-shrink:0;border-radius:50%;
+            background:${roleColors[p.role]||'var(--slate)'};
+            display:flex;align-items:center;justify-content:center;
+            font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;
+          ">${p.avatar}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nom}</div>
+            <div style="font-size:10px;color:var(--fog);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.email}</div>
+            <div style="margin-top:3px">
+              <span class="badge ${roleBadge[p.role]||'badge-ox'}" style="font-size:9px;padding:1px 6px">${roleLabels[p.role]||p.role}</span>
+              <span style="font-size:9px;color:var(--slate);margin-left:4px">${p.dateDemande}</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
+            <button onclick="validerCompteNotif(${p.id})" style="
+              background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);color:var(--green);
+              padding:4px 8px;font-family:'Barlow Condensed',sans-serif;font-size:10px;
+              font-weight:700;letter-spacing:.5px;cursor:pointer;white-space:nowrap;
+            ">✅ Valider</button>
+            <button onclick="rejeterCompteNotif(${p.id})" style="
+              background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--red);
+              padding:4px 8px;font-family:'Barlow Condensed',sans-serif;font-size:10px;
+              font-weight:700;letter-spacing:.5px;cursor:pointer;white-space:nowrap;
+            ">❌ Rejeter</button>
+          </div>
+        </div>
+      `).join('')}
+      <div style="text-align:right;padding-bottom:2px">
+        <span onclick="toggleNotifPanel();navigate('utilisateurs','Utilisateurs')" style="
+          font-size:10px;color:var(--amber);cursor:pointer;letter-spacing:.5px;
+          text-decoration:underline;text-underline-offset:2px;
+        ">Voir tout →</span>
       </div>
     </div>
-  `).join('') || '<div class="empty-state"><div class="es-icon">✅</div><div class="es-text">Aucune notification</div></div>';
+  ` : '';
+
+  // ── Section alertes système ──
+  const alertesHtml = alertes.length > 0 ? `
+    <div style="padding:10px 16px 6px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--fog);margin-bottom:8px">
+        🔔 Alertes système
+      </div>
+    </div>
+    ${alertes.map(a => `
+      <div class="alert-item ${a.type}" style="border-bottom:1px solid rgba(58,77,107,.4)">
+        <div class="alert-icon">${a.icon}</div>
+        <div class="alert-body">
+          <div class="a-title" style="font-size:12px">${a.titre}</div>
+          <div class="a-sub" style="font-size:11px">${a.temps}</div>
+        </div>
+      </div>
+    `).join('')}
+  ` : '';
+
+  const emptyHtml = (!pending.length && !alertes.length)
+    ? '<div class="empty-state"><div class="es-icon">✅</div><div class="es-text">Aucune notification</div></div>'
+    : '';
+
+  el.innerHTML = pendingHtml + alertesHtml + emptyHtml;
+
+  // Mettre à jour le notif-dot : allumé si inscriptions en attente OU alertes urgentes
+  const hasUrgent = getData('nx_alertes').some(a => a.type === 'urgent');
+  const dot = document.getElementById('notif-dot');
+  if (dot) dot.style.display = (pending.length > 0 || hasUrgent) ? '' : 'none';
+}
+
+// ── Valider/Rejeter depuis le panneau notif (sans quitter la page) ──
+function validerCompteNotif(id) {
+  const pending = getData('nx_pending_users');
+  const p = pending.find(x => x.id === id);
+  if (!p) return;
+
+  const authUsers = JSON.parse(ls('nx_auth_users') || '[]');
+  authUsers.push({ email: p.email, passHash: p.passHash, role: p.role, name: p.nom });
+  ls('nx_auth_users', JSON.stringify(authUsers));
+
+  const users = getData('nx_utilisateurs');
+  users.push({ id: p.id, nom: p.nom, email: p.email, role: p.role, statut: 'actif', derniereConnexion: '—', avatar: p.avatar });
+  setData('nx_utilisateurs', users);
+
+  setData('nx_pending_users', pending.filter(x => x.id !== id));
+
+  // Rafraîchir panel + badges sidebar
+  renderNotifPanel();
+  refreshNavBadges();
+  toast(`✅ ${p.nom} validé — accès activé`);
+
+  // Si on est sur la page utilisateurs, la rafraîchir
+  const activePage = document.querySelector('.nav-item.active')?.dataset.page;
+  if (activePage === 'utilisateurs') renderUtilisateurs();
+}
+
+function rejeterCompteNotif(id) {
+  const pending = getData('nx_pending_users');
+  const p = pending.find(x => x.id === id);
+  if (!p) return;
+  confirmModal(`Rejeter la demande de <strong>${p.nom}</strong> (${p.email}) ?`, () => {
+    setData('nx_pending_users', pending.filter(x => x.id !== id));
+    renderNotifPanel();
+    refreshNavBadges();
+    toast(`Demande de ${p.nom} rejetée`, 'error');
+    const activePage = document.querySelector('.nav-item.active')?.dataset.page;
+    if (activePage === 'utilisateurs') renderUtilisateurs();
+  });
+}
+
+// ── Rafraîchir les badges de la sidebar ──
+function refreshNavBadges() {
+  const badges = getNavBadges();
+  document.querySelectorAll('.nav-item').forEach(el => {
+    const id = el.dataset.page;
+    const badgeVal = badges[id];
+    let badgeEl = el.querySelector('.nav-badge');
+    if (badgeVal) {
+      if (!badgeEl) {
+        badgeEl = document.createElement('span');
+        const cls = id === 'messagerie' ? 'green' : id === 'utilisateurs' ? 'amber' : id === 'devis' || id === 'paiements' ? 'amber' : '';
+        badgeEl.className = 'nav-badge ' + cls;
+        el.appendChild(badgeEl);
+      }
+      badgeEl.textContent = badgeVal;
+    } else if (badgeEl) {
+      badgeEl.remove();
+    }
+  });
 }
 
 function toggleNotifPanel() {
-  document.getElementById('notif-panel').classList.toggle('open');
+  const panel = document.getElementById('notif-panel');
+  panel.classList.toggle('open');
+  if (panel.classList.contains('open')) renderNotifPanel();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -4197,7 +4537,7 @@ function viewFacture(id) {
         <div class="facture-parties">
           <div>
             <div class="facture-party-label">Facturé par</div>
-            <div style="font-weight:700">NOLDEX LOGISTICS</div>
+            <div style="font-weight:700">NOLDEX FLEET</div>
             <div>Conakry, Guinée</div>
             <div>contact@noldexfleet.com</div>
           </div>
@@ -4221,7 +4561,7 @@ function viewFacture(id) {
         <div style="margin-top:16px;padding-top:12px;border-top:1px solid #eee;font-size:11px;color:#888">
           Statut: <strong style="color:${p.statut==='paye'?'#22C55E':'#F59E0B'}">${p.statut === 'paye' ? 'PAYÉE' : 'EN ATTENTE'}</strong>
           ${p.datePaie ? ` · Payée le: ${p.datePaie} via ${p.methode}` : ''}<br>
-          NOLDEX LOGISTICS SARL — RCCM GN.TCC.2026.B.01055 · NIF 123456789
+          NOLDEX FLEET SARL — RCCM GN.TCC.2026.B.01055 · NIF 123456789
         </div>
       </div>
     </div>
@@ -4577,7 +4917,7 @@ function renderDocuments() {
       </div>
       <div class="doc-size">${d.taille}</div>
       <div style="display:flex;gap:6px;flex-shrink:0;margin-left:12px">
-        <button class="btn btn-ghost btn-sm" onclick="toast('Téléchargement: ${d.nom}')">📥</button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadDoc(${d.id})">📥</button>
         ${currentRole === 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteDoc(${d.id})">🗑️</button>` : ''}
       </div>
     </div>
@@ -4621,7 +4961,7 @@ function openModalUpload() {
     <div class="modal-body">
       <div class="form-row">
         <div class="form-group"><label class="form-label">Nom du document</label>
-          <input class="form-input" id="doc-nom" placeholder="Nom du fichier">
+          <input class="form-input" id="doc-nom" placeholder="Laisser vide = nom du fichier">
         </div>
         <div class="form-group"><label class="form-label">Type</label>
           <select class="form-input" id="doc-type">
@@ -4633,35 +4973,96 @@ function openModalUpload() {
       <div class="form-group"><label class="form-label">Contrat associé (optionnel)</label>
         <input class="form-input" id="doc-contrat" placeholder="CCL-2026-XXX">
       </div>
-      <div style="border:2px dashed var(--steel-xl);padding:32px;text-align:center;color:var(--fog);margin-top:8px">
-        <div style="font-size:32px;margin-bottom:8px">📎</div>
-        <div style="font-size:13px">Cliquez pour sélectionner un fichier</div>
-        <div style="font-size:11px;margin-top:4px">PDF, XLSX, DOCX — Max 10 MB</div>
+      <div class="form-group">
+        <label class="form-label">Fichier</label>
+        <label id="doc-drop-zone" style="
+          display:block;border:2px dashed var(--steel-xl);padding:28px;text-align:center;
+          color:var(--fog);cursor:pointer;transition:border-color .2s;
+        " onmouseover="this.style.borderColor='var(--ox)'" onmouseout="this.style.borderColor='var(--steel-xl)'">
+          <div style="font-size:32px;margin-bottom:8px">📎</div>
+          <div id="doc-file-label" style="font-size:13px">Cliquez pour sélectionner un fichier</div>
+          <div style="font-size:11px;margin-top:4px;color:var(--slate)">PDF, XLSX, DOCX, PNG — Max 5 MB</div>
+          <input type="file" id="doc-file" accept=".pdf,.xlsx,.xls,.docx,.doc,.png,.jpg,.jpeg"
+            style="display:none" onchange="onDocFileChange(this)">
+        </label>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
-      <button class="btn btn-ox" onclick="saveDoc()">📤 Ajouter</button>
+      <button class="btn btn-ox" id="doc-save-btn" onclick="saveDoc()">📤 Ajouter</button>
     </div>
   `);
 }
 
+function onDocFileChange(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const label = document.getElementById('doc-file-label');
+  const nomInput = document.getElementById('doc-nom');
+  label.textContent = `✅ ${file.name} (${(file.size/1024).toFixed(0)} KB)`;
+  if (!nomInput.value) nomInput.value = file.name;
+}
+
 function saveDoc() {
   const nom = document.getElementById('doc-nom').value.trim();
-  if (!nom) { toast('Le nom du document est obligatoire', 'warn'); return; }
-  const docs = getData('nx_documents');
+  const fileInput = document.getElementById('doc-file');
+  const file = fileInput?.files[0];
   const typeIcons = { Contrat:'📄', Facture:'💰', Véhicule:'🚗', Assurance:'🛡️', Administratif:'📋', Rapport:'📊', Autre:'📎' };
   const type = document.getElementById('doc-type').value;
-  docs.push({
-    id: Date.now(),
-    nom: document.getElementById('doc-nom').value || 'Document sans nom',
-    type, icon: typeIcons[type]||'📎',
-    taille: '—', date: new Date().toISOString().slice(0,10),
-    contratId: document.getElementById('doc-contrat').value || null,
-    uploadePar: currentUser.name,
-  });
-  setData('nx_documents', docs);
-  closeModal(); renderDocuments(); toast('Document ajouté ✅');
+  const finalNom = nom || (file ? file.name : '');
+  if (!finalNom) { toast('Le nom du document est obligatoire', 'warn'); return; }
+  if (file && file.size > 5 * 1024 * 1024) { toast('Fichier trop volumineux (max 5 MB)', 'error'); return; }
+
+  const btn = document.getElementById('doc-save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Traitement...'; }
+
+  const pushDoc = (base64Data) => {
+    const docs = getData('nx_documents');
+    const newDoc = {
+      id: Date.now(),
+      nom: finalNom,
+      type, icon: typeIcons[type]||'📎',
+      taille: file ? `${(file.size/1024).toFixed(0)} KB` : '—',
+      date: new Date().toISOString().slice(0,10),
+      contratId: document.getElementById('doc-contrat').value || null,
+      uploadePar: currentUser.name,
+      data: base64Data || null,
+      mimeType: file ? file.type : null,
+    };
+    docs.push(newDoc);
+    try {
+      setData('nx_documents', docs);
+    } catch(e) {
+      toast('Stockage insuffisant — fichier trop grand', 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '📤 Ajouter'; }
+      return;
+    }
+    closeModal(); renderDocuments(); toast('Document ajouté ✅');
+  };
+
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => pushDoc(e.target.result);
+    reader.onerror = () => { toast('Erreur lecture fichier', 'error'); if (btn) { btn.disabled = false; btn.textContent = '📤 Ajouter'; } };
+    reader.readAsDataURL(file);
+  } else {
+    pushDoc(null);
+  }
+}
+
+function downloadDoc(id) {
+  const docs = getData('nx_documents');
+  const d = docs.find(x => x.id === id);
+  if (!d) return;
+  if (d.data) {
+    const a = document.createElement('a');
+    a.href = d.data;
+    a.download = d.nom;
+    a.click();
+    toast(`Téléchargement: ${d.nom}`);
+  } else {
+    toast('Aucun fichier attaché à ce document', 'warn');
+  }
 }
 
 function deleteDoc(id) {
@@ -4698,24 +5099,89 @@ function renderUtilisateurs() {
     </div>
   `).join('');
 
+  const pending = getData('nx_pending_users');
+
   const kpis = [
     { label:'Total', val:users.length, icon:'👥', color:'' },
     { label:'Actifs', val:users.filter(u=>u.statut==='actif').length, icon:'🟢', color:'var(--green)' },
+    { label:'En attente', val:pending.length, icon:'⏳', color:'#fbbf24' },
     { label:'Partenaires', val:users.filter(u=>u.role==='partenaire').length, icon:'🤝', color:'var(--blue)' },
     { label:'Clients', val:users.filter(u=>u.role==='client').length, icon:'🏢', color:'var(--ox-l)' },
   ];
+  const roleLabels2 = { partenaire:'Partenaire', client:'Client B2B' };
+
+  const pendingSection = pending.length > 0 ? `
+    <div style="margin-bottom:24px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div class="section-title" style="margin:0">⏳ Comptes en attente de validation</div>
+        <span class="badge badge-amber">${pending.length}</span>
+      </div>
+      ${pending.map(p => `
+        <div class="pending-user-row">
+          <div class="u-avatar-lg" style="background:${p.role==='partenaire'?'var(--blue)':'var(--green)'}">${p.avatar}</div>
+          <div class="u-details">
+            <div class="u-name-lg">${p.nom}</div>
+            <div class="u-email">${p.email} · Demande le ${p.dateDemande}</div>
+          </div>
+          <span class="badge ${p.role==='partenaire'?'badge-blue':'badge-green'}">${roleLabels2[p.role]||p.role}</span>
+          <div class="pending-actions">
+            <button class="btn btn-success btn-sm" onclick="validerCompte(${p.id})">✅ Valider</button>
+            <button class="btn btn-danger btn-sm" onclick="rejeterCompte(${p.id})">❌ Rejeter</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="height:1px;background:rgba(255,255,255,.06);margin-bottom:24px"></div>
+  ` : '';
 
   document.getElementById('main-content').innerHTML = `
     <div class="section-header">
       <div class="section-title">Gestion des utilisateurs</div>
       <button class="btn btn-ox" onclick="openModalAddUser()">＋ Nouvel utilisateur</button>
     </div>
+    ${pendingSection}
     <div class="kpi-grid" style="margin-bottom:24px">
       ${kpis.map(k=>`<div class="kpi-card" data-icon="${k.icon}"><div class="kpi-label">${k.label}</div><div class="kpi-value" ${k.color?`style="color:${k.color}"`:''}>${k.val}</div></div>`).join('')}
     </div>
     <div id="users-list" class="nx-table-wrap">${rows}</div>
   `;
   if (window.innerWidth >= 769) convertUsersToTable();
+}
+
+function validerCompte(id) {
+  const pending = getData('nx_pending_users');
+  const p = pending.find(x => x.id === id);
+  if (!p) return;
+
+  // Ajouter dans auth users
+  const authUsers = JSON.parse(ls('nx_auth_users') || '[]');
+  authUsers.push({ email: p.email, passHash: p.passHash, role: p.role, name: p.nom });
+  ls('nx_auth_users', JSON.stringify(authUsers));
+
+  // Ajouter dans utilisateurs
+  const users = getData('nx_utilisateurs');
+  users.push({ id: p.id, nom: p.nom, email: p.email, role: p.role, statut: 'actif', derniereConnexion: '—', avatar: p.avatar });
+  setData('nx_utilisateurs', users);
+
+  // Retirer de la liste en attente
+  setData('nx_pending_users', pending.filter(x => x.id !== id));
+  refreshNavBadges();
+  renderNotifPanel();
+  renderUtilisateurs();
+  toast(`✅ Compte de ${p.nom} validé — accès activé`);
+}
+
+function rejeterCompte(id) {
+  const pending = getData('nx_pending_users');
+  const p = pending.find(x => x.id === id);
+  if (!p) return;
+  confirmModal(`Rejeter la demande de <strong>${p.nom}</strong> (${p.email}) ?`, () => {
+    setData('nx_pending_users', pending.filter(x => x.id !== id));
+    refreshNavBadges();
+    renderNotifPanel();
+    renderUtilisateurs();
+    toast(`Demande de ${p.nom} rejetée`, 'error');
+  });
 }
 
 function convertUsersToTable() {
@@ -5041,7 +5507,10 @@ function renderPlanning() {
   requestAnimationFrame(() => {
     const rows = document.getElementById('gantt-rows');
     const hdr  = document.getElementById('gantt-scroll-hdr');
-    if (rows && hdr) rows.addEventListener('scroll', () => { hdr.scrollLeft = rows.scrollLeft; });
+    if (rows && hdr) {
+      rows.addEventListener('scroll', () => { if (hdr) hdr.scrollLeft = rows.scrollLeft; });
+      hdr.addEventListener('scroll', () => { if (rows) rows.scrollLeft = hdr.scrollLeft; });
+    }
   });
 }
 
@@ -5067,17 +5536,25 @@ function renderProfil() {
     ];
   } else if (currentRole === 'partenaire') {
     const mes = engins.filter(e => e.partenaire === currentUser.name);
+    const mesRevenusPaies = paiements
+      .filter(p => p.partenaire === currentUser.name && p.statut === 'paye')
+      .reduce((s,p) => s + p.montant, 0);
+    const mesInterventions = getData('nx_interventions')
+      .filter(i => mes.map(e=>e.id).includes(i.enginId));
     stats = [
       { label:'Mes engins', val:mes.length, icon:'🚛' },
       { label:'En location', val:mes.filter(e=>e.statut==='en_location').length, icon:'🔵' },
-      { label:'Mes revenus', val:'80.5M GNF', icon:'💰' },
-      { label:'Interventions', val:'5', icon:'🔧' },
+      { label:'Revenus encaissés', val: mesRevenusPaies > 0 ? (mesRevenusPaies/1000000).toFixed(1)+'M GNF' : '0 GNF', icon:'💰' },
+      { label:'Interventions', val: mesInterventions.length, icon:'🔧' },
     ];
   } else {
+    const mesDevis = getData('nx_devis').filter(d => d.client === currentUser.name);
+    const mesPaiements = paiements.filter(p => p.client === currentUser.name);
+    const budgetEngage = mesPaiements.reduce((s,p) => s + p.montant, 0);
     stats = [
-      { label:'Mes demandes', val:getData('nx_devis').length, icon:'📋' },
-      { label:'Contrats actifs', val:contrats.filter(c=>c.statut==='actif').length, icon:'📄' },
-      { label:'Budget engagé', val:'60.7M GNF', icon:'💰' },
+      { label:'Mes demandes', val: mesDevis.length, icon:'📋' },
+      { label:'Contrats actifs', val:contrats.filter(c=>c.statut==='actif'&&c.client===currentUser.name).length, icon:'📄' },
+      { label:'Budget engagé', val: budgetEngage > 0 ? (budgetEngage/1000000).toFixed(1)+'M GNF' : '0 GNF', icon:'💰' },
       { label:'Documents', val:getData('nx_documents').length, icon:'📁' },
     ];
   }
@@ -5170,7 +5647,7 @@ function renderProfil() {
               { label:'Rôle', val:roleLabels[currentRole] },
               { label:'Statut', val:'<span class="badge badge-green">● Actif</span>' },
               { label:'Dernière connexion', val:'Aujourd\'hui, ' + new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}) },
-              { label:'Version plateforme', val:'NOLDEX Platform v16' },
+              { label:'Version plateforme', val:'NOLDEX Platform v17' },
             ].map(f => `
               <div style="padding:10px 0;border-bottom:1px solid rgba(58,77,107,.25)">
                 <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--fog);margin-bottom:4px">${f.label}</div>
@@ -5218,17 +5695,29 @@ function openModalEditProfil() {
 
 function saveProfilEdit() {
   const nom = document.getElementById('ep-nom').value.trim();
+  const newEmail = document.getElementById('ep-email').value.trim();
   if (!nom) { toast('Le nom est obligatoire', 'warn'); return; }
-  currentUser.name = nom;
-  currentUser.email = document.getElementById('ep-email').value;
-  // Mettre à jour le profil dans nx_utilisateurs
+  // Sauvegarder l'ancien email AVANT modification pour le findIndex
+  const oldEmail = currentUser.email;
+  // Mettre à jour nx_utilisateurs avec l'ancien email comme clé de recherche
   const users = getData('nx_utilisateurs');
-  const idx = users.findIndex(u => u.email === currentUser.email);
+  const idx = users.findIndex(u => u.email === oldEmail);
   if (idx !== -1) {
     users[idx].nom = nom;
-    users[idx].email = currentUser.email;
+    users[idx].email = newEmail || oldEmail;
     setData('nx_utilisateurs', users);
   }
+  // Mettre à jour nx_auth_users pour synchroniser le nom
+  const authUsers = JSON.parse(localStorage.getItem('nx_auth_users') || '[]');
+  const authIdx = authUsers.findIndex(u => u.email === oldEmail);
+  if (authIdx !== -1) {
+    authUsers[authIdx].name = nom;
+    if (newEmail) authUsers[authIdx].email = newEmail;
+    localStorage.setItem('nx_auth_users', JSON.stringify(authUsers));
+  }
+  // Maintenant mettre à jour currentUser
+  currentUser.name = nom;
+  if (newEmail) currentUser.email = newEmail;
   document.getElementById('user-name').textContent = nom;
   document.getElementById('user-avatar').textContent = nom[0].toUpperCase();
   closeModal(); renderProfil(); toast('Profil mis à jour ✅');
@@ -5273,42 +5762,45 @@ function changePass() {
 
 function renderParametres() {
   const isDesktop = window.innerWidth >= 769;
+  // Charger les paramètres sauvegardés
+  const savedParams = JSON.parse(localStorage.getItem('nx_parametres') || '{}');
+  const savedNotifs = JSON.parse(localStorage.getItem('nx_notif_params') || '{}');
 
   // Sections paramètres
   const sections = [
     {
-      icon: '🏢', title: 'Informations entreprise',
+      icon: '🏢', title: 'Informations entreprise', sectionId: 'entreprise',
       fields: [
-        { label:'Nom de la plateforme', type:'text', val:'NOLDEX LOGISTICS SARL', id:'ps-nom' },
-        { label:'Email de contact', type:'email', val:'contact@noldexfleet.com', id:'ps-email' },
-        { label:'Téléphone', type:'text', val:'+224627541925', id:'ps-tel' },
-        { label:'Adresse', type:'text', val:'Belle-vue, Commune de Dixinn, Conakry', id:'ps-addr' },
-        { label:'RCCM', type:'text', val:'GN.TCC.2026.B.01055', id:'ps-rccm' },
-        { label:'NIF', type:'text', val:'123456789', id:'ps-nif' },
+        { label:'Nom de la plateforme', type:'text', val: savedParams['ps-nom'] || 'NOLDEX FLEET SARL', id:'ps-nom' },
+        { label:'Email de contact', type:'email', val: savedParams['ps-email'] || 'contact@noldexfleet.com', id:'ps-email' },
+        { label:'Téléphone', type:'text', val: savedParams['ps-tel'] || '+224627541925', id:'ps-tel' },
+        { label:'Adresse', type:'text', val: savedParams['ps-addr'] || 'Belle-vue, Commune de Dixinn, Conakry', id:'ps-addr' },
+        { label:'RCCM', type:'text', val: savedParams['ps-rccm'] || 'GN.TCC.2026.B.01055', id:'ps-rccm' },
+        { label:'NIF', type:'text', val: savedParams['ps-nif'] || '123456789', id:'ps-nif' },
       ]
     },
     {
-      icon: '💰', title: 'Paramètres financiers',
+      icon: '💰', title: 'Paramètres financiers', sectionId: 'financier',
       fields: [
-        { label:'Devise', type:'select', val:'GNF', options:['GNF','USD','EUR'], id:'ps-devise' },
-        { label:'Commission plateforme (%)', type:'number', val:'5', id:'ps-commission' },
-        { label:'TVA (%)', type:'number', val:'18', id:'ps-tva' },
-        { label:'Délai paiement (jours)', type:'number', val:'30', id:'ps-delai' },
+        { label:'Devise', type:'select', val: savedParams['ps-devise'] || 'GNF', options:['GNF','USD','EUR'], id:'ps-devise' },
+        { label:'Commission plateforme (%)', type:'number', val: savedParams['ps-commission'] || '5', id:'ps-commission' },
+        { label:'TVA (%)', type:'number', val: savedParams['ps-tva'] || '18', id:'ps-tva' },
+        { label:'Délai paiement (jours)', type:'number', val: savedParams['ps-delai'] || '30', id:'ps-delai' },
       ]
     },
     {
-      icon: '🔔', title: 'Notifications',
+      icon: '🔔', title: 'Notifications', sectionId: 'notifs',
       toggles: [
-        { label:'Alertes maintenance', checked:true, id:'notif-maint' },
-        { label:'Nouveaux devis', checked:true, id:'notif-devis' },
-        { label:'Paiements en retard', checked:true, id:'notif-paiement' },
-        { label:'Expiration contrats', checked:true, id:'notif-contrat' },
-        { label:'Notifications email', checked:false, id:'notif-email' },
-        { label:'Notifications SMS', checked:false, id:'notif-sms' },
+        { label:'Alertes maintenance', checked: savedNotifs['notif-maint'] !== false, id:'notif-maint' },
+        { label:'Nouveaux devis', checked: savedNotifs['notif-devis'] !== false, id:'notif-devis' },
+        { label:'Paiements en retard', checked: savedNotifs['notif-paiement'] !== false, id:'notif-paiement' },
+        { label:'Expiration contrats', checked: savedNotifs['notif-contrat'] !== false, id:'notif-contrat' },
+        { label:'Notifications email', checked: savedNotifs['notif-email'] === true, id:'notif-email' },
+        { label:'Notifications SMS', checked: savedNotifs['notif-sms'] === true, id:'notif-sms' },
       ]
     },
     {
-      icon: '🗃️', title: 'Données & Sécurité',
+      icon: '🗃️', title: 'Données & Sécurité', sectionId: 'data',
       actions: [
         { label:'Exporter toutes les données (JSON)', icon:'📥', fn:'exportAllData()' },
         { label:'Réinitialiser les données de démo', icon:'🔄', fn:'resetDemoData()', danger:false },
@@ -5333,7 +5825,7 @@ function renderParametres() {
         </div>
       `).join('')}</div>
       <div style="margin-top:16px;text-align:right">
-        <button class="btn btn-ox btn-sm" onclick="toast('Paramètres enregistrés ✅')">💾 Enregistrer</button>
+        <button class="btn btn-ox btn-sm" onclick="saveParamSection('${sec.sectionId}')">💾 Enregistrer</button>
       </div>`;
     }
 
@@ -5342,7 +5834,7 @@ function renderParametres() {
       content = `<div style="${grid}">${sec.toggles.map(t => `
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--steel);border:1px solid var(--steel-xl)">
           <span style="font-size:13px">${t.label}</span>
-          <div onclick="this.dataset.on=this.dataset.on==='1'?'0':'1';this.style.background=this.dataset.on==='1'?'var(--ox)':'var(--steel-xl)';this.style.justifyContent=this.dataset.on==='1'?'flex-end':'flex-start'" data-on="${t.checked?'1':'0'}" style="
+          <div id="${t.id}-toggle" onclick="toggleNotifParam('${t.id}',this)" data-on="${t.checked?'1':'0'}" style="
             width:40px;height:22px;border-radius:11px;cursor:pointer;
             background:${t.checked?'var(--ox)':'var(--steel-xl)'};
             display:flex;align-items:center;padding:3px;
@@ -5378,10 +5870,35 @@ function renderParametres() {
   document.getElementById('main-content').innerHTML = `
     <div class="section-header">
       <div class="section-title">Paramètres système</div>
-      <span style="font-size:12px;color:var(--fog)">NOLDEX Platform v16</span>
+      <span style="font-size:12px;color:var(--fog)">NOLDEX Platform v17</span>
     </div>
     ${sections.map(renderSection).join('')}
   `;
+}
+
+function saveParamSection(sectionId) {
+  const saved = JSON.parse(localStorage.getItem('nx_parametres') || '{}');
+  const ids = {
+    entreprise: ['ps-nom','ps-email','ps-tel','ps-addr','ps-rccm','ps-nif'],
+    financier:  ['ps-devise','ps-commission','ps-tva','ps-delai'],
+  };
+  const fields = ids[sectionId] || [];
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) saved[id] = el.value;
+  });
+  localStorage.setItem('nx_parametres', JSON.stringify(saved));
+  toast('Paramètres enregistrés ✅');
+}
+
+function toggleNotifParam(id, el) {
+  const isOn = el.dataset.on === '1';
+  el.dataset.on = isOn ? '0' : '1';
+  el.style.background = isOn ? 'var(--steel-xl)' : 'var(--ox)';
+  el.style.justifyContent = isOn ? 'flex-start' : 'flex-end';
+  const saved = JSON.parse(localStorage.getItem('nx_notif_params') || '{}');
+  saved[id] = !isOn;
+  localStorage.setItem('nx_notif_params', JSON.stringify(saved));
 }
 
 function exportAllData() {
@@ -5397,7 +5914,7 @@ function exportAllData() {
     documents: getData('nx_documents'),
     utilisateurs: getData('nx_utilisateurs'),
     exportDate: new Date().toISOString(),
-    version: 'NOLDEX Platform v16',
+    version: 'NOLDEX Platform v17',
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
@@ -5436,9 +5953,10 @@ function resetApp() {
 
 
 function formatMontant(n) {
-  if (!n) return '—';
+  if (n === null || n === undefined || n === '') return '—';
   if (n >= 1000000) return (n/1000000).toFixed(1) + 'M GNF';
-  return n.toLocaleString() + ' GNF';
+  if (n >= 1000) return n.toLocaleString('fr-FR') + ' GNF';
+  return n.toLocaleString('fr-FR') + ' GNF';
 }
 
 function statutBadge(s) {
@@ -5510,7 +6028,7 @@ function closeSidebar() {
 
 // Global error handler — log silencieux (pas d'exposition en prod)
 window.onerror = function(msg, src, line, col, err) {
-  console.error('[NOLDEX v16]', msg, '— ligne', line, src);
+  console.error('[NOLDEX v17]', msg, '— ligne', line, src);
   // En développement : décommenter la ligne suivante pour afficher les erreurs
   // if (currentUser) toast('Erreur: ' + msg, 'error');
   return false;
