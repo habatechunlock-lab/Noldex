@@ -382,6 +382,16 @@ body {
   background: linear-gradient(180deg, #0f1823 0%, #131f30 100%);
 }
 .form-input::placeholder { color: var(--slate); }
+.pw-wrap { position:relative; display:flex; align-items:center; }
+.pw-wrap .form-input { flex:1; padding-right:42px; }
+.pw-eye {
+  position:absolute; right:0; top:0; bottom:0; width:40px;
+  background:transparent; border:none; cursor:pointer;
+  font-size:16px; display:flex; align-items:center; justify-content:center;
+  color:var(--fog); transition:color .2s; user-select:none;
+}
+.pw-eye:hover { color:var(--ox); }
+.pw-eye.visible { color:var(--ox-l); }
 
 select.form-input option { background: var(--steel-m); }
 
@@ -1761,7 +1771,7 @@ body.gps-active .content { padding: 0; overflow: hidden; position: relative; }
           </div>
           <div class="form-group">
             <label class="form-label">Mot de passe</label>
-            <input type="password" class="form-input" id="login-pass" placeholder="••••••••">
+            <div class="pw-wrap"><input type="password" class="form-input" id="login-pass" placeholder="••••••••"><button type="button" class="pw-eye" onclick="togglePw('login-pass',this)" tabindex="-1">👁️</button></div>
           </div>
           <button class="btn-primary" id="login-btn" onclick="doLogin()">Se connecter →</button>
 
@@ -1794,11 +1804,11 @@ body.gps-active .content { padding: 0; overflow: hidden; position: relative; }
           </div>
           <div class="form-group">
             <label class="form-label">Mot de passe</label>
-            <input type="password" class="form-input" id="reg-pass" placeholder="Min. 6 caractères">
+            <div class="pw-wrap"><input type="password" class="form-input" id="reg-pass" placeholder="Min. 6 caractères"><button type="button" class="pw-eye" onclick="togglePw('reg-pass',this)" tabindex="-1">👁️</button></div>
           </div>
           <div class="form-group">
             <label class="form-label">Confirmer le mot de passe</label>
-            <input type="password" class="form-input" id="reg-pass2" placeholder="Répétez le mot de passe">
+            <div class="pw-wrap"><input type="password" class="form-input" id="reg-pass2" placeholder="Répétez le mot de passe"><button type="button" class="pw-eye" onclick="togglePw('reg-pass2',this)" tabindex="-1">👁️</button></div>
           </div>
           <button class="btn-primary" onclick="doRegister()">Créer mon compte →</button>
 
@@ -5265,7 +5275,7 @@ function openModalAddUser() {
           </select>
         </div>
         <div class="form-group"><label class="form-label">Mot de passe provisoire</label>
-          <input type="password" class="form-input" id="nu-pass" placeholder="••••••••">
+          <div class="pw-wrap"><input type="password" class="form-input" id="nu-pass" placeholder="••••••••"><button type="button" class="pw-eye" onclick="togglePw('nu-pass',this)" tabindex="-1">👁️</button></div>
         </div>
       </div>
     </div>
@@ -5731,11 +5741,11 @@ function openModalChangePass() {
     </div>
     <div class="modal-body">
       <div class="form-group"><label class="form-label">Mot de passe actuel</label>
-        <input type="password" class="form-input" id="cp-cur" placeholder="••••••••"></div>
+        <div class="pw-wrap"><input type="password" class="form-input" id="cp-cur" placeholder="••••••••"><button type="button" class="pw-eye" onclick="togglePw('cp-cur',this)" tabindex="-1">👁️</button></div></div>
       <div class="form-group"><label class="form-label">Nouveau mot de passe</label>
-        <input type="password" class="form-input" id="cp-new" placeholder="••••••••"></div>
+        <div class="pw-wrap"><input type="password" class="form-input" id="cp-new" placeholder="••••••••"><button type="button" class="pw-eye" onclick="togglePw('cp-new',this)" tabindex="-1">👁️</button></div></div>
       <div class="form-group"><label class="form-label">Confirmer le nouveau</label>
-        <input type="password" class="form-input" id="cp-conf" placeholder="••••••••"></div>
+        <div class="pw-wrap"><input type="password" class="form-input" id="cp-conf" placeholder="••••••••"><button type="button" class="pw-eye" onclick="togglePw('cp-conf',this)" tabindex="-1">👁️</button></div></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
@@ -5979,6 +5989,15 @@ function statutBadge(s) {
 
 // ─── Modal de confirmation réutilisable (remplace confirm() natif) ───
 let _confirmCallback = null;
+function togglePw(id, btn) {
+  const input = document.getElementById(id);
+  if (!input) return;
+  const show = input.type === 'password';
+  input.type = show ? 'text' : 'password';
+  btn.textContent = show ? '🙈' : '👁️';
+  btn.classList.toggle('visible', show);
+}
+
 function confirmModal(message, onConfirm, danger = true) {
   _confirmCallback = onConfirm;
   openModal(`
